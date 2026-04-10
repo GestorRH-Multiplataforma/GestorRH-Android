@@ -32,3 +32,14 @@ google-services.json
 
 # Android Profiling
 *.hprof
+
+# Variables de entorno y secretos inyectables (URLs, tokens, etc.)
+secrets.properties
+.env
+
+# Archivo de propiedades con las contraseñas del Keystore (Release)
+keystore.properties
+
+# Exclusiones de Sistema Operativo (Mac/Windows)
+.DS_Store
+Thumbs.db
