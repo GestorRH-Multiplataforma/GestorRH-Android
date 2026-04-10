@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">GestorRH</string>
+    <string name="login_title">Welcome to GestorRH</string>
+    <string name="login_email_hint">Email address</string>
+    <string name="login_password_hint">Password</string>
+    <string name="login_button">Sign In</string>
+    <string name="login_error_empty">Fields cannot be empty</string>
+</resources>
