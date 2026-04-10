@@ -1,0 +1,42 @@
+name: Android CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+      - 'fix/**'
+      - 'refactor/**'
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    name: Compilación y Pruebas
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      - name: Configurar JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Permisos para gradlew
+        run: chmod +x gradlew
+
+      - name: Generar secrets.properties para CI
+        run: |
+          echo "DEV_BASE_URL=\"http://localhost:8080/api/\"" > secrets.properties
+          echo "PROD_BASE_URL=\"https://api.gestorrh.com/api/\"" >> secrets.properties
+
+      - name: Compilar APK (assembleDebug)
+        run: ./gradlew assembleDebug
+
+      - name: Ejecutar Tests Básicos
+        run: ./gradlew testDebugUnitTest
