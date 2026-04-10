@@ -1,6 +1,15 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+}
+
+val secretsFile = rootProject.file("secrets.properties")
+val secrets = Properties()
+if (secretsFile.exists()) {
+    secrets.load(FileInputStream(secretsFile))
 }
 
 android {
@@ -22,12 +31,22 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Entorno DEV (Pruebas locales)
+            val devUrl = secrets.getProperty("DEV_BASE_URL")
+                ?: throw GradleException("ERROR ARQUITECTURA: Falta DEV_BASE_URL en secrets.properties")
+            buildConfigField("String", "BASE_URL", devUrl)
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            // Entorno PROD (Despliegue final)
+            val prodUrl = secrets.getProperty("PROD_BASE_URL")
+                ?: throw GradleException("ERROR ARQUITECTURA: Falta PROD_BASE_URL en secrets.properties")
+            buildConfigField("String", "BASE_URL", prodUrl)
         }
     }
     compileOptions {
@@ -36,6 +55,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -55,4 +75,22 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+    // 1. Red (Retrofit + Gson + Interceptor para Logs)
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+
+    // 2. Navegación en Jetpack Compose
+    implementation("androidx.navigation:navigation-compose:2.7.7")
+
+    // 3. Inyección de Dependencias (Koin)
+    implementation("io.insert-koin:koin-androidx-compose:3.5.3")
+
+    // 4. Seguridad (EncryptedSharedPreferences para el JWT)
+    implementation("androidx.security:security-crypto-ktx:1.1.0-alpha06")
+
+    // 5. Geolocalización (FusedLocationProviderClient)
+    implementation("com.google.android.gms:play-services-location:21.2.0")
+
+    // Nota: Room (Persistencia) lo inyectaremos más adelante
 }
