@@ -1,12 +1,21 @@
 package com.gestorrh.android.ui.login
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.gestorrh.android.core.security.TokenManager
+import com.gestorrh.android.data.network.autenticacion.AuthApi
+import com.gestorrh.android.data.network.autenticacion.PeticionLoginDTO
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import com.gestorrh.android.R
 
-class LoginViewModel : ViewModel() {
+class LoginViewModel (
+    private val authApi: AuthApi,
+    private val tokenManager: TokenManager
+): ViewModel() {
 
     // Estado interno que solo el ViewModel puede modificar
     private val _uiState = MutableStateFlow(LoginUiState())
@@ -39,6 +48,38 @@ class LoginViewModel : ViewModel() {
             )
         }
         validateForm()
+    }
+
+    fun performLogin() {
+        val currentState = _uiState.value
+
+        _uiState.update { it.copy(isLoading = true, errorMessage = null, isLoginButtonEnabled = false) }
+
+        viewModelScope.launch {
+            try {
+                val peticion = PeticionLoginDTO(currentState.emailInput, currentState.passwordInput)
+                val response = authApi.login(peticion)
+
+                if (response.isSuccessful && response.body() != null) {
+                    val token = response.body()!!.token
+                    tokenManager.saveToken(token)
+
+                    _uiState.update { it.copy(isLoading = false, isLoginSuccessful = true) }
+                } else {
+                    _uiState.update { it.copy(
+                        isLoading = false,
+                        errorMessage = R.string.login_error_credentials,
+                        isLoginButtonEnabled = true
+                    )}
+                }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(
+                    isLoading = false,
+                    errorMessage = R.string.login_error_network,
+                    isLoginButtonEnabled = true
+                )}
+            }
+        }
     }
 
     /**

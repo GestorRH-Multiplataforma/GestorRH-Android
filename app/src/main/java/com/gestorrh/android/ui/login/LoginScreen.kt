@@ -19,6 +19,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.gestorrh.android.R
+import androidx.compose.runtime.LaunchedEffect
 
 @Composable
 fun LoginScreen(
@@ -28,6 +29,12 @@ fun LoginScreen(
     val uiState by viewModel.uiState.collectAsState()
 
     var showDialog by remember { mutableStateOf(false) }
+
+    LaunchedEffect(uiState.isLoginSuccessful) {
+        if (uiState.isLoginSuccessful) {
+            onLoginSuccess()
+        }
+    }
 
     if (showDialog) {
         AlertDialog(
@@ -81,6 +88,15 @@ fun LoginScreen(
                 modifier = Modifier.padding(top = 4.dp, bottom = 48.dp)
             )
 
+            uiState.errorMessage?.let { errorResId ->
+                Text(
+                    text = stringResource(id = errorResId),
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+            }
+
             OutlinedTextField(
                 value = uiState.emailInput,
                 onValueChange = { viewModel.onEmailChange(it) },
@@ -119,18 +135,20 @@ fun LoginScreen(
             )
 
             Button(
-                onClick = { onLoginSuccess() },
+                onClick = { viewModel.performLogin() },
                 enabled = uiState.isLoginButtonEnabled,
                 shape = MaterialTheme.shapes.medium,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.secondary
                 ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp)
+                modifier = Modifier.fillMaxWidth().height(50.dp)
             ) {
                 Text(
-                    text = stringResource(id = R.string.login_button),
+                    text = if (uiState.isLoading) {
+                        stringResource(id = R.string.login_button_loading)
+                    } else {
+                        stringResource(id = R.string.login_button)
+                    },
                     style = MaterialTheme.typography.labelLarge
                 )
             }
