@@ -5,44 +5,56 @@ import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 
 /**
- * Gestor de almacenamiento seguro para credenciales sensibles.
- * Utiliza Android Keystore para encriptar los datos en el dispositivo.
+ * Almacenamiento seguro de credenciales y datos sensibles de la aplicación.
+ * Emplea el sistema nativo Keystore de Android para cifrar y descifrar el Token JWT
+ * de forma transparente, garantizando que no pueda ser extraído en texto plano
+ * incluso si el dispositivo es comprometido (Root).
+ *
+ * @param contexto Contexto de la aplicación necesario para inicializar el almacenamiento.
  */
-class TokenManager(context: Context) {
-    private val masterKey = MasterKey.Builder(context)
+class TokenManager(contexto: Context) {
+
+    private val claveMaestra = MasterKey.Builder(contexto)
         .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
         .build()
 
-    private val sharedPreferences = EncryptedSharedPreferences.create(
-        context,
-        "gestorrh_secure_prefs",
-        masterKey,
+    private val preferenciasCifradas = EncryptedSharedPreferences.create(
+        contexto,
+        "gestorrh_preferencias_seguras",
+        claveMaestra,
         EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
         EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
     )
 
     companion object {
-        private const val KEY_JWT_TOKEN = "jwt_token"
+        private const val CLAVE_TOKEN_JWT = "token_jwt"
     }
 
     /**
-     * Guarda el token encriptado.
+     * Almacena el token de sesión en la caja fuerte del dispositivo.
+     * El valor es cifrado físicamente utilizando el estándar AES256-GCM.
+     *
+     * @param token Cadena JWT devuelta por el servidor tras un inicio de sesión exitoso.
      */
-    fun saveToken(token: String) {
-        sharedPreferences.edit().putString(KEY_JWT_TOKEN, token).apply()
+    fun guardarToken(token: String) {
+        preferenciasCifradas.edit().putString(CLAVE_TOKEN_JWT, token).apply()
     }
 
     /**
-     * Recupera el token desencriptado. Retorna null si no existe.
+     * Recupera y descifra el token de sesión actual.
+     *
+     * @return El token en texto plano si la sesión está activa, o null si la caja fuerte está vacía.
      */
-    fun getToken(): String? {
-        return sharedPreferences.getString(KEY_JWT_TOKEN, null)
+    fun obtenerToken(): String? {
+        return preferenciasCifradas.getString(CLAVE_TOKEN_JWT, null)
     }
 
     /**
-     * Elimina el token (Logout).
+     * Purga el token del almacenamiento seguro de manera irreversible.
+     * Invocado durante el flujo de cierre de sesión (Logout) o como medida
+     * defensiva si el servidor detecta que la sesión ha expirado.
      */
-    fun clearToken() {
-        sharedPreferences.edit().remove(KEY_JWT_TOKEN).apply()
+    fun borrarToken() {
+        preferenciasCifradas.edit().remove(CLAVE_TOKEN_JWT).apply()
     }
 }

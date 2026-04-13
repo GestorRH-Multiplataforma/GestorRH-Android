@@ -8,9 +8,6 @@ import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -19,28 +16,36 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.gestorrh.android.R
-import androidx.compose.runtime.LaunchedEffect
 
+/**
+ * Interfaz gráfica para la autenticación de usuarios.
+ * Sigue el patrón de diseño Unidirectional Data Flow (UDF), reaccionando a los
+ * cambios emitidos por el [LoginViewModel] y elevando los eventos de usuario.
+ *
+ * @param viewModel Manejador de la lógica de negocio y estado de la pantalla.
+ * @param onLoginExitoso Callback ejecutado cuando el servidor valida las credenciales,
+ * delegando la navegación al enrutador principal (NavHost).
+ */
 @Composable
-fun LoginScreen(
+fun PantallaLogin(
     viewModel: LoginViewModel,
-    onLoginSuccess: () -> Unit
+    onLoginExitoso: () -> Unit
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val estadoUi by viewModel.estadoUi.collectAsState()
 
-    var showDialog by remember { mutableStateOf(false) }
+    var mostrarDialogoRecuperacion by remember { mutableStateOf(false) }
 
-    LaunchedEffect(uiState.isLoginSuccessful) {
-        if (uiState.isLoginSuccessful) {
-            onLoginSuccess()
+    LaunchedEffect(estadoUi.loginExitoso) {
+        if (estadoUi.loginExitoso) {
+            onLoginExitoso()
         }
     }
 
-    if (showDialog) {
+    if (mostrarDialogoRecuperacion) {
         AlertDialog(
-            onDismissRequest = { showDialog = false },
+            onDismissRequest = { mostrarDialogoRecuperacion = false },
             confirmButton = {
-                TextButton(onClick = { showDialog = false }) {
+                TextButton(onClick = { mostrarDialogoRecuperacion = false }) {
                     Text(stringResource(id = android.R.string.ok))
                 }
             },
@@ -65,7 +70,8 @@ fun LoginScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Cuando tenga el logo.xml, tengo que cambiar 'imageVector' por 'painter = painterResource(id = R.drawable.logo)'
+
+            // TODO: Reemplazar 'imageVector' por 'painterResource(id = R.drawable.logo)' cuando el SVG gráfico esté disponible en la Épica de Diseño.
             Icon(
                 imageVector = Icons.Outlined.BusinessCenter,
                 contentDescription = "Logo GestorRH",
@@ -88,7 +94,7 @@ fun LoginScreen(
                 modifier = Modifier.padding(top = 4.dp, bottom = 48.dp)
             )
 
-            uiState.errorMessage?.let { errorResId ->
+            estadoUi.mensajeError?.let { errorResId ->
                 Text(
                     text = stringResource(id = errorResId),
                     color = MaterialTheme.colorScheme.error,
@@ -98,8 +104,8 @@ fun LoginScreen(
             }
 
             OutlinedTextField(
-                value = uiState.emailInput,
-                onValueChange = { viewModel.onEmailChange(it) },
+                value = estadoUi.email,
+                onValueChange = { viewModel.actualizarEmail(it) },
                 label = { Text(stringResource(id = R.string.login_email_hint)) },
                 leadingIcon = {
                     Icon(imageVector = Icons.Outlined.Email, contentDescription = "Email Icon")
@@ -116,8 +122,8 @@ fun LoginScreen(
             )
 
             OutlinedTextField(
-                value = uiState.passwordInput,
-                onValueChange = { viewModel.onPasswordChange(it) },
+                value = estadoUi.password,
+                onValueChange = { viewModel.actualizarPassword(it) },
                 label = { Text(stringResource(id = R.string.login_password_hint)) },
                 leadingIcon = {
                     Icon(imageVector = Icons.Outlined.Lock, contentDescription = "Password Icon")
@@ -135,16 +141,18 @@ fun LoginScreen(
             )
 
             Button(
-                onClick = { viewModel.performLogin() },
-                enabled = uiState.isLoginButtonEnabled,
+                onClick = { viewModel.realizarLogin() },
+                enabled = estadoUi.botonLoginHabilitado,
                 shape = MaterialTheme.shapes.medium,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.secondary
                 ),
-                modifier = Modifier.fillMaxWidth().height(50.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
             ) {
                 Text(
-                    text = if (uiState.isLoading) {
+                    text = if (estadoUi.estaCargando) {
                         stringResource(id = R.string.login_button_loading)
                     } else {
                         stringResource(id = R.string.login_button)
@@ -155,7 +163,7 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
             TextButton(
-                onClick = { showDialog = true }
+                onClick = { mostrarDialogoRecuperacion = true }
             ) {
                 Text(
                     text = stringResource(id = R.string.login_forgot_password),
