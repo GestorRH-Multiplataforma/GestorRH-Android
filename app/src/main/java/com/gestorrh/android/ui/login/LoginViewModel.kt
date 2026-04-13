@@ -12,88 +12,113 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import com.gestorrh.android.R
 
-class LoginViewModel (
+/**
+ * Manejador de la lógica de presentación y el estado para la pantalla de Autenticación.
+ * Actúa como puente (Middleware) entre la Interfaz de Usuario (Jetpack Compose) y la capa de Red/Seguridad.
+ * Utiliza flujos reactivos (StateFlow) para garantizar una actualización de la UI segura y unidireccional.
+ *
+ * @property authApi Dependencia para invocar los servicios de red de autenticación.
+ * @property tokenManager Dependencia para interactuar con la caja fuerte del dispositivo (Keystore).
+ */
+class LoginViewModel(
     private val authApi: AuthApi,
     private val tokenManager: TokenManager
-): ViewModel() {
+) : ViewModel() {
 
-    // Estado interno que solo el ViewModel puede modificar
-    private val _uiState = MutableStateFlow(LoginUiState())
-    // Estado de solo lectura al que se suscribirá la pantalla
-    val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
+    private val _estadoUi = MutableStateFlow(EstadoUiLogin())
+    val estadoUi: StateFlow<EstadoUiLogin> = _estadoUi.asStateFlow()
 
-    private val emailPattern = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}\$".toRegex()
+    private val patronEmail = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}\$".toRegex()
 
     /**
-     * Invocado por la UI cada vez que el usuario teclea en el campo de Email.
+     * Actualiza el estado reactivo con el nuevo correo electrónico introducido por el usuario
+     * y lanza la validación matemática del formulario.
+     *
+     * @param nuevoEmail Cadena de texto actual en el campo de correo.
      */
-    fun onEmailChange(newEmail: String) {
-        _uiState.update { currentState ->
-            currentState.copy(
-                emailInput = newEmail,
-                errorMessage = null
+    fun actualizarEmail(nuevoEmail: String) {
+        _estadoUi.update { estadoActual ->
+            estadoActual.copy(
+                email = nuevoEmail,
+                mensajeError = null
             )
         }
-        validateForm()
+        validarFormulario()
     }
 
     /**
-     * Invocado por la UI cada vez que el usuario teclea en el campo de Contraseña.
+     * Actualiza el estado reactivo con la nueva contraseña introducida por el usuario
+     * y lanza la validación matemática del formulario.
+     *
+     * @param nuevaPassword Cadena de texto actual en el campo de contraseña.
      */
-    fun onPasswordChange(newPassword: String) {
-        _uiState.update { currentState ->
-            currentState.copy(
-                passwordInput = newPassword,
-                errorMessage = null
+    fun actualizarPassword(nuevaPassword: String) {
+        _estadoUi.update { estadoActual ->
+            estadoActual.copy(
+                password = nuevaPassword,
+                mensajeError = null
             )
         }
-        validateForm()
+        validarFormulario()
     }
 
-    fun performLogin() {
-        val currentState = _uiState.value
+    /**
+     * Ejecuta la petición de red para autenticar al empleado contra el servidor Spring Boot.
+     * La llamada se suspende en un hilo secundario (viewModelScope) para operar
+     * asíncronamente sin bloquear la interfaz gráfica del móvil.
+     */
+    fun realizarLogin() {
+        val estadoActual = _estadoUi.value
 
-        _uiState.update { it.copy(isLoading = true, errorMessage = null, isLoginButtonEnabled = false) }
+        _estadoUi.update {
+            it.copy(estaCargando = true, mensajeError = null, botonLoginHabilitado = false)
+        }
 
         viewModelScope.launch {
             try {
-                val peticion = PeticionLoginDTO(currentState.emailInput, currentState.passwordInput)
-                val response = authApi.login(peticion)
+                val peticion = PeticionLoginDTO(estadoActual.email, estadoActual.password)
+                val respuesta = authApi.login(peticion)
 
-                if (response.isSuccessful && response.body() != null) {
-                    val token = response.body()!!.token
-                    tokenManager.saveToken(token)
+                if (respuesta.isSuccessful && respuesta.body() != null) {
+                    val token = respuesta.body()!!.token
+                    tokenManager.guardarToken(token)
 
-                    _uiState.update { it.copy(isLoading = false, isLoginSuccessful = true) }
+                    _estadoUi.update { it.copy(estaCargando = false, loginExitoso = true) }
                 } else {
-                    _uiState.update { it.copy(
-                        isLoading = false,
-                        errorMessage = R.string.login_error_credentials,
-                        isLoginButtonEnabled = true
-                    )}
+                    _estadoUi.update {
+                        it.copy(
+                            estaCargando = false,
+                            mensajeError = R.string.login_error_credentials,
+                            botonLoginHabilitado = true
+                        )
+                    }
                 }
             } catch (e: Exception) {
-                _uiState.update { it.copy(
-                    isLoading = false,
-                    errorMessage = R.string.login_error_network,
-                    isLoginButtonEnabled = true
-                )}
+                _estadoUi.update {
+                    it.copy(
+                        estaCargando = false,
+                        mensajeError = R.string.login_error_network,
+                        botonLoginHabilitado = true
+                    )
+                }
             }
         }
     }
 
     /**
-     * Motor de validación reactiva. Comprueba matemáticamente si los datos cumplen
-     * los requisitos para habilitar el botón de envío a tu API.
+     * Motor de validación reactiva en local.
+     * Comprueba si los datos cumplen los requisitos mínimos para
+     * habilitar el botón, evitando enviar peticiones basura a la API.
      */
-    private fun validateForm() {
-        val email = _uiState.value.emailInput
-        val password = _uiState.value.passwordInput
+    private fun validarFormulario() {
+        val email = _estadoUi.value.email
+        val password = _estadoUi.value.password
 
-        val isEmailValid = email.matches(emailPattern)
-        val isPasswordValid = password.isNotEmpty()
-        _uiState.update { currentState ->
-            currentState.copy(isLoginButtonEnabled = isEmailValid && isPasswordValid)
+        val emailValido = email.matches(patronEmail)
+        val passwordValida = password.isNotEmpty()
+
+        _estadoUi.update { estadoActual ->
+            estadoActual.copy(botonLoginHabilitado = emailValido && passwordValida)
         }
     }
 }
