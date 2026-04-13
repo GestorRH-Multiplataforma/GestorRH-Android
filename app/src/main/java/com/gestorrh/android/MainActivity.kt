@@ -11,37 +11,23 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.gestorrh.android.ui.login.LoginScreen
 import com.gestorrh.android.ui.theme.GestorRHTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContent {
             GestorRHTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+                val loginViewModel = androidx.lifecycle.viewmodel.compose.viewModel<com.gestorrh.android.ui.login.LoginViewModel>()
+
+                LoginScreen(
+                    viewModel = loginViewModel,
+                    onLoginSuccess = {
+                        println("¡Navegando al Dashboard!")
+                    }
+                )
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    GestorRHTheme {
-        Greeting("Android")
     }
 }

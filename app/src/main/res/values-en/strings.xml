@@ -5,4 +5,7 @@
     <string name="login_password_hint">Password</string>
     <string name="login_button">Sign In</string>
     <string name="login_error_empty">Fields cannot be empty</string>
+    <string name="login_subtitle">Organize your company, connect your team</string>
+    <string name="login_forgot_password">Forgot your password?</string>
+    <string name="login_forgot_password_dialog_text">For security reasons, automatic password recovery is disabled. Please contact HR or your supervisor to reset your access.</string>
 </resources>

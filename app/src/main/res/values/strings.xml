@@ -5,4 +5,7 @@
     <string name="login_password_hint">Contraseña</string>
     <string name="login_button">Iniciar Sesión</string>
     <string name="login_error_empty">Los campos no pueden estar vacíos</string>
+    <string name="login_subtitle">Organiza tu empresa, conecta a tu equipo</string>
+    <string name="login_forgot_password">¿Has olvidado tu contraseña?</string>
+    <string name="login_forgot_password_dialog_text">Por motivos de seguridad, la recuperación automática de contraseñas está deshabilitada. Por favor, contacta con RRHH o tu supervisor para restablecer tu acceso.</string>
 </resources>
