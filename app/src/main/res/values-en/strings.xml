@@ -13,7 +13,14 @@
     <string name="login_button_loading">Connecting…</string>
     <string name="nav_inicio">Home</string>
     <string name="nav_turnos">Shifts</string>
-    <string name="nav_ausencias">Absences</string>
+    <string name="nav_ausencias">Time Off</string>
     <string name="nav_perfil">Profile</string>
     <string name="nav_equipo">My team</string>
+    <string name="dashboard_saludo">Hello, Employee!</string>
+    <string name="dashboard_fecha_ejemplo">Monday, October 14</string>
+    <string name="dashboard_turno_titulo">Next Shift</string>
+    <string name="dashboard_turno_valor">08:00 – 16:00</string>
+    <string name="dashboard_ausencia_titulo">Time Off</string>
+    <string name="dashboard_ausencia_valor">None pending</string>
+    <string name="dashboard_placeholder_fichaje">[ P0–08 Time Clock Widget Placeholder ]</string>
 </resources>
