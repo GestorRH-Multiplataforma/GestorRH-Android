@@ -11,4 +11,9 @@
     <string name="login_error_credentials">Credenciales incorrectas</string>
     <string name="login_error_network">Error de conexión con el servidor</string>
     <string name="login_button_loading">Conectando...</string>
+    <string name="nav_inicio">Inicio</string>
+    <string name="nav_turnos">Turnos</string>
+    <string name="nav_ausencias">Ausencias</string>
+    <string name="nav_perfil">Perfil</string>
+    <string name="nav_equipo">Mi equipo</string>
 </resources>

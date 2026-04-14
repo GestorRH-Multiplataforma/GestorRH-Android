@@ -90,7 +90,7 @@ fun PantallaLogin(
             Text(
                 text = stringResource(id = R.string.login_subtitle),
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.secondary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 4.dp, bottom = 48.dp)
             )
 
@@ -145,7 +145,10 @@ fun PantallaLogin(
                 enabled = estadoUi.botonLoginHabilitado,
                 shape = MaterialTheme.shapes.medium,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.secondary
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
                 ),
                 modifier = Modifier
                     .fillMaxWidth()

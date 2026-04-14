@@ -11,4 +11,9 @@
     <string name="login_error_credentials">Invalid credentials</string>
     <string name="login_error_network">Server connection error</string>
     <string name="login_button_loading">Connecting…</string>
+    <string name="nav_inicio">Home</string>
+    <string name="nav_turnos">Shifts</string>
+    <string name="nav_ausencias">Absences</string>
+    <string name="nav_perfil">Profile</string>
+    <string name="nav_equipo">My team</string>
 </resources>

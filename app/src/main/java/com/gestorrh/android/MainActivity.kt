@@ -12,9 +12,9 @@ import androidx.navigation.compose.rememberNavController
 import com.gestorrh.android.core.network.ApiClient
 import com.gestorrh.android.core.security.TokenManager
 import com.gestorrh.android.data.network.autenticacion.AuthApi
-import com.gestorrh.android.ui.dashboard.DashboardScreen
 import com.gestorrh.android.ui.login.LoginViewModel
 import com.gestorrh.android.ui.login.PantallaLogin
+import com.gestorrh.android.ui.principal.PantallaPrincipal
 import com.gestorrh.android.ui.theme.GestorRHTheme
 
 /**
@@ -38,7 +38,7 @@ class MainActivity : ComponentActivity() {
                 val controladorNavegacion = rememberNavController()
 
                 val destinoInicial = if (gestorToken.obtenerToken() != null) {
-                    "dashboard"
+                    "principal"
                 } else {
                     "login"
                 }
@@ -61,17 +61,21 @@ class MainActivity : ComponentActivity() {
                         PantallaLogin(
                             viewModel = loginViewModel,
                             onLoginExitoso = {
-                                // Redirección post-autenticación purgando el historial
-                                // para evitar que el usuario retroceda al Login
-                                controladorNavegacion.navigate("dashboard") {
+                                controladorNavegacion.navigate("principal") {
                                     popUpTo("login") { inclusive = true }
                                 }
                             }
                         )
                     }
 
-                    composable("dashboard") {
-                        DashboardScreen()
+                    composable("principal") {
+                        PantallaPrincipal(
+                            alCerrarSesion = {
+                                // Lógica para cerrar sesión y volver al login (la haremos en la P1-05)
+                                // gestorToken.borrarToken()
+                                // controladorNavegacion.navigate("login") { popUpTo("principal") { inclusive = true } }
+                            }
+                        )
                     }
                 }
             }
