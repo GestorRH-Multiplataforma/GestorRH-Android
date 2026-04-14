@@ -23,4 +23,8 @@
     <string name="dashboard_ausencia_titulo">Time Off</string>
     <string name="dashboard_ausencia_valor">None pending</string>
     <string name="dashboard_placeholder_fichaje">[ P0–08 Time Clock Widget Placeholder ]</string>
+    <string name="fichaje_estado_fuera">Off duty</string>
+    <string name="fichaje_estado_activo">Working</string>
+    <string name="fichaje_btn_iniciar">CLOCK IN</string>
+    <string name="fichaje_btn_finalizar">CLOCK OUT</string>
 </resources>
