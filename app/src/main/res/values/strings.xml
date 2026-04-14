@@ -19,8 +19,12 @@
     <string name="dashboard_saludo">¡Hola, Empleado!</string>
     <string name="dashboard_fecha_ejemplo">Lunes, 14 de Octubre</string>
     <string name="dashboard_turno_titulo">Siguiente Turno</string>
-    <string name="dashboard_turno_valor">08:00 - 16:00</string>
+    <string name="dashboard_turno_valor">08:00 – 16:00</string>
     <string name="dashboard_ausencia_titulo">Ausencias</string>
     <string name="dashboard_ausencia_valor">Ninguna pendiente</string>
-    <string name="dashboard_placeholder_fichaje">[ Aquí irá el Widget de Fichaje P0-08 ]</string>
+    <string name="dashboard_placeholder_fichaje">[ Aquí irá el Widget de Fichaje P0–08 ]</string>
+    <string name="fichaje_estado_fuera">Fuera de turno</string>
+    <string name="fichaje_estado_activo">Trabajando</string>
+    <string name="fichaje_btn_iniciar">INICIAR JORNADA</string>
+    <string name="fichaje_btn_finalizar">FINALIZAR JORNADA</string>
 </resources>
