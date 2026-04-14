@@ -22,6 +22,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.gestorrh.android.R
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
+import kotlinx.coroutines.launch
+import com.gestorrh.android.core.location.GestorLocalizacion
 
 /**
  * Pantalla principal (Portal del Empleado).
@@ -33,6 +43,39 @@ fun PantallaDashboard(
     viewModel: DashboardViewModel = viewModel()
 ) {
     val estadoUi by viewModel.estadoUi.collectAsState()
+    val contexto = LocalContext.current
+    val scopeDeCorrutina = rememberCoroutineScope()
+    val gestorLocalizacion = remember { GestorLocalizacion(contexto) }
+
+    val lanzadorPermisos = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { concedido ->
+            if (concedido) {
+                scopeDeCorrutina.launch {
+                    val ubicacion = gestorLocalizacion.obtenerUbicacionActual()
+                    viewModel.alternarFichaje(ubicacion)
+                }
+            } else {
+                println("Fichaje cancelado: Permiso de ubicación denegado.")
+            }
+        }
+    )
+
+    val intentarFichar: () -> Unit = {
+        val permisoConcedido = ContextCompat.checkSelfPermission(
+            contexto,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (permisoConcedido) {
+            scopeDeCorrutina.launch {
+                val ubicacion = gestorLocalizacion.obtenerUbicacionActual()
+                viewModel.alternarFichaje(ubicacion)
+            }
+        } else {
+            lanzadorPermisos.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -47,7 +90,7 @@ fun PantallaDashboard(
         WidgetFichaje(
             estadoActual = estadoUi.estadoActual,
             tiempoTranscurrido = estadoUi.tiempoTranscurrido,
-            alClickFichar = { viewModel.alternarFichaje() }
+            alClickFichar = intentarFichar
         )
 
         Spacer(modifier = Modifier.height(32.dp))

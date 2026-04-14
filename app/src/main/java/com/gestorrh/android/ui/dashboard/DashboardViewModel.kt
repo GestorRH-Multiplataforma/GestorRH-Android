@@ -1,5 +1,6 @@
 package com.gestorrh.android.ui.dashboard
 
+import android.location.Location
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Job
@@ -38,14 +39,16 @@ class DashboardViewModel : ViewModel() {
      * Alterna el estado de fichaje simulando un Clock-in o Clock-out.
      * En la P0-10 y P0-12, aquí es donde llamaremos a la API y al GPS.
      */
-    fun alternarFichaje() {
+    fun alternarFichaje(ubicacion: Location?) {
         val esFueraDeTurno = _estadoUi.value.estadoActual == EstadoFichaje.FUERA_TURNO
 
         if (esFueraDeTurno) {
+            println("Fichando entrada en: Lat ${ubicacion?.latitude}, Lon ${ubicacion?.longitude}")
             _estadoUi.update { it.copy(estadoActual = EstadoFichaje.TRABAJANDO) }
             iniciarTemporizador()
         } else {
             _estadoUi.update {
+                println("Fichando salida en: Lat ${ubicacion?.latitude}, Lon ${ubicacion?.longitude}")
                 it.copy(estadoActual = EstadoFichaje.FUERA_TURNO, tiempoTranscurrido = "00:00:00")
             }
             detenerTemporizador()
