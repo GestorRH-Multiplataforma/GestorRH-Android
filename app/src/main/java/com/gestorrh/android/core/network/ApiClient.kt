@@ -2,11 +2,13 @@ package com.gestorrh.android.core.network
 
 import com.gestorrh.android.BuildConfig
 import com.gestorrh.android.core.security.TokenManager
+import com.google.gson.GsonBuilder
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.time.LocalDateTime
 
 /**
  * Motor central de comunicaciones HTTP de la aplicación.
@@ -35,9 +37,15 @@ object ApiClient {
 
         val interceptorAutenticacion = Interceptor { cadenaCarga ->
             val peticionOriginal = cadenaCarga.request()
+            val ruta = peticionOriginal.url.encodedPath
+
+            if (ruta.contains("/auth/login-empresa") ||
+                ruta.contains("/auth/login-empleado") ||
+                ruta.contains("/api/empresas/registro")) {
+                return@Interceptor cadenaCarga.proceed(peticionOriginal)
+            }
 
             val token = gestorToken.obtenerToken()
-
             val constructorPeticion = peticionOriginal.newBuilder()
 
             if (!token.isNullOrEmpty()) {
@@ -52,10 +60,14 @@ object ApiClient {
             .addInterceptor(interceptorLogs)
             .build()
 
+        val gson = GsonBuilder()
+            .registerTypeAdapter(LocalDateTime::class.java, LocalDateTimeDeserializer())
+            .create()
+
         return Retrofit.Builder()
             .baseUrl(BuildConfig.BASE_URL)
             .client(clienteHttp)
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
     }
 }

@@ -27,4 +27,14 @@
     <string name="fichaje_estado_activo">Working</string>
     <string name="fichaje_btn_iniciar">CLOCK IN</string>
     <string name="fichaje_btn_finalizar">CLOCK OUT</string>
+
+    <string name="dashboard_hoy">Today</string>
+    <string name="dashboard_sin_asignar">UNASSIGNED</string>
+    <string name="dashboard_libre">FREE</string>
+    <string name="dashboard_cero_pendientes">0 Pending</string>
+    <string name="dashboard_modalidad_remota">REMOTE WORK</string>
+
+    <string name="error_permiso_ubicacion">Location permission denied. Cannot clock in.</string>
+    <string name="cd_perfil">Profile</string>
+    <string name="cd_teletrabajo">Remote Work Icon</string>
 </resources>

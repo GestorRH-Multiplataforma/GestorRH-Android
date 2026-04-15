@@ -27,4 +27,14 @@
     <string name="fichaje_estado_activo">Trabajando</string>
     <string name="fichaje_btn_iniciar">INICIAR JORNADA</string>
     <string name="fichaje_btn_finalizar">FINALIZAR JORNADA</string>
+
+    <string name="dashboard_hoy">Hoy</string>
+    <string name="dashboard_sin_asignar">SIN ASIGNAR</string>
+    <string name="dashboard_libre">LIBRE</string>
+    <string name="dashboard_cero_pendientes">0 Pendientes</string>
+    <string name="dashboard_modalidad_remota">MODALIDAD REMOTA</string>
+
+    <string name="error_permiso_ubicacion">Permiso de ubicación denegado. No se puede fichar.</string>
+    <string name="cd_perfil">Perfil</string>
+    <string name="cd_teletrabajo">Icono Teletrabajo</string>
 </resources>
