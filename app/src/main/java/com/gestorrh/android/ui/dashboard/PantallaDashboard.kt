@@ -1,5 +1,9 @@
 package com.gestorrh.android.ui.dashboard
 
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -8,44 +12,46 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.EventBusy
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.gestorrh.android.R
-import android.Manifest
-import android.content.pm.PackageManager
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.platform.LocalContext
-import androidx.core.content.ContextCompat
-import kotlinx.coroutines.launch
 import com.gestorrh.android.core.location.GestorLocalizacion
+import com.gestorrh.android.data.network.fichaje.ModalidadTurno
+import kotlinx.coroutines.launch
 
-/**
- * Pantalla principal (Portal del Empleado).
- * Muestra la información contextual del empleado, el estado de sus turnos y ausencias,
- * y reserva el espacio central para el motor de fichaje.
- */
 @Composable
 fun PantallaDashboard(
-    viewModel: DashboardViewModel = viewModel()
+    contexto: android.content.Context = LocalContext.current,
+    viewModel: DashboardViewModel = viewModel(
+        factory = DashboardViewModelFactory(contexto.applicationContext)
+    )
 ) {
     val estadoUi by viewModel.estadoUi.collectAsState()
-    val contexto = LocalContext.current
+
     val scopeDeCorrutina = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
     val gestorLocalizacion = remember { GestorLocalizacion(contexto) }
+
+    val errorPermisoTexto = stringResource(id = R.string.error_permiso_ubicacion)
+
+    LaunchedEffect(estadoUi.mensajeError) {
+        estadoUi.mensajeError?.let { mensaje ->
+            snackbarHostState.showSnackbar(mensaje)
+            viewModel.errorMostrado()
+        }
+    }
 
     val lanzadorPermisos = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
@@ -56,61 +62,74 @@ fun PantallaDashboard(
                     viewModel.alternarFichaje(ubicacion)
                 }
             } else {
-                println("Fichaje cancelado: Permiso de ubicación denegado.")
+                scopeDeCorrutina.launch {
+                    snackbarHostState.showSnackbar(errorPermisoTexto)
+                }
             }
         }
     )
 
     val intentarFichar: () -> Unit = {
-        val permisoConcedido = ContextCompat.checkSelfPermission(
-            contexto,
-            Manifest.permission.ACCESS_FINE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED
-
-        if (permisoConcedido) {
-            scopeDeCorrutina.launch {
-                val ubicacion = gestorLocalizacion.obtenerUbicacionActual()
-                viewModel.alternarFichaje(ubicacion)
-            }
+        if (estadoUi.modalidadHoy == ModalidadTurno.TELETRABAJO) {
+            viewModel.alternarFichaje(null)
         } else {
-            lanzadorPermisos.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+            val permisoConcedido = ContextCompat.checkSelfPermission(
+                contexto,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+
+            if (permisoConcedido) {
+                scopeDeCorrutina.launch {
+                    val ubicacion = gestorLocalizacion.obtenerUbicacionActual()
+                    viewModel.alternarFichaje(ubicacion)
+                }
+            } else {
+                lanzadorPermisos.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+            }
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp)
-            .verticalScroll(rememberScrollState())
-    ) {
-        CabeceraDashboard()
-
-        Spacer(modifier = Modifier.height(40.dp))
-
-        WidgetFichaje(
-            estadoActual = estadoUi.estadoActual,
-            tiempoTranscurrido = estadoUi.tiempoTranscurrido,
-            alClickFichar = intentarFichar
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+    Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+    ) { paddingValores ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValores)
+                .padding(24.dp)
+                .verticalScroll(rememberScrollState())
         ) {
-            TarjetaInformativa(
-                modifier = Modifier.weight(1f),
-                titulo = stringResource(id = R.string.dashboard_turno_titulo),
-                valor = stringResource(id = R.string.dashboard_turno_valor),
-                icono = Icons.Filled.CalendarToday
+            CabeceraDashboard()
+
+            Spacer(modifier = Modifier.height(40.dp))
+
+            WidgetFichaje(
+                estadoActual = estadoUi.estadoActual,
+                tiempoTranscurrido = estadoUi.tiempoTranscurrido,
+                estaCargando = estadoUi.estaCargando,
+                modalidad = estadoUi.modalidadHoy,
+                alClickFichar = intentarFichar
             )
-            TarjetaInformativa(
-                modifier = Modifier.weight(1f),
-                titulo = stringResource(id = R.string.dashboard_ausencia_titulo),
-                valor = stringResource(id = R.string.dashboard_ausencia_valor),
-                icono = Icons.Filled.EventBusy
-            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                TarjetaInformativa(
+                    modifier = Modifier.weight(1f),
+                    titulo = stringResource(id = R.string.dashboard_turno_titulo),
+                    valor = if (estadoUi.tieneTurnoHoy) estadoUi.modalidadHoy?.name ?: stringResource(id = R.string.dashboard_sin_asignar) else stringResource(id = R.string.dashboard_libre),
+                    icono = Icons.Filled.CalendarToday
+                )
+                TarjetaInformativa(
+                    modifier = Modifier.weight(1f),
+                    titulo = stringResource(id = R.string.dashboard_ausencia_titulo),
+                    valor = stringResource(id = R.string.dashboard_cero_pendientes),
+                    icono = Icons.Filled.EventBusy
+                )
+            }
         }
     }
 }
@@ -145,7 +164,7 @@ private fun CabeceraDashboard() {
         ) {
             Icon(
                 imageVector = Icons.Filled.Person,
-                contentDescription = "Perfil",
+                contentDescription = stringResource(id = R.string.cd_perfil),
                 tint = MaterialTheme.colorScheme.onSecondaryContainer
             )
         }
@@ -161,14 +180,10 @@ private fun TarjetaInformativa(
 ) {
     Card(
         modifier = modifier,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        ),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
+        Column(modifier = Modifier.padding(16.dp)) {
             Icon(
                 imageVector = icono,
                 contentDescription = null,
@@ -192,14 +207,12 @@ private fun TarjetaInformativa(
     }
 }
 
-/**
- * Componente visual dinámico (UI Reactiva).
- * Cambia sus colores, textos y acciones en base al [EstadoFichaje].
- */
 @Composable
 private fun WidgetFichaje(
     estadoActual: EstadoFichaje,
     tiempoTranscurrido: String,
+    estaCargando: Boolean,
+    modalidad: ModalidadTurno?,
     alClickFichar: () -> Unit
 ) {
     val esActivo = estadoActual == EstadoFichaje.TRABAJANDO
@@ -219,6 +232,16 @@ private fun WidgetFichaje(
             modifier = Modifier.padding(32.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+
+            if (modalidad == ModalidadTurno.TELETRABAJO) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(imageVector = Icons.Filled.Home, contentDescription = stringResource(id = R.string.cd_teletrabajo), tint = colorTextoEstado, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(text = stringResource(id = R.string.dashboard_modalidad_remota), style = MaterialTheme.typography.labelSmall, color = colorTextoEstado)
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+
             Text(
                 text = stringResource(id = textoEstado).uppercase(),
                 style = MaterialTheme.typography.labelLarge,
@@ -239,18 +262,24 @@ private fun WidgetFichaje(
 
             Button(
                 onClick = alClickFichar,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
+                modifier = Modifier.fillMaxWidth().height(56.dp),
                 shape = CircleShape,
-                colors = ButtonDefaults.buttonColors(containerColor = colorBoton)
+                colors = ButtonDefaults.buttonColors(containerColor = colorBoton),
+                enabled = !estaCargando
             ) {
-                Text(
-                    text = stringResource(id = textoBoton),
-                    style = MaterialTheme.typography.labelLarge
-                )
+                if (estaCargando) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(
+                        text = stringResource(id = textoBoton),
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                }
             }
         }
     }
 }
-
