@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Política de seguridad de red de la aplicación.
+
+    PRODUCCIÓN (release):
+      - Solo HTTPS. Ningún dominio tiene tráfico en claro permitido.
+      - Las CAs del sistema son las únicas de confianza (comportamiento por defecto de Android).
+
+    DESARROLLO (debug):
+      - Se permite tráfico HTTP únicamente hacia 10.0.2.2 (gateway del emulador AVD que
+        mapea al localhost de la máquina host donde corre el servidor Spring Boot) y hacia
+        "localhost" por si se usa un dispositivo físico con port forwarding (adb forward).
+      - No se permite tráfico en claro hacia ningún otro host, incluida la red local o Internet.
+
+    POR QUÉ ESTE ENFOQUE Y NO usesCleartextTraffic="true":
+      - usesCleartextTraffic="true" abre tráfico HTTP en TODOS los destinos para TODAS las
+        variantes de build. Un string de conexión equivocado apuntando a producción por HTTP
+        expondría el JWT en texto plano sobre la red.
+      - network_security_config.xml restringe el cleartext únicamente a los hosts de desarrollo,
+        sin afectar al build de release, que mantiene HTTPS obligatorio.
+-->
+<network-security-config>
+
+    <!-- Política global: solo HTTPS, sin excepciones, para todos los destinos no listados -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+
+    <!-- Excepción de desarrollo: HTTP permitido solo para el emulador y localhost -->
+    <debug-overrides>
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </debug-overrides>
+
+    <!--
+        10.0.2.2 → alias del emulador AVD que apunta al localhost del host.
+        Es la dirección que usa el emulador para conectar al servidor local (BASE_URL en secrets.properties).
+    -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">10.0.2.2</domain>
+        <domain includeSubdomains="false">localhost</domain>
+    </domain-config>
+
+</network-security-config>
