@@ -5,8 +5,10 @@ import android.location.Location
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.gestorrh.android.R
 import com.gestorrh.android.core.network.ApiClient
 import com.gestorrh.android.core.security.TokenManager
+import com.gestorrh.android.core.ui.MensajeUi
 import com.gestorrh.android.data.network.fichaje.FichajeApiService
 import com.gestorrh.android.data.network.fichaje.ModalidadTurno
 import com.gestorrh.android.data.network.fichaje.PeticionFichajeEntradaDTO
@@ -27,7 +29,7 @@ data class EstadoUiDashboard(
     val estadoActual: EstadoFichaje = EstadoFichaje.FUERA_TURNO,
     val tiempoTranscurrido: String = "00:00:00",
     val estaCargando: Boolean = true,
-    val mensajeError: String? = null,
+    val mensajeError: MensajeUi? = null,
     val idFichajeAbierto: Long? = null,
     val modalidadHoy: ModalidadTurno? = null,
     val tieneTurnoHoy: Boolean = false
@@ -76,7 +78,9 @@ class DashboardViewModel(
                     }
                 }
                 .onFailure { e ->
-                    mostrarError(e.message ?: "Error de conexión con el servidor.")
+                    val mensaje = if (e.message != null) MensajeUi.Dinamico(e.message!!)
+                    else MensajeUi.Recurso(R.string.error_conexion)
+                    mostrarError(mensaje)
                 }
 
             _estadoUi.update { it.copy(estaCargando = false) }
@@ -119,7 +123,9 @@ class DashboardViewModel(
                     iniciarTemporizador()
                 }
                 .onFailure { e ->
-                    mostrarError(e.message ?: "Fallo de red al intentar fichar.")
+                    val mensaje = if (e.message != null) MensajeUi.Dinamico(e.message!!)
+                    else MensajeUi.Recurso(R.string.error_fallo_red_entrada)
+                    mostrarError(mensaje)
                 }
 
             _estadoUi.update { it.copy(estaCargando = false) }
@@ -149,7 +155,9 @@ class DashboardViewModel(
                     }
                 }
                 .onFailure { e ->
-                    mostrarError(e.message ?: "Fallo de red al intentar finalizar la jornada.")
+                    val mensaje = if (e.message != null) MensajeUi.Dinamico(e.message!!)
+                    else MensajeUi.Recurso(R.string.error_fallo_red_salida)
+                    mostrarError(mensaje)
                 }
 
             _estadoUi.update { it.copy(estaCargando = false) }
@@ -162,7 +170,7 @@ class DashboardViewModel(
         _estadoUi.update { it.copy(mensajeError = null) }
     }
 
-    private fun mostrarError(mensaje: String) {
+    private fun mostrarError(mensaje: MensajeUi) {
         _estadoUi.update { it.copy(mensajeError = mensaje) }
     }
 

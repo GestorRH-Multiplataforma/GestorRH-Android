@@ -35,6 +35,10 @@
     <string name="dashboard_modalidad_remota">REMOTE WORK</string>
 
     <string name="error_permiso_ubicacion">Location permission denied. Cannot clock in.</string>
+    <string name="error_conexion">Server connection error</string>
+    <string name="error_fallo_red_entrada">Network error while clocking in</string>
+    <string name="error_fallo_red_salida">Network error while clocking out</string>
+    <string name="error_desconocido">Unknown server error</string>
     <string name="cd_perfil">Profile</string>
     <string name="cd_teletrabajo">Remote Work Icon</string>
 </resources>

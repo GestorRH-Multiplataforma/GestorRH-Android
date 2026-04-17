@@ -15,7 +15,9 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
 import com.gestorrh.android.R
+import com.gestorrh.android.core.ui.MensajeUi
 
 /**
  * Interfaz gráfica para la autenticación de usuarios.
@@ -94,9 +96,14 @@ fun PantallaLogin(
                 modifier = Modifier.padding(top = 4.dp, bottom = 48.dp)
             )
 
-            estadoUi.mensajeError?.let { errorResId ->
+            estadoUi.mensajeError?.let { mensajeUi ->
+                val contextoLocal = LocalContext.current
+                val textoError = when (mensajeUi) {
+                    is MensajeUi.Recurso -> stringResource(id = mensajeUi.idRecurso)
+                    is MensajeUi.Dinamico -> mensajeUi.texto
+                }
                 Text(
-                    text = stringResource(id = errorResId),
+                    text = textoError,
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(bottom = 16.dp)
