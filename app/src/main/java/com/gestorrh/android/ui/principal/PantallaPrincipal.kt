@@ -10,6 +10,7 @@ import androidx.navigation.compose.rememberNavController
 import com.gestorrh.android.core.navigation.BarraNavegacionInferior
 import com.gestorrh.android.core.navigation.RutasDestino
 import com.gestorrh.android.ui.dashboard.PantallaDashboard
+import com.gestorrh.android.ui.perfil.PantallaPerfil
 
 /**
  * Contenedor maestro de la experiencia "Post-Login".
@@ -60,9 +61,8 @@ fun PantallaPrincipal(
             }
 
             composable(RutasDestino.Perfil.ruta) {
-                // TODO: P1-05 -> Perfil de Usuario
+                PantallaPerfil(alCerrarSesion = alCerrarSesion)
             }
         }
     }
 }
-

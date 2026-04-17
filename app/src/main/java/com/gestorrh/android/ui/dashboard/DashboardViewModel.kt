@@ -7,7 +7,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.gestorrh.android.R
 import com.gestorrh.android.core.network.ApiClient
-import com.gestorrh.android.core.security.TokenManager
+import com.gestorrh.android.core.security.SessionManager
 import com.gestorrh.android.core.ui.MensajeUi
 import com.gestorrh.android.data.network.fichaje.FichajeApiService
 import com.gestorrh.android.data.network.fichaje.ModalidadTurno
@@ -33,7 +33,7 @@ data class EstadoUiDashboard(
     val idFichajeAbierto: Long? = null,
     val modalidadHoy: ModalidadTurno? = null,
     val tieneTurnoHoy: Boolean = false,
-    /** Nombre completo del empleado autenticado, leído desde [TokenManager] sin llamadas de red. */
+    /** Nombre completo del empleado autenticado, leído desde [SessionManager] sin llamadas de red. */
     val nombreEmpleado: String = ""
 )
 
@@ -43,7 +43,7 @@ enum class EstadoFichaje {
 
 class DashboardViewModel(
     private val fichajeRepository: IFichajeRepository,
-    private val tokenManager: TokenManager
+    private val sessionManager: SessionManager
 ) : ViewModel() {
 
     private val _estadoUi = MutableStateFlow(EstadoUiDashboard())
@@ -54,7 +54,7 @@ class DashboardViewModel(
 
     init {
         // Carga el nombre desde el almacenamiento seguro sin llamada de red
-        val nombre = tokenManager.obtenerNombre() ?: ""
+        val nombre = sessionManager.getNombre() ?: ""
         _estadoUi.update { it.copy(nombreEmpleado = nombre) }
 
         sincronizarEstado()
@@ -211,13 +211,13 @@ class DashboardViewModel(
 class DashboardViewModelFactory(private val contexto: Context) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(DashboardViewModel::class.java)) {
-            val tokenManager = TokenManager(contexto)
-            val retrofit = ApiClient.crearRetrofit(tokenManager)
+            val sessionManager = SessionManager(contexto)
+            val retrofit = ApiClient.crearRetrofit(sessionManager)
             val apiService = retrofit.create(FichajeApiService::class.java)
             val fichajeRepository = FichajeRepository(apiService)
 
             @Suppress("UNCHECKED_CAST")
-            return DashboardViewModel(fichajeRepository, tokenManager) as T
+            return DashboardViewModel(fichajeRepository, sessionManager) as T
         }
         throw IllegalArgumentException("Clase ViewModel desconocida")
     }
