@@ -1,6 +1,5 @@
 package com.gestorrh.android.core.network
 
-import android.util.Log
 import com.gestorrh.android.core.security.AuthEventBus
 import com.gestorrh.android.core.security.SessionManager
 import okhttp3.Interceptor
@@ -30,7 +29,6 @@ class AuthInterceptor(private val sessionManager: SessionManager) : Interceptor 
         }
 
         val token = sessionManager.getToken()
-        Log.d("AUTH", "Token enviado: $token")
         val constructorPeticion = peticionOriginal.newBuilder()
 
         if (!token.isNullOrEmpty()) {
