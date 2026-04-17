@@ -74,6 +74,7 @@ class LoginViewModel(
             authRepository.login(estadoActual.email, estadoActual.password)
                 .onSuccess { respuesta ->
                     tokenManager.guardarToken(respuesta.token)
+                    tokenManager.guardarNombre(respuesta.nombre)
                     _estadoUi.update { it.copy(estaCargando = false, loginExitoso = true) }
                 }
                 .onFailure {
