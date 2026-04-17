@@ -45,4 +45,24 @@
     <string name="error_desconocido">Error desconocido del servidor</string>
     <string name="cd_perfil">Perfil</string>
     <string name="cd_teletrabajo">Icono Teletrabajo</string>
+
+    <string name="perfil_titulo">Mi Perfil</string>
+    <string name="perfil_email">Correo electrónico</string>
+    <string name="perfil_telefono">Teléfono</string>
+    <string name="perfil_puesto">Puesto</string>
+    <string name="perfil_departamento">Departamento</string>
+    <string name="perfil_btn_cerrar_sesion">Cerrar sesión</string>
+    <string name="perfil_btn_cambiar_password">Cambiar contraseña</string>
+    <string name="perfil_dialog_logout_titulo">Cerrar sesión</string>
+    <string name="perfil_dialog_logout_texto">¿Estás seguro de que deseas cerrar sesión?</string>
+    <string name="perfil_dialog_confirmar">Confirmar</string>
+    <string name="perfil_dialog_cancelar">Cancelar</string>
+    <string name="perfil_dialog_cambiar_password_titulo">Cambiar contraseña</string>
+    <string name="perfil_password_actual_hint">Contraseña actual</string>
+    <string name="perfil_nueva_password_hint">Nueva contraseña</string>
+    <string name="perfil_error_password_minimo">La nueva contraseña debe tener mínimo 8 caracteres</string>
+    <string name="perfil_password_cambiada_exito">Contraseña actualizada correctamente</string>
+    <string name="perfil_sin_dato">—</string>
+    <string name="perfil_reintentar">Reintentar</string>
+    <string name="sesion_expirada">Tu sesión ha expirado. Por favor, inicia sesión de nuevo</string>
 </resources>

@@ -3,7 +3,7 @@ package com.gestorrh.android.ui.login
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gestorrh.android.R
-import com.gestorrh.android.core.security.TokenManager
+import com.gestorrh.android.core.security.SessionManager
 import com.gestorrh.android.core.ui.MensajeUi
 import com.gestorrh.android.domain.repository.IAuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,11 +20,11 @@ import kotlinx.coroutines.launch
  * segura y unidireccional.
  *
  * @property authRepository Dependencia del contrato de dominio para autenticación.
- * @property tokenManager Dependencia para interactuar con la caja fuerte del dispositivo (Keystore).
+ * @property sessionManager Fuente de verdad de la sesión activa.
  */
 class LoginViewModel(
     private val authRepository: IAuthRepository,
-    private val tokenManager: TokenManager
+    private val sessionManager: SessionManager
 ) : ViewModel() {
 
     private val _estadoUi = MutableStateFlow(EstadoUiLogin())
@@ -73,8 +73,7 @@ class LoginViewModel(
         viewModelScope.launch {
             authRepository.login(estadoActual.email, estadoActual.password)
                 .onSuccess { respuesta ->
-                    tokenManager.guardarToken(respuesta.token)
-                    tokenManager.guardarNombre(respuesta.nombre)
+                    sessionManager.saveSession(respuesta.token, respuesta.nombre)
                     _estadoUi.update { it.copy(estaCargando = false, loginExitoso = true) }
                 }
                 .onFailure {

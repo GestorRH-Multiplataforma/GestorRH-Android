@@ -45,4 +45,24 @@
     <string name="error_desconocido">Unknown server error</string>
     <string name="cd_perfil">Profile</string>
     <string name="cd_teletrabajo">Remote Work Icon</string>
+
+    <string name="perfil_titulo">My Profile</string>
+    <string name="perfil_email">Email address</string>
+    <string name="perfil_telefono">Phone</string>
+    <string name="perfil_puesto">Job title</string>
+    <string name="perfil_departamento">Department</string>
+    <string name="perfil_btn_cerrar_sesion">Sign out</string>
+    <string name="perfil_btn_cambiar_password">Change password</string>
+    <string name="perfil_dialog_logout_titulo">Sign out</string>
+    <string name="perfil_dialog_logout_texto">Are you sure you want to sign out?</string>
+    <string name="perfil_dialog_confirmar">Confirm</string>
+    <string name="perfil_dialog_cancelar">Cancel</string>
+    <string name="perfil_dialog_cambiar_password_titulo">Change password</string>
+    <string name="perfil_password_actual_hint">Current password</string>
+    <string name="perfil_nueva_password_hint">New password</string>
+    <string name="perfil_error_password_minimo">New password must be at least 8 characters</string>
+    <string name="perfil_password_cambiada_exito">Password updated successfully</string>
+    <string name="perfil_sin_dato">—</string>
+    <string name="perfil_reintentar">Retry</string>
+    <string name="sesion_expirada">Your session has expired. Please sign in again</string>
 </resources>
