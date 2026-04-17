@@ -76,8 +76,7 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     implementation("androidx.compose.material:material-icons-extended")
-    implementation("com.google.android.gms:play-services-location:21.2.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.10.2")
+
     // 1. Red (Retrofit + Gson + Interceptor para Logs)
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
@@ -86,14 +85,12 @@ dependencies {
     // 2. Navegación en Jetpack Compose
     implementation("androidx.navigation:navigation-compose:2.7.7")
 
-    // 3. Inyección de Dependencias (Koin)
-    implementation("io.insert-koin:koin-androidx-compose:3.5.3")
-
-    // 4. Seguridad (EncryptedSharedPreferences para el JWT)
+    // 3. Seguridad (EncryptedSharedPreferences para el JWT)
     implementation("androidx.security:security-crypto-ktx:1.1.0-alpha06")
 
-    // 5. Geolocalización (FusedLocationProviderClient)
+    // 4. Geolocalización (FusedLocationProviderClient)
     implementation("com.google.android.gms:play-services-location:21.2.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.10.2")
 
     // Nota: Room (Persistencia) lo inyectaremos más adelante
 }
