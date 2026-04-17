@@ -5,11 +5,16 @@ import android.location.Location
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.gestorrh.android.R
 import com.gestorrh.android.core.network.ApiClient
+import com.gestorrh.android.core.security.TokenManager
+import com.gestorrh.android.core.ui.MensajeUi
 import com.gestorrh.android.data.network.fichaje.FichajeApiService
 import com.gestorrh.android.data.network.fichaje.ModalidadTurno
 import com.gestorrh.android.data.network.fichaje.PeticionFichajeEntradaDTO
 import com.gestorrh.android.data.network.fichaje.PeticionFichajeSalidaDTO
+import com.gestorrh.android.data.repository.FichajeRepository
+import com.gestorrh.android.domain.repository.IFichajeRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,20 +22,19 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import okhttp3.ResponseBody
-import org.json.JSONObject
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
 data class EstadoUiDashboard(
     val estadoActual: EstadoFichaje = EstadoFichaje.FUERA_TURNO,
     val tiempoTranscurrido: String = "00:00:00",
-
     val estaCargando: Boolean = true,
-    val mensajeError: String? = null,
+    val mensajeError: MensajeUi? = null,
     val idFichajeAbierto: Long? = null,
     val modalidadHoy: ModalidadTurno? = null,
-    val tieneTurnoHoy: Boolean = false
+    val tieneTurnoHoy: Boolean = false,
+    /** Nombre completo del empleado autenticado, leído desde [TokenManager] sin llamadas de red. */
+    val nombreEmpleado: String = ""
 )
 
 enum class EstadoFichaje {
@@ -38,7 +42,8 @@ enum class EstadoFichaje {
 }
 
 class DashboardViewModel(
-    private val apiService: FichajeApiService
+    private val fichajeRepository: IFichajeRepository,
+    private val tokenManager: TokenManager
 ) : ViewModel() {
 
     private val _estadoUi = MutableStateFlow(EstadoUiDashboard())
@@ -48,52 +53,50 @@ class DashboardViewModel(
     private var segundosAcumulados: Long = 0
 
     init {
+        // Carga el nombre desde el almacenamiento seguro sin llamada de red
+        val nombre = tokenManager.obtenerNombre() ?: ""
+        _estadoUi.update { it.copy(nombreEmpleado = nombre) }
+
         sincronizarEstado()
     }
 
     /**
-     * P0-11: Sincronización Inicial (BFF)
+     * P0-11: Sincronización Inicial (BFF).
+     * Consulta el estado de fichaje actual a través del repositorio.
      */
     fun sincronizarEstado() {
         viewModelScope.launch {
             _estadoUi.update { it.copy(estaCargando = true, mensajeError = null) }
 
-            try {
-                val respuesta = apiService.obtenerEstadoActual()
-
-                if (respuesta.isSuccessful) {
-                    val datos = respuesta.body()
-                    if (datos != null) {
-
-                        _estadoUi.update {
-                            it.copy(
-                                idFichajeAbierto = datos.idFichajeAbierto,
-                                modalidadHoy = datos.modalidadHoy,
-                                tieneTurnoHoy = datos.tieneTurnoHoy,
-                                estadoActual = if (datos.trabajandoActualmente) EstadoFichaje.TRABAJANDO else EstadoFichaje.FUERA_TURNO
-                            )
-                        }
-
-                        if (datos.trabajandoActualmente && datos.horaEntrada != null) {
-                            val ahora = LocalDateTime.now()
-                            segundosAcumulados = ChronoUnit.SECONDS.between(datos.horaEntrada, ahora)
-                            iniciarTemporizador()
-                        }
+            fichajeRepository.obtenerEstadoActual()
+                .onSuccess { datos ->
+                    _estadoUi.update {
+                        it.copy(
+                            idFichajeAbierto = datos.idFichajeAbierto,
+                            modalidadHoy = datos.modalidadHoy,
+                            tieneTurnoHoy = datos.tieneTurnoHoy,
+                            estadoActual = if (datos.trabajandoActualmente) EstadoFichaje.TRABAJANDO else EstadoFichaje.FUERA_TURNO
+                        )
                     }
-                } else {
-                    mostrarError("No se pudo obtener el estado actual. Código: ${respuesta.code()}")
+
+                    if (datos.trabajandoActualmente && datos.horaEntrada != null) {
+                        segundosAcumulados = ChronoUnit.SECONDS.between(datos.horaEntrada, LocalDateTime.now())
+                        iniciarTemporizador()
+                    }
                 }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                mostrarError("Error de conexión con el servidor.")
-            } finally {
-                _estadoUi.update { it.copy(estaCargando = false) }
-            }
+                .onFailure { e ->
+                    val mensaje = if (e.message != null) MensajeUi.Dinamico(e.message!!)
+                    else MensajeUi.Recurso(R.string.error_conexion)
+                    mostrarError(mensaje)
+                }
+
+            _estadoUi.update { it.copy(estaCargando = false) }
         }
     }
 
     /**
-     * P0-10 y P0-12: Orquestador de Fichaje
+     * P0-10 y P0-12: Orquestador de Fichaje.
+     * Decide si fichar entrada o salida según el estado actual.
      */
     fun alternarFichaje(ubicacion: Location?) {
         val estadoActual = _estadoUi.value
@@ -109,33 +112,30 @@ class DashboardViewModel(
         viewModelScope.launch {
             _estadoUi.update { it.copy(estaCargando = true, mensajeError = null) }
 
-            try {
-                val peticion = if (modalidadHoy == ModalidadTurno.TELETRABAJO) {
-                    PeticionFichajeEntradaDTO(latitud = null, longitud = null)
-                } else {
-                    PeticionFichajeEntradaDTO(latitud = ubicacion?.latitude, longitud = ubicacion?.longitude)
-                }
+            val peticion = if (modalidadHoy == ModalidadTurno.TELETRABAJO) {
+                PeticionFichajeEntradaDTO(latitud = null, longitud = null)
+            } else {
+                PeticionFichajeEntradaDTO(latitud = ubicacion?.latitude, longitud = ubicacion?.longitude)
+            }
 
-                val respuesta = apiService.ficharEntrada(peticion)
-
-                if (respuesta.isSuccessful) {
-                    val fichaje = respuesta.body()
+            fichajeRepository.ficharEntrada(peticion)
+                .onSuccess { fichaje ->
                     _estadoUi.update {
                         it.copy(
                             estadoActual = EstadoFichaje.TRABAJANDO,
-                            idFichajeAbierto = fichaje?.idFichaje
+                            idFichajeAbierto = fichaje.idFichaje
                         )
                     }
                     segundosAcumulados = 0
                     iniciarTemporizador()
-                } else {
-                    mostrarError(extraerMensajeError(respuesta.errorBody()))
                 }
-            } catch (e: Exception) {
-                mostrarError("Fallo de red al intentar fichar.")
-            } finally {
-                _estadoUi.update { it.copy(estaCargando = false) }
-            }
+                .onFailure { e ->
+                    val mensaje = if (e.message != null) MensajeUi.Dinamico(e.message!!)
+                    else MensajeUi.Recurso(R.string.error_fallo_red_entrada)
+                    mostrarError(mensaje)
+                }
+
+            _estadoUi.update { it.copy(estaCargando = false) }
         }
     }
 
@@ -145,11 +145,13 @@ class DashboardViewModel(
         viewModelScope.launch {
             _estadoUi.update { it.copy(estaCargando = true, mensajeError = null) }
 
-            try {
-                val peticion = PeticionFichajeSalidaDTO(latitud = ubicacion?.latitude, longitud = ubicacion?.longitude)
-                val respuesta = apiService.ficharSalida(peticion)
+            val peticion = PeticionFichajeSalidaDTO(
+                latitud = ubicacion?.latitude,
+                longitud = ubicacion?.longitude
+            )
 
-                if (respuesta.isSuccessful) {
+            fichajeRepository.ficharSalida(peticion)
+                .onSuccess {
                     detenerTemporizador()
                     _estadoUi.update {
                         it.copy(
@@ -158,35 +160,25 @@ class DashboardViewModel(
                             tiempoTranscurrido = "00:00:00"
                         )
                     }
-                } else {
-                    mostrarError(extraerMensajeError(respuesta.errorBody()))
                 }
-            } catch (e: Exception) {
-                mostrarError("Fallo de red al intentar finalizar la jornada.")
-            } finally {
-                _estadoUi.update { it.copy(estaCargando = false) }
-            }
+                .onFailure { e ->
+                    val mensaje = if (e.message != null) MensajeUi.Dinamico(e.message!!)
+                    else MensajeUi.Recurso(R.string.error_fallo_red_salida)
+                    mostrarError(mensaje)
+                }
+
+            _estadoUi.update { it.copy(estaCargando = false) }
         }
     }
 
-    // FUNCIONES AUXILIARES
+    // ── FUNCIONES AUXILIARES ──────────────────────────────────────────────────
 
     fun errorMostrado() {
         _estadoUi.update { it.copy(mensajeError = null) }
     }
 
-    private fun mostrarError(mensaje: String) {
+    private fun mostrarError(mensaje: MensajeUi) {
         _estadoUi.update { it.copy(mensajeError = mensaje) }
-    }
-
-    private fun extraerMensajeError(errorBody: ResponseBody?): String {
-        return try {
-            val jsonStr = errorBody?.string() ?: return "Error desconocido"
-            val jsonObject = JSONObject(jsonStr)
-            jsonObject.getString("message")
-        } catch (e: Exception) {
-            "Ocurrió un error en el servidor."
-        }
     }
 
     private fun iniciarTemporizador() {
@@ -214,16 +206,18 @@ class DashboardViewModel(
     }
 }
 
-// FACTORY MANUAL
+// ── FACTORY MANUAL ────────────────────────────────────────────────────────────
+
 class DashboardViewModelFactory(private val contexto: Context) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(DashboardViewModel::class.java)) {
-            val tokenManager = com.gestorrh.android.core.security.TokenManager(contexto)
+            val tokenManager = TokenManager(contexto)
             val retrofit = ApiClient.crearRetrofit(tokenManager)
             val apiService = retrofit.create(FichajeApiService::class.java)
+            val fichajeRepository = FichajeRepository(apiService)
 
             @Suppress("UNCHECKED_CAST")
-            return DashboardViewModel(apiService) as T
+            return DashboardViewModel(fichajeRepository, tokenManager) as T
         }
         throw IllegalArgumentException("Clase ViewModel desconocida")
     }

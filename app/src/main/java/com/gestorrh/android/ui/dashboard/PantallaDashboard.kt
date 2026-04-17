@@ -28,8 +28,12 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.gestorrh.android.R
 import com.gestorrh.android.core.location.GestorLocalizacion
+import com.gestorrh.android.core.ui.MensajeUi
 import com.gestorrh.android.data.network.fichaje.ModalidadTurno
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @Composable
 fun PantallaDashboard(
@@ -45,10 +49,15 @@ fun PantallaDashboard(
     val gestorLocalizacion = remember { GestorLocalizacion(contexto) }
 
     val errorPermisoTexto = stringResource(id = R.string.error_permiso_ubicacion)
+    val contextoLocal = LocalContext.current
 
     LaunchedEffect(estadoUi.mensajeError) {
-        estadoUi.mensajeError?.let { mensaje ->
-            snackbarHostState.showSnackbar(mensaje)
+        estadoUi.mensajeError?.let { mensajeUi ->
+            val textoMensaje = when (mensajeUi) {
+                is MensajeUi.Recurso -> contextoLocal.getString(mensajeUi.idRecurso)
+                is MensajeUi.Dinamico -> mensajeUi.texto
+            }
+            snackbarHostState.showSnackbar(textoMensaje)
             viewModel.errorMostrado()
         }
     }
@@ -99,7 +108,7 @@ fun PantallaDashboard(
                 .padding(24.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            CabeceraDashboard()
+            CabeceraDashboard(nombreEmpleado = estadoUi.nombreEmpleado)
 
             Spacer(modifier = Modifier.height(40.dp))
 
@@ -135,7 +144,25 @@ fun PantallaDashboard(
 }
 
 @Composable
-private fun CabeceraDashboard() {
+private fun CabeceraDashboard(nombreEmpleado: String) {
+    // Fecha actual formateada y localizada con java.time, sin llamadas de red adicionales.
+    // El patrón de formato se carga desde strings.xml para que cada locale tenga su propia
+    // representación (ES: "EEEE, d 'de' MMMM" / EN: "EEEE, MMMM d").
+    val patronFecha = stringResource(id = R.string.dashboard_formato_fecha)
+    val fechaHoy = remember(patronFecha) {
+        val locale = Locale.getDefault()
+        val formatter = DateTimeFormatter.ofPattern(patronFecha, locale)
+        val fechaFormateada = LocalDate.now().format(formatter)
+        // Capitaliza la primera letra (los locales suelen devolver el día en minúsculas)
+        fechaFormateada.replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() }
+    }
+
+    val saludo = if (nombreEmpleado.isNotEmpty()) {
+        stringResource(id = R.string.dashboard_saludo_nombre, nombreEmpleado)
+    } else {
+        stringResource(id = R.string.dashboard_saludo_generico)
+    }
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -143,12 +170,12 @@ private fun CabeceraDashboard() {
     ) {
         Column {
             Text(
-                text = stringResource(id = R.string.dashboard_fecha_ejemplo),
+                text = fechaHoy,
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.primary
             )
             Text(
-                text = stringResource(id = R.string.dashboard_saludo),
+                text = saludo,
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
