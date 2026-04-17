@@ -12,6 +12,7 @@ import androidx.navigation.compose.rememberNavController
 import com.gestorrh.android.core.network.ApiClient
 import com.gestorrh.android.core.security.TokenManager
 import com.gestorrh.android.data.network.autenticacion.AuthApi
+import com.gestorrh.android.data.repository.AuthRepository
 import com.gestorrh.android.ui.login.LoginViewModel
 import com.gestorrh.android.ui.login.PantallaLogin
 import com.gestorrh.android.ui.principal.PantallaPrincipal
@@ -20,8 +21,10 @@ import com.gestorrh.android.ui.theme.GestorRHTheme
 /**
  * Actividad principal y punto de entrada (Entry Point) de la aplicación Android.
  * Actúa como el orquestador maestro (Router), encargado de inicializar las dependencias
- * críticas de nivel global (Motor de Red y Caja Fuerte) y de gestionar la navegación base.
- * * Implementa la directriz de "Auto-Login", evaluando la persistencia del Token JWT
+ * críticas de nivel global (Motor de Red, Caja Fuerte y Repositorios) y de gestionar
+ * la navegación base.
+ *
+ * Implementa la directriz de "Auto-Login", evaluando la persistencia del Token JWT
  * de manera síncrona en el arranque para decidir la ruta inicial óptima.
  */
 class MainActivity : ComponentActivity() {
@@ -30,7 +33,7 @@ class MainActivity : ComponentActivity() {
 
         val gestorToken = TokenManager(this)
         val retrofit = ApiClient.crearRetrofit(gestorToken)
-        val apiAutenticacion = retrofit.create(AuthApi::class.java)
+        val authRepository = AuthRepository(retrofit.create(AuthApi::class.java))
 
         setContent {
             GestorRHTheme {
@@ -52,7 +55,7 @@ class MainActivity : ComponentActivity() {
                         val fabricaViewModel = object : ViewModelProvider.Factory {
                             @Suppress("UNCHECKED_CAST")
                             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                                return LoginViewModel(apiAutenticacion, gestorToken) as T
+                                return LoginViewModel(authRepository, gestorToken) as T
                             }
                         }
 
