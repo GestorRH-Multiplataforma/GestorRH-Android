@@ -32,7 +32,9 @@ data class EstadoUiDashboard(
     val mensajeError: MensajeUi? = null,
     val idFichajeAbierto: Long? = null,
     val modalidadHoy: ModalidadTurno? = null,
-    val tieneTurnoHoy: Boolean = false
+    val tieneTurnoHoy: Boolean = false,
+    /** Nombre completo del empleado autenticado, leído desde [TokenManager] sin llamadas de red. */
+    val nombreEmpleado: String = ""
 )
 
 enum class EstadoFichaje {
@@ -40,7 +42,8 @@ enum class EstadoFichaje {
 }
 
 class DashboardViewModel(
-    private val fichajeRepository: IFichajeRepository
+    private val fichajeRepository: IFichajeRepository,
+    private val tokenManager: TokenManager
 ) : ViewModel() {
 
     private val _estadoUi = MutableStateFlow(EstadoUiDashboard())
@@ -50,6 +53,10 @@ class DashboardViewModel(
     private var segundosAcumulados: Long = 0
 
     init {
+        // Carga el nombre desde el almacenamiento seguro sin llamada de red
+        val nombre = tokenManager.obtenerNombre() ?: ""
+        _estadoUi.update { it.copy(nombreEmpleado = nombre) }
+
         sincronizarEstado()
     }
 
@@ -210,7 +217,7 @@ class DashboardViewModelFactory(private val contexto: Context) : ViewModelProvid
             val fichajeRepository = FichajeRepository(apiService)
 
             @Suppress("UNCHECKED_CAST")
-            return DashboardViewModel(fichajeRepository) as T
+            return DashboardViewModel(fichajeRepository, tokenManager) as T
         }
         throw IllegalArgumentException("Clase ViewModel desconocida")
     }

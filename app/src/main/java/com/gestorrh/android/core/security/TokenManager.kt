@@ -28,6 +28,7 @@ class TokenManager(contexto: Context) {
 
     companion object {
         private const val CLAVE_TOKEN_JWT = "token_jwt"
+        private const val CLAVE_NOMBRE_EMPLEADO = "nombre_empleado"
     }
 
     /**
@@ -56,5 +57,33 @@ class TokenManager(contexto: Context) {
      */
     fun borrarToken() {
         preferenciasCifradas.edit().remove(CLAVE_TOKEN_JWT).apply()
+    }
+
+    /**
+     * Almacena el nombre completo del empleado autenticado.
+     * Se persiste junto al token para evitar llamadas de red adicionales al arrancar la app.
+     * El nombre ya viene en [com.gestorrh.android.data.network.autenticacion.RespuestaLoginDTO.nombre].
+     *
+     * @param nombre Nombre completo del empleado tal como lo devuelve el servidor.
+     */
+    fun guardarNombre(nombre: String) {
+        preferenciasCifradas.edit().putString(CLAVE_NOMBRE_EMPLEADO, nombre).apply()
+    }
+
+    /**
+     * Recupera el nombre del empleado de la sesión activa.
+     *
+     * @return El nombre completo si existe, o null si no hay sesión iniciada.
+     */
+    fun obtenerNombre(): String? {
+        return preferenciasCifradas.getString(CLAVE_NOMBRE_EMPLEADO, null)
+    }
+
+    /**
+     * Purga el nombre del almacenamiento seguro.
+     * Debe llamarse junto a [borrarToken] en el flujo de Logout (P1-05).
+     */
+    fun borrarNombre() {
+        preferenciasCifradas.edit().remove(CLAVE_NOMBRE_EMPLEADO).apply()
     }
 }
