@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gestorrh.android.R
 import com.gestorrh.android.core.security.TokenManager
+import com.gestorrh.android.core.ui.MensajeUi
 import com.gestorrh.android.domain.repository.IAuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -79,7 +80,7 @@ class LoginViewModel(
                     _estadoUi.update {
                         it.copy(
                             estaCargando = false,
-                            mensajeError = R.string.login_error_credentials,
+                            mensajeError = MensajeUi.Recurso(R.string.login_error_credentials),
                             botonLoginHabilitado = true
                         )
                     }

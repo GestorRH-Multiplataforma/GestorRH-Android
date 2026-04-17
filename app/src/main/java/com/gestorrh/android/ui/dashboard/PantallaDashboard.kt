@@ -28,6 +28,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.gestorrh.android.R
 import com.gestorrh.android.core.location.GestorLocalizacion
+import com.gestorrh.android.core.ui.MensajeUi
 import com.gestorrh.android.data.network.fichaje.ModalidadTurno
 import kotlinx.coroutines.launch
 
@@ -45,10 +46,15 @@ fun PantallaDashboard(
     val gestorLocalizacion = remember { GestorLocalizacion(contexto) }
 
     val errorPermisoTexto = stringResource(id = R.string.error_permiso_ubicacion)
+    val contextoLocal = LocalContext.current
 
     LaunchedEffect(estadoUi.mensajeError) {
-        estadoUi.mensajeError?.let { mensaje ->
-            snackbarHostState.showSnackbar(mensaje)
+        estadoUi.mensajeError?.let { mensajeUi ->
+            val textoMensaje = when (mensajeUi) {
+                is MensajeUi.Recurso -> contextoLocal.getString(mensajeUi.idRecurso)
+                is MensajeUi.Dinamico -> mensajeUi.texto
+            }
+            snackbarHostState.showSnackbar(textoMensaje)
             viewModel.errorMostrado()
         }
     }

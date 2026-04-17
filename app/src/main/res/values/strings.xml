@@ -35,6 +35,10 @@
     <string name="dashboard_modalidad_remota">MODALIDAD REMOTA</string>
 
     <string name="error_permiso_ubicacion">Permiso de ubicación denegado. No se puede fichar.</string>
+    <string name="error_conexion">Error de conexión con el servidor</string>
+    <string name="error_fallo_red_entrada">Fallo de red al intentar fichar entrada</string>
+    <string name="error_fallo_red_salida">Fallo de red al intentar finalizar la jornada</string>
+    <string name="error_desconocido">Error desconocido del servidor</string>
     <string name="cd_perfil">Perfil</string>
     <string name="cd_teletrabajo">Icono Teletrabajo</string>
 </resources>
