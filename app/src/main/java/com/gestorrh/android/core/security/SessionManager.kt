@@ -9,7 +9,6 @@ import androidx.security.crypto.MasterKey
  * Persiste el token JWT y el nombre completo en el Keystore nativo de Android
  * mediante cifrado AES256-GCM, garantizando que no puedan extraerse en texto plano.
  *
- * Sustituye a [TokenManager] como punto central de acceso a credenciales de sesión.
  * El campo rol se gestionará en la issue P2-01.
  *
  * @param contexto Contexto de la aplicación necesario para inicializar el almacenamiento cifrado.
