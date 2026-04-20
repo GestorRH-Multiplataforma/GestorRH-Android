@@ -86,4 +86,5 @@
     <string name="turnos_detalle_turno">Shift</string>
     <string name="turnos_detalle_horario">Hours</string>
     <string name="turnos_detalle_modalidad">Mode</string>
+    <string name="turnos_sin_conexion">Offline — showing saved data</string>
 </resources>

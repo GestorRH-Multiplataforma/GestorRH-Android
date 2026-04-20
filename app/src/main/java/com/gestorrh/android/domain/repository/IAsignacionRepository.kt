@@ -1,19 +1,41 @@
 package com.gestorrh.android.domain.repository
 
-import com.gestorrh.android.data.network.asignacion.RespuestaAsignacionTurnoDTO
+import com.gestorrh.android.data.local.entity.AsignacionEntity
+import kotlinx.coroutines.flow.Flow
+
+/**
+ * Resultado de una sincronización con el servidor.
+ *
+ * Permite al ViewModel distinguir entre un refresco correcto, una caída de red
+ * (donde puede seguir mostrando la caché) y un error explícito de servidor.
+ */
+sealed class ResultadoSincronizacion {
+    data object Exito : ResultadoSincronizacion()
+    data object SinConexion : ResultadoSincronizacion()
+    data class Error(val mensaje: String) : ResultadoSincronizacion()
+}
 
 /**
  * Contrato de la capa de dominio para las operaciones de asignación de turnos.
- * Los ViewModels dependen de esta interfaz, nunca del servicio Retrofit directamente.
- * La implementación concreta vive en la capa de datos ([com.gestorrh.android.data.repository.asignacion]).
+ * Sigue una estrategia offline-first: la UI observa siempre la caché local como
+ * fuente única de verdad, y el refresco con el servidor se lanza por separado.
  */
 interface IAsignacionRepository {
 
     /**
-     * Obtiene la lista de asignaciones de turno del empleado autenticado.
-     *
-     * @return [Result.success] con la lista de [RespuestaAsignacionTurnoDTO], o [Result.failure]
-     *         con el mensaje de error del servidor o de red.
+     * Flujo reactivo con las asignaciones persistidas en Room, ordenadas por fecha.
+     * Emite una nueva lista cada vez que la caché local cambia (por ejemplo, tras
+     * una sincronización exitosa o un `deleteAll()` al cerrar sesión).
      */
-    suspend fun getMisAsignaciones(): Result<List<RespuestaAsignacionTurnoDTO>>
+    fun observarAsignaciones(): Flow<List<AsignacionEntity>>
+
+    /**
+     * Lanza la petición `GET /api/asignaciones/me` y, si es correcta, escribe los
+     * datos recibidos en Room con la marca de `fechaSincronizacion` actual.
+     *
+     * No emite datos directamente: los consumidores reaccionan al `Flow` de
+     * [observarAsignaciones]. Devuelve el resultado de la operación de red para
+     * que la capa superior pueda informar al usuario (Snackbar, estado de error).
+     */
+    suspend fun sincronizar(): ResultadoSincronizacion
 }

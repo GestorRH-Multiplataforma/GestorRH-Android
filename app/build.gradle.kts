@@ -4,6 +4,7 @@ import java.util.Properties
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.ksp)
 }
 
 val secretsFile = rootProject.file("secrets.properties")
@@ -92,5 +93,11 @@ dependencies {
     implementation("com.google.android.gms:play-services-location:21.2.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.10.2")
 
-    // Nota: Room (Persistencia) lo inyectaremos más adelante
+    // 5. Persistencia local (Room)
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
+
+    // 6. Lifecycle Compose (collectAsStateWithLifecycle)
+    implementation(libs.androidx.lifecycle.runtime.compose)
 }

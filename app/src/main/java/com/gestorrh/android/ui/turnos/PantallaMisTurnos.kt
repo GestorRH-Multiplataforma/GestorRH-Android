@@ -12,7 +12,6 @@ import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -24,11 +23,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.gestorrh.android.R
 import com.gestorrh.android.core.ui.MensajeUi
+import com.gestorrh.android.data.local.entity.AsignacionEntity
 import com.gestorrh.android.data.network.asignacion.ModalidadAsignacion
-import com.gestorrh.android.data.network.asignacion.RespuestaAsignacionTurnoDTO
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
@@ -39,6 +39,8 @@ import java.util.Locale
 private val ColorPresencial = Color(0xFF1A365D)
 private val ColorTeletrabajo = Color(0xFF00A8E8)
 
+private fun AsignacionEntity.fechaLocalDate(): LocalDate = LocalDate.parse(fecha)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PantallaMisTurnos(
@@ -47,11 +49,12 @@ fun PantallaMisTurnos(
         factory = MisTurnosViewModel.factory(contexto.applicationContext)
     )
 ) {
-    val estadoUi by viewModel.estadoUi.collectAsState()
+    val estadoUi by viewModel.estadoUi.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val contextoLocal = LocalContext.current
 
     val textoReintentar = stringResource(id = R.string.turnos_reintentar)
+    val textoSinConexion = stringResource(id = R.string.turnos_sin_conexion)
 
     LaunchedEffect(estadoUi.mensajeError) {
         estadoUi.mensajeError?.let { mensajeUi ->
@@ -68,6 +71,16 @@ fun PantallaMisTurnos(
                 viewModel.cargarAsignaciones()
             }
             viewModel.errorMostrado()
+        }
+    }
+
+    LaunchedEffect(estadoUi.sinConexion) {
+        if (estadoUi.sinConexion) {
+            snackbarHostState.showSnackbar(
+                message = textoSinConexion,
+                duration = SnackbarDuration.Short
+            )
+            viewModel.avisoSinConexionMostrado()
         }
     }
 
@@ -109,7 +122,7 @@ fun PantallaMisTurnos(
     ) { paddingValores ->
 
         when {
-            estadoUi.cargando -> {
+            estadoUi.cargando && estadoUi.asignaciones.isEmpty() -> {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -120,7 +133,7 @@ fun PantallaMisTurnos(
                 }
             }
 
-            estadoUi.asignaciones.isEmpty() && !estadoUi.cargando -> {
+            estadoUi.asignaciones.isEmpty() -> {
                 EstadoVacio(modifier = Modifier.padding(paddingValores))
             }
 
@@ -143,7 +156,7 @@ fun PantallaMisTurnos(
 
 @Composable
 private fun VistaListaTurnos(
-    asignaciones: List<RespuestaAsignacionTurnoDTO>,
+    asignaciones: List<AsignacionEntity>,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -158,11 +171,11 @@ private fun VistaListaTurnos(
 }
 
 @Composable
-private fun TarjetaAsignacion(asignacion: RespuestaAsignacionTurnoDTO) {
+private fun TarjetaAsignacion(asignacion: AsignacionEntity) {
     val patronFecha = stringResource(id = R.string.turnos_formato_fecha_tarjeta)
     val fechaFormateada = remember(asignacion.fecha, patronFecha) {
         val locale = Locale.getDefault()
-        asignacion.fecha.format(DateTimeFormatter.ofPattern(patronFecha, locale))
+        asignacion.fechaLocalDate().format(DateTimeFormatter.ofPattern(patronFecha, locale))
             .replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() }
     }
 
@@ -207,10 +220,11 @@ private fun TarjetaAsignacion(asignacion: RespuestaAsignacionTurnoDTO) {
 }
 
 @Composable
-private fun ChipModalidad(modalidad: ModalidadAsignacion) {
+private fun ChipModalidad(modalidad: String) {
     val (colorFondo, textoRes) = when (modalidad) {
-        ModalidadAsignacion.PRESENCIAL -> ColorPresencial to R.string.turnos_modalidad_presencial
-        ModalidadAsignacion.TELETRABAJO -> ColorTeletrabajo to R.string.turnos_modalidad_teletrabajo
+        ModalidadAsignacion.PRESENCIAL.name -> ColorPresencial to R.string.turnos_modalidad_presencial
+        ModalidadAsignacion.TELETRABAJO.name -> ColorTeletrabajo to R.string.turnos_modalidad_teletrabajo
+        else -> ColorPresencial to R.string.turnos_modalidad_presencial
     }
 
     Surface(
@@ -230,17 +244,18 @@ private fun ChipModalidad(modalidad: ModalidadAsignacion) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun VistaCalendario(
-    asignaciones: List<RespuestaAsignacionTurnoDTO>,
+    asignaciones: List<AsignacionEntity>,
     modifier: Modifier = Modifier
 ) {
     var mesActual by remember { mutableStateOf(YearMonth.now()) }
-    var asignacionSeleccionada by remember { mutableStateOf<RespuestaAsignacionTurnoDTO?>(null) }
+    var asignacionSeleccionada by remember { mutableStateOf<AsignacionEntity?>(null) }
     val sheetState = rememberModalBottomSheetState()
 
     val diasConTurno = remember(asignaciones, mesActual) {
         asignaciones
-            .filter { YearMonth.from(it.fecha) == mesActual }
-            .associateBy { it.fecha }
+            .map { it to it.fechaLocalDate() }
+            .filter { YearMonth.from(it.second) == mesActual }
+            .associate { it.second to it.first }
     }
 
     Column(
@@ -326,14 +341,10 @@ private fun CabeceraMes(
 @Composable
 private fun FilaDiasSemana() {
     val locale = Locale.getDefault()
-    // ISO: lunes=1 … domingo=7. Ajustamos para mostrar L-D
     val diasOrdenados = remember(locale) {
-        DayOfWeek.entries.let { dias ->
-            // Empieza en lunes
-            dias.drop(0).map { dia ->
-                dia.getDisplayName(TextStyle.NARROW, locale)
-                    .replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() }
-            }
+        DayOfWeek.entries.map { dia ->
+            dia.getDisplayName(TextStyle.NARROW, locale)
+                .replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() }
         }
     }
 
@@ -358,7 +369,6 @@ private fun CuadriculaDias(
     alClickDia: (LocalDate) -> Unit
 ) {
     val primerDia = mes.atDay(1)
-    // Offset para que la semana empiece en lunes (DayOfWeek.MONDAY.value == 1)
     val offsetInicio = (primerDia.dayOfWeek.value - DayOfWeek.MONDAY.value + 7) % 7
     val diasEnMes = mes.lengthOfMonth()
     val totalCeldas = offsetInicio + diasEnMes
@@ -437,13 +447,13 @@ private fun CeldaDia(
 
 @Composable
 private fun DetalleAsignacion(
-    asignacion: RespuestaAsignacionTurnoDTO,
+    asignacion: AsignacionEntity,
     modifier: Modifier = Modifier
 ) {
     val patronFecha = stringResource(id = R.string.turnos_formato_fecha_detalle)
     val locale = Locale.getDefault()
     val fechaFormateada = remember(asignacion.fecha, patronFecha) {
-        asignacion.fecha.format(DateTimeFormatter.ofPattern(patronFecha, locale))
+        asignacion.fechaLocalDate().format(DateTimeFormatter.ofPattern(patronFecha, locale))
             .replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() }
     }
 
@@ -475,8 +485,9 @@ private fun DetalleAsignacion(
             etiqueta = stringResource(id = R.string.turnos_detalle_modalidad),
             valor = stringResource(
                 id = when (asignacion.modalidad) {
-                    ModalidadAsignacion.PRESENCIAL -> R.string.turnos_modalidad_presencial
-                    ModalidadAsignacion.TELETRABAJO -> R.string.turnos_modalidad_teletrabajo
+                    ModalidadAsignacion.PRESENCIAL.name -> R.string.turnos_modalidad_presencial
+                    ModalidadAsignacion.TELETRABAJO.name -> R.string.turnos_modalidad_teletrabajo
+                    else -> R.string.turnos_modalidad_presencial
                 }
             )
         )

@@ -86,4 +86,5 @@
     <string name="turnos_detalle_turno">Turno</string>
     <string name="turnos_detalle_horario">Horario</string>
     <string name="turnos_detalle_modalidad">Modalidad</string>
+    <string name="turnos_sin_conexion">Sin conexión — mostrando datos guardados</string>
 </resources>

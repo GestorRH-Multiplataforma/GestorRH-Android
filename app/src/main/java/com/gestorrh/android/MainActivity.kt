@@ -20,6 +20,7 @@ import androidx.navigation.compose.rememberNavController
 import com.gestorrh.android.core.network.ApiClient
 import com.gestorrh.android.core.security.AuthEventBus
 import com.gestorrh.android.core.security.SessionManager
+import com.gestorrh.android.data.local.GestorRhDatabase
 import com.gestorrh.android.data.network.autenticacion.AuthApi
 import com.gestorrh.android.data.repository.AuthRepository
 import com.gestorrh.android.ui.login.LoginViewModel
@@ -45,6 +46,7 @@ class MainActivity : ComponentActivity() {
         val sessionManager = SessionManager(this)
         val retrofit = ApiClient.crearRetrofit(sessionManager)
         val authRepository = AuthRepository(retrofit.create(AuthApi::class.java))
+        val baseDatos = GestorRhDatabase.getInstance(this)
 
         setContent {
             GestorRHTheme {
@@ -56,6 +58,9 @@ class MainActivity : ComponentActivity() {
 
                 LaunchedEffect(Unit) {
                     AuthEventBus.sesionExpirada.collect {
+                        scope.launch {
+                            baseDatos.asignacionDao().deleteAll()
+                        }
                         controladorNavegacion.navigate("login") {
                             popUpTo(0) { inclusive = true }
                         }
@@ -101,6 +106,9 @@ class MainActivity : ComponentActivity() {
                             PantallaPrincipal(
                                 alCerrarSesion = {
                                     sessionManager.clearSession()
+                                    scope.launch {
+                                        baseDatos.asignacionDao().deleteAll()
+                                    }
                                     controladorNavegacion.navigate("login") {
                                         popUpTo(0) { inclusive = true }
                                     }
