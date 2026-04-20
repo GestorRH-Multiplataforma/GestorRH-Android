@@ -65,4 +65,24 @@
     <string name="perfil_sin_dato">—</string>
     <string name="perfil_reintentar">Retry</string>
     <string name="sesion_expirada">Your session has expired. Please sign in again</string>
+
+    <!-- My Shifts Screen -->
+    <string name="turnos_titulo">My Shifts</string>
+    <string name="turnos_modalidad_presencial">ON-SITE</string>
+    <string name="turnos_modalidad_teletrabajo">REMOTE</string>
+    <string name="turnos_reintentar">Retry</string>
+    <string name="turnos_vacio_titulo">No shifts assigned</string>
+    <string name="turnos_vacio_descripcion">You have no shifts assigned for this period. Contact HR if you think this is a mistake.</string>
+    <string name="turnos_cd_vista_lista">List view</string>
+    <string name="turnos_cd_vista_calendario">Calendar view</string>
+    <string name="turnos_cd_mes_anterior">Previous month</string>
+    <string name="turnos_cd_mes_siguiente">Next month</string>
+    <!-- Date pattern for list cards: "Mon, Apr 21" -->
+    <string name="turnos_formato_fecha_tarjeta">EEE, MMM d</string>
+    <!-- Full date pattern for BottomSheet detail -->
+    <string name="turnos_formato_fecha_detalle">EEEE, MMMM d, yyyy</string>
+    <string name="turnos_detalle_titulo">Shift detail</string>
+    <string name="turnos_detalle_fecha">Date</string>
+    <string name="turnos_detalle_turno">Shift</string>
+    <string name="turnos_detalle_modalidad">Mode</string>
 </resources>
