@@ -191,6 +191,14 @@ private fun TarjetaAsignacion(asignacion: RespuestaAsignacionTurnoDTO) {
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
+                if (asignacion.horaInicio != null && asignacion.horaFin != null) {
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = "${asignacion.horaInicio} - ${asignacion.horaFin}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
             Spacer(modifier = Modifier.width(12.dp))
             ChipModalidad(modalidad = asignacion.modalidad)
@@ -457,6 +465,12 @@ private fun DetalleAsignacion(
             etiqueta = stringResource(id = R.string.turnos_detalle_turno),
             valor = asignacion.descripcionTurno
         )
+        if (asignacion.horaInicio != null && asignacion.horaFin != null) {
+            FilaDetalle(
+                etiqueta = stringResource(id = R.string.turnos_detalle_horario),
+                valor = "${asignacion.horaInicio} - ${asignacion.horaFin}"
+            )
+        }
         FilaDetalle(
             etiqueta = stringResource(id = R.string.turnos_detalle_modalidad),
             valor = stringResource(

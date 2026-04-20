@@ -11,6 +11,8 @@ data class RespuestaAsignacionTurnoDTO(
     val descripcionTurno: String,
     val fecha: LocalDate,
     val modalidad: ModalidadAsignacion,
+    val horaInicio: String?,
+    val horaFin: String?,
     val motivoCambio: String?,
     val fechaCambio: LocalDateTime?,
     val responsableCambio: String?
