@@ -87,4 +87,27 @@
     <string name="turnos_detalle_horario">Hours</string>
     <string name="turnos_detalle_modalidad">Mode</string>
     <string name="turnos_sin_conexion">Offline — showing saved data</string>
+
+    <!-- Time Off Request Screen -->
+    <string name="ausencia_titulo_pantalla">Request time off</string>
+    <string name="ausencia_label_tipo">Time off type</string>
+    <string name="ausencia_cargando_tipos">Loading types…</string>
+    <string name="ausencia_label_fecha_inicio">Start date</string>
+    <string name="ausencia_label_fecha_fin">End date</string>
+    <string name="ausencia_label_descripcion">Description (optional)</string>
+    <string name="ausencia_btn_adjuntar">Attach supporting document</string>
+    <string name="ausencia_cd_quitar_archivo">Remove attachment</string>
+    <string name="ausencia_btn_enviar">Submit request</string>
+    <string name="ausencia_btn_cancelar">Cancel</string>
+    <string name="ausencia_dialog_aceptar">OK</string>
+    <string name="ausencia_dialog_cancelar">Cancel</string>
+    <string name="ausencia_envio_exitoso">Request sent successfully</string>
+    <string name="ausencia_error_tipo_vacio">Select a time off type</string>
+    <string name="ausencia_error_fecha_inicio_pasada">Start date cannot be in the past</string>
+    <string name="ausencia_error_fecha_fin_anterior">End date cannot be earlier than the start date</string>
+    <string name="ausencia_aviso_justificante_medica">We recommend attaching a supporting document for medical leaves</string>
+    <string name="ausencia_tipo_medica">Medical</string>
+    <string name="ausencia_tipo_vacaciones">Vacation</string>
+    <string name="ausencia_tipo_motivo_personal">Personal reason</string>
+    <string name="ausencia_tipo_otros">Other</string>
 </resources>

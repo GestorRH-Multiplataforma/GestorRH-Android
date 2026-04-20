@@ -9,6 +9,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.gestorrh.android.core.navigation.BarraNavegacionInferior
 import com.gestorrh.android.core.navigation.RutasDestino
+import com.gestorrh.android.ui.ausencia.PantallaSolicitudAusencia
 import com.gestorrh.android.ui.dashboard.PantallaDashboard
 import com.gestorrh.android.ui.perfil.PantallaPerfil
 import com.gestorrh.android.ui.turnos.PantallaMisTurnos
@@ -58,7 +59,20 @@ fun PantallaPrincipal(
             }
 
             composable(RutasDestino.Ausencias.ruta) {
-                // TODO: P1-03 -> Solicitud de Ausencias
+                PantallaSolicitudAusencia(
+                    alVolver = {
+                        controladorNavegacionInterno.navigate(RutasDestino.Inicio.ruta) {
+                            popUpTo(RutasDestino.Inicio.ruta) { inclusive = false }
+                            launchSingleTop = true
+                        }
+                    },
+                    alEnvioExitoso = {
+                        controladorNavegacionInterno.navigate(RutasDestino.Inicio.ruta) {
+                            popUpTo(RutasDestino.Inicio.ruta) { inclusive = false }
+                            launchSingleTop = true
+                        }
+                    }
+                )
             }
 
             composable(RutasDestino.Perfil.ruta) {
