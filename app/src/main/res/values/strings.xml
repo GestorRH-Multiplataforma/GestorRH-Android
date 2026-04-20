@@ -87,4 +87,27 @@
     <string name="turnos_detalle_horario">Horario</string>
     <string name="turnos_detalle_modalidad">Modalidad</string>
     <string name="turnos_sin_conexion">Sin conexión — mostrando datos guardados</string>
+
+    <!-- Pantalla Solicitud de Ausencia -->
+    <string name="ausencia_titulo_pantalla">Solicitar ausencia</string>
+    <string name="ausencia_label_tipo">Tipo de ausencia</string>
+    <string name="ausencia_cargando_tipos">Cargando tipos…</string>
+    <string name="ausencia_label_fecha_inicio">Fecha de inicio</string>
+    <string name="ausencia_label_fecha_fin">Fecha de fin</string>
+    <string name="ausencia_label_descripcion">Descripción (opcional)</string>
+    <string name="ausencia_btn_adjuntar">Adjuntar justificante</string>
+    <string name="ausencia_cd_quitar_archivo">Quitar archivo adjunto</string>
+    <string name="ausencia_btn_enviar">Enviar solicitud</string>
+    <string name="ausencia_btn_cancelar">Cancelar</string>
+    <string name="ausencia_dialog_aceptar">Aceptar</string>
+    <string name="ausencia_dialog_cancelar">Cancelar</string>
+    <string name="ausencia_envio_exitoso">Solicitud enviada correctamente</string>
+    <string name="ausencia_error_tipo_vacio">Selecciona un tipo de ausencia</string>
+    <string name="ausencia_error_fecha_inicio_pasada">La fecha de inicio no puede ser anterior a hoy</string>
+    <string name="ausencia_error_fecha_fin_anterior">La fecha de fin no puede ser anterior a la de inicio</string>
+    <string name="ausencia_aviso_justificante_medica">Recomendamos adjuntar un justificante para ausencias médicas</string>
+    <string name="ausencia_tipo_medica">Médica</string>
+    <string name="ausencia_tipo_vacaciones">Vacaciones</string>
+    <string name="ausencia_tipo_motivo_personal">Motivo personal</string>
+    <string name="ausencia_tipo_otros">Otros</string>
 </resources>
