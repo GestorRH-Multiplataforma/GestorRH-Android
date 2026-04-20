@@ -180,6 +180,9 @@ fun PantallaPerfil(
                         Button(onClick = { viewModel.cargarPerfil() }) {
                             Text(stringResource(R.string.perfil_reintentar))
                         }
+                        OutlinedButton(onClick = { viewModel.cerrarSesion(alCerrarSesion) }) {
+                            Text(stringResource(R.string.perfil_btn_cerrar_sesion))
+                        }
                     }
                 }
             }
