@@ -65,4 +65,24 @@
     <string name="perfil_sin_dato">—</string>
     <string name="perfil_reintentar">Reintentar</string>
     <string name="sesion_expirada">Tu sesión ha expirado. Por favor, inicia sesión de nuevo</string>
+
+    <!-- Pantalla Mis Turnos -->
+    <string name="turnos_titulo">Mis Turnos</string>
+    <string name="turnos_modalidad_presencial">PRESENCIAL</string>
+    <string name="turnos_modalidad_teletrabajo">TELETRABAJO</string>
+    <string name="turnos_reintentar">Reintentar</string>
+    <string name="turnos_vacio_titulo">Sin turnos asignados</string>
+    <string name="turnos_vacio_descripcion">No tienes turnos asignados en este periodo. Contacta con RRHH si crees que es un error.</string>
+    <string name="turnos_cd_vista_lista">Vista en lista</string>
+    <string name="turnos_cd_vista_calendario">Vista en calendario</string>
+    <string name="turnos_cd_mes_anterior">Mes anterior</string>
+    <string name="turnos_cd_mes_siguiente">Mes siguiente</string>
+    <!-- Patrón de fecha para las tarjetas de la lista: "lun., 21 de abr." -->
+    <string name="turnos_formato_fecha_tarjeta">EEE, d \'de\' MMM</string>
+    <!-- Patrón de fecha completo para el detalle del BottomSheet -->
+    <string name="turnos_formato_fecha_detalle">EEEE, d \'de\' MMMM \'de\' yyyy</string>
+    <string name="turnos_detalle_titulo">Detalle del turno</string>
+    <string name="turnos_detalle_fecha">Fecha</string>
+    <string name="turnos_detalle_turno">Turno</string>
+    <string name="turnos_detalle_modalidad">Modalidad</string>
 </resources>

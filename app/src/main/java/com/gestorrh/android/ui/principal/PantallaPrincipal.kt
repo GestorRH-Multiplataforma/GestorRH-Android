@@ -11,6 +11,7 @@ import com.gestorrh.android.core.navigation.BarraNavegacionInferior
 import com.gestorrh.android.core.navigation.RutasDestino
 import com.gestorrh.android.ui.dashboard.PantallaDashboard
 import com.gestorrh.android.ui.perfil.PantallaPerfil
+import com.gestorrh.android.ui.turnos.PantallaMisTurnos
 
 /**
  * Contenedor maestro de la experiencia "Post-Login".
@@ -53,7 +54,7 @@ fun PantallaPrincipal(
             }
 
             composable(RutasDestino.Turnos.ruta) {
-                // TODO: P1-01 -> UI de Mis Turnos
+                PantallaMisTurnos()
             }
 
             composable(RutasDestino.Ausencias.ruta) {

@@ -7,6 +7,7 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 /**
@@ -39,6 +40,7 @@ object ApiClient {
 
         val gson = GsonBuilder()
             .registerTypeAdapter(LocalDateTime::class.java, LocalDateTimeDeserializer())
+            .registerTypeAdapter(LocalDate::class.java, LocalDateDeserializer())
             .create()
 
         return Retrofit.Builder()
