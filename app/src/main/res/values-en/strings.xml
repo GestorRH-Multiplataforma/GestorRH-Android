@@ -84,5 +84,6 @@
     <string name="turnos_detalle_titulo">Shift detail</string>
     <string name="turnos_detalle_fecha">Date</string>
     <string name="turnos_detalle_turno">Shift</string>
+    <string name="turnos_detalle_horario">Hours</string>
     <string name="turnos_detalle_modalidad">Mode</string>
 </resources>

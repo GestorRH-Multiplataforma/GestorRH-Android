@@ -84,5 +84,6 @@
     <string name="turnos_detalle_titulo">Detalle del turno</string>
     <string name="turnos_detalle_fecha">Fecha</string>
     <string name="turnos_detalle_turno">Turno</string>
+    <string name="turnos_detalle_horario">Horario</string>
     <string name="turnos_detalle_modalidad">Modalidad</string>
 </resources>
