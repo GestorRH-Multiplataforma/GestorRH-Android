@@ -17,20 +17,26 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.EventBusy
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
@@ -68,7 +74,9 @@ fun PantallaMisAusencias(
     viewModel: MisAusenciasViewModel = viewModel(
         factory = MisAusenciasViewModel.factory(contexto.applicationContext)
     ),
-    alSolicitarNueva: () -> Unit = {}
+    alSolicitarNueva: () -> Unit = {},
+    alEditarAusencia: (RespuestaAusenciaDTO) -> Unit = {},
+    alCancelarAusencia: (RespuestaAusenciaDTO) -> Unit = {}
 ) {
     val estadoUi by viewModel.estadoUi.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -131,7 +139,9 @@ fun PantallaMisAusencias(
                 estadoUi.ausencias.isEmpty() -> EstadoVacio()
                 else -> ListaAusencias(
                     ausencias = estadoUi.ausencias,
-                    padding = PaddingValues(16.dp)
+                    padding = PaddingValues(16.dp),
+                    alEditar = alEditarAusencia,
+                    alCancelar = alCancelarAusencia
                 )
             }
         }
@@ -180,7 +190,9 @@ private fun EstadoVacio() {
 @Composable
 private fun ListaAusencias(
     ausencias: List<RespuestaAusenciaDTO>,
-    padding: PaddingValues
+    padding: PaddingValues,
+    alEditar: (RespuestaAusenciaDTO) -> Unit,
+    alCancelar: (RespuestaAusenciaDTO) -> Unit
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -188,13 +200,21 @@ private fun ListaAusencias(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         items(ausencias, key = { it.idAusencia }) { ausencia ->
-            TarjetaAusencia(ausencia)
+            TarjetaAusencia(
+                ausencia = ausencia,
+                alEditar = { alEditar(ausencia) },
+                alCancelar = { alCancelar(ausencia) }
+            )
         }
     }
 }
 
 @Composable
-private fun TarjetaAusencia(ausencia: RespuestaAusenciaDTO) {
+private fun TarjetaAusencia(
+    ausencia: RespuestaAusenciaDTO,
+    alEditar: () -> Unit,
+    alCancelar: () -> Unit
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -244,6 +264,47 @@ private fun TarjetaAusencia(ausencia: RespuestaAusenciaDTO) {
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+            }
+
+            if (ausencia.estado == "SOLICITADA") {
+                Spacer(Modifier.height(12.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                Spacer(Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TextButton(onClick = alEditar) {
+                        Icon(
+                            imageVector = Icons.Filled.Edit,
+                            contentDescription = null,
+                            modifier = Modifier.height(18.dp)
+                        )
+                        Spacer(Modifier.height(0.dp))
+                        Text(
+                            text = stringResource(R.string.mis_ausencias_btn_editar),
+                            modifier = Modifier.padding(start = 6.dp)
+                        )
+                    }
+                    OutlinedButton(
+                        onClick = alCancelar,
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = ColorEstadoRechazada
+                        ),
+                        modifier = Modifier.padding(start = 8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Delete,
+                            contentDescription = null,
+                            modifier = Modifier.height(18.dp)
+                        )
+                        Text(
+                            text = stringResource(R.string.mis_ausencias_btn_cancelar),
+                            modifier = Modifier.padding(start = 6.dp)
+                        )
+                    }
+                }
             }
         }
     }
