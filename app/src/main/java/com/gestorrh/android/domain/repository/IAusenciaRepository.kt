@@ -36,4 +36,13 @@ interface IAusenciaRepository {
         archivoBytes: ByteArray?,
         nombreArchivo: String?
     ): Result<RespuestaAusenciaDTO>
+
+    /**
+     * Recupera las solicitudes de ausencia del empleado autenticado desde
+     * `GET /api/ausencias/me`, admitiendo un filtro opcional por [estado].
+     *
+     * @param estado Valor del enum `EstadoAusencia` (`SOLICITADA`, `APROBADA`, `RECHAZADA`) o
+     *        `null` para recuperar todas.
+     */
+    suspend fun obtenerMisAusencias(estado: String? = null): Result<List<RespuestaAusenciaDTO>>
 }

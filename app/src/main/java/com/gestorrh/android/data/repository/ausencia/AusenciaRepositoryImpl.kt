@@ -78,6 +78,27 @@ class AusenciaRepositoryImpl(
         }
     }
 
+    override suspend fun obtenerMisAusencias(estado: String?): Result<List<RespuestaAusenciaDTO>> =
+        withContext(Dispatchers.IO) {
+            try {
+                val respuesta = apiService.getMisAusencias(estado)
+                if (respuesta.isSuccessful && respuesta.body() != null) {
+                    Result.success(respuesta.body()!!)
+                } else {
+                    Result.failure(
+                        Exception(
+                            extraerMensajeError(respuesta.errorBody())
+                                ?: "Error ${respuesta.code()} al obtener las ausencias"
+                        )
+                    )
+                }
+            } catch (e: IOException) {
+                Result.failure(e)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+
     private fun extraerMensajeError(errorBody: ResponseBody?): String? {
         return try {
             val json = errorBody?.string() ?: return null

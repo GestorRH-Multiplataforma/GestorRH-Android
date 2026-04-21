@@ -9,6 +9,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.gestorrh.android.core.navigation.BarraNavegacionInferior
 import com.gestorrh.android.core.navigation.RutasDestino
+import com.gestorrh.android.ui.ausencia.PantallaMisAusencias
 import com.gestorrh.android.ui.ausencia.PantallaSolicitudAusencia
 import com.gestorrh.android.ui.dashboard.PantallaDashboard
 import com.gestorrh.android.ui.perfil.PantallaPerfil
@@ -59,18 +60,28 @@ fun PantallaPrincipal(
             }
 
             composable(RutasDestino.Ausencias.ruta) {
+                PantallaMisAusencias(
+                    alSolicitarNueva = {
+                        controladorNavegacionInterno.navigate(RutasDestino.SolicitarAusencia.ruta) {
+                            launchSingleTop = true
+                        }
+                    }
+                )
+            }
+
+            composable(RutasDestino.SolicitarAusencia.ruta) {
                 PantallaSolicitudAusencia(
                     alVolver = {
-                        controladorNavegacionInterno.navigate(RutasDestino.Inicio.ruta) {
-                            popUpTo(RutasDestino.Inicio.ruta) { inclusive = false }
-                            launchSingleTop = true
-                        }
+                        controladorNavegacionInterno.popBackStack(
+                            route = RutasDestino.Ausencias.ruta,
+                            inclusive = false
+                        )
                     },
                     alEnvioExitoso = {
-                        controladorNavegacionInterno.navigate(RutasDestino.Inicio.ruta) {
-                            popUpTo(RutasDestino.Inicio.ruta) { inclusive = false }
-                            launchSingleTop = true
-                        }
+                        controladorNavegacionInterno.popBackStack(
+                            route = RutasDestino.Ausencias.ruta,
+                            inclusive = false
+                        )
                     }
                 )
             }
