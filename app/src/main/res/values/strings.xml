@@ -128,4 +128,9 @@
     <string name="mis_ausencias_estado_rechazada">RECHAZADA</string>
     <string name="mis_ausencias_btn_editar">Editar</string>
     <string name="mis_ausencias_btn_cancelar">Cancelar</string>
+    <string name="mis_ausencias_dialog_cancelar_titulo">Cancelar solicitud</string>
+    <string name="mis_ausencias_dialog_cancelar_mensaje">¿Seguro que deseas cancelar esta solicitud de ausencia? Esta acción no se puede deshacer.</string>
+    <string name="mis_ausencias_dialog_cancelar_confirmar">Confirmar</string>
+    <string name="mis_ausencias_dialog_cancelar_volver">Volver</string>
+    <string name="mis_ausencias_cancelada_ok">Solicitud cancelada</string>
 </resources>

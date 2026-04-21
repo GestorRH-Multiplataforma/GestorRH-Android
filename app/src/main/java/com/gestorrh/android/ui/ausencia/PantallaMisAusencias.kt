@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.EventBusy
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -43,7 +44,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -75,13 +78,14 @@ fun PantallaMisAusencias(
         factory = MisAusenciasViewModel.factory(contexto.applicationContext)
     ),
     alSolicitarNueva: () -> Unit = {},
-    alEditarAusencia: (RespuestaAusenciaDTO) -> Unit = {},
-    alCancelarAusencia: (RespuestaAusenciaDTO) -> Unit = {}
+    alEditarAusencia: (RespuestaAusenciaDTO) -> Unit = {}
 ) {
     val estadoUi by viewModel.estadoUi.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val contextoLocal = LocalContext.current
     val propietarioCicloVida = LocalLifecycleOwner.current
+
+    var ausenciaAConfirmarCancelar by remember { mutableStateOf<RespuestaAusenciaDTO?>(null) }
 
     DisposableEffect(propietarioCicloVida) {
         val observador = LifecycleEventObserver { _, evento ->
@@ -94,6 +98,17 @@ fun PantallaMisAusencias(
     }
 
     val textoReintentar = stringResource(R.string.mis_ausencias_reintentar)
+    val mensajeCancelada = stringResource(R.string.mis_ausencias_cancelada_ok)
+
+    LaunchedEffect(estadoUi.cancelacionExitosa) {
+        if (estadoUi.cancelacionExitosa) {
+            snackbarHostState.showSnackbar(
+                message = mensajeCancelada,
+                duration = SnackbarDuration.Short
+            )
+            viewModel.cancelacionConsumida()
+        }
+    }
 
     LaunchedEffect(estadoUi.mensajeError) {
         estadoUi.mensajeError?.let { mensaje ->
@@ -141,10 +156,36 @@ fun PantallaMisAusencias(
                     ausencias = estadoUi.ausencias,
                     padding = PaddingValues(16.dp),
                     alEditar = alEditarAusencia,
-                    alCancelar = alCancelarAusencia
+                    alCancelar = { ausenciaAConfirmarCancelar = it }
                 )
             }
         }
+    }
+
+    ausenciaAConfirmarCancelar?.let { ausencia ->
+        AlertDialog(
+            onDismissRequest = { ausenciaAConfirmarCancelar = null },
+            title = { Text(stringResource(R.string.mis_ausencias_dialog_cancelar_titulo)) },
+            text = { Text(stringResource(R.string.mis_ausencias_dialog_cancelar_mensaje)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        ausenciaAConfirmarCancelar = null
+                        viewModel.cancelarAusencia(ausencia.idAusencia)
+                    },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = ColorEstadoRechazada
+                    )
+                ) {
+                    Text(stringResource(R.string.mis_ausencias_dialog_cancelar_confirmar))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { ausenciaAConfirmarCancelar = null }) {
+                    Text(stringResource(R.string.mis_ausencias_dialog_cancelar_volver))
+                }
+            }
+        )
     }
 }
 

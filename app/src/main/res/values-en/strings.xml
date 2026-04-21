@@ -128,4 +128,9 @@
     <string name="mis_ausencias_estado_rechazada">REJECTED</string>
     <string name="mis_ausencias_btn_editar">Edit</string>
     <string name="mis_ausencias_btn_cancelar">Cancel</string>
+    <string name="mis_ausencias_dialog_cancelar_titulo">Cancel request</string>
+    <string name="mis_ausencias_dialog_cancelar_mensaje">Are you sure you want to cancel this time off request? This action cannot be undone.</string>
+    <string name="mis_ausencias_dialog_cancelar_confirmar">Confirm</string>
+    <string name="mis_ausencias_dialog_cancelar_volver">Back</string>
+    <string name="mis_ausencias_cancelada_ok">Request cancelled</string>
 </resources>

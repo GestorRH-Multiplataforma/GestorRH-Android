@@ -67,6 +67,40 @@ class MisAusenciasViewModel(
         _estadoUi.update { it.copy(mensajeError = null) }
     }
 
+    /**
+     * Ejecuta `DELETE /api/ausencias/{id}` para cancelar la solicitud indicada.
+     * En éxito marca el flag [EstadoUiMisAusencias.cancelacionExitosa] para que la
+     * pantalla muestre el Snackbar y recarga el listado. En error se rellena
+     * `mensajeError` con el texto que haya devuelto el servidor.
+     */
+    fun cancelarAusencia(idAusencia: Long) {
+        if (_estadoUi.value.cancelando) return
+        viewModelScope.launch {
+            _estadoUi.update { it.copy(cancelando = true, mensajeError = null) }
+            ausenciaRepository.cancelarAusencia(idAusencia)
+                .onSuccess {
+                    _estadoUi.update { it.copy(cancelando = false, cancelacionExitosa = true) }
+                    cargarAusencias()
+                }
+                .onFailure { error ->
+                    _estadoUi.update {
+                        it.copy(
+                            cancelando = false,
+                            mensajeError = if (error is IOException) {
+                                MensajeUi.Recurso(R.string.error_conexion)
+                            } else {
+                                MensajeUi.Dinamico(error.message ?: "")
+                            }
+                        )
+                    }
+                }
+        }
+    }
+
+    fun cancelacionConsumida() {
+        _estadoUi.update { it.copy(cancelacionExitosa = false) }
+    }
+
     companion object {
         fun factory(contexto: Context): ViewModelProvider.Factory =
             object : ViewModelProvider.Factory {
