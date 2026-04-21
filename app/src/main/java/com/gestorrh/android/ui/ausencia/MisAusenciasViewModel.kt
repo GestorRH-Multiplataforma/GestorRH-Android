@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.gestorrh.android.R
+import com.gestorrh.android.core.archivos.GestorArchivosJustificante
 import com.gestorrh.android.core.network.ApiClient
 import com.gestorrh.android.core.security.SessionManager
 import com.gestorrh.android.core.ui.MensajeUi
@@ -28,14 +29,12 @@ import java.io.IOException
  * refrescar al regresar de la pantalla de solicitud de P1-03) como al gesto de
  * pull-to-refresh.
  *
- * La petición se ejecuta en `Dispatchers.IO` dentro del repositorio, por lo que el
- * ViewModel solo orquesta el lanzamiento en [viewModelScope] y mantiene el flag
- * `cargando` para que la UI pueda distinguir entre carga inicial y refresco manual.
- *
- * @param ausenciaRepository Acceso al endpoint de listado de ausencias propias.
+ * Además gestiona la descarga del justificante asociado a una ausencia para abrirlo
+ * con el visor del sistema del dispositivo desde la propia tarjeta del listado.
  */
 class MisAusenciasViewModel(
-    private val ausenciaRepository: IAusenciaRepository
+    private val ausenciaRepository: IAusenciaRepository,
+    private val contextoAplicacion: Context
 ) : ViewModel() {
 
     private val _estadoUi = MutableStateFlow(EstadoUiMisAusencias())
@@ -67,12 +66,6 @@ class MisAusenciasViewModel(
         _estadoUi.update { it.copy(mensajeError = null) }
     }
 
-    /**
-     * Ejecuta `DELETE /api/ausencias/{id}` para cancelar la solicitud indicada.
-     * En éxito marca el flag [EstadoUiMisAusencias.cancelacionExitosa] para que la
-     * pantalla muestre el Snackbar y recarga el listado. En error se rellena
-     * `mensajeError` con el texto que haya devuelto el servidor.
-     */
     fun cancelarAusencia(idAusencia: Long) {
         if (_estadoUi.value.cancelando) return
         viewModelScope.launch {
@@ -101,6 +94,46 @@ class MisAusenciasViewModel(
         _estadoUi.update { it.copy(cancelacionExitosa = false) }
     }
 
+    /**
+     * Descarga el justificante de la ausencia indicada y guarda los bytes en el
+     * caché del dispositivo, exponiendo el `Uri` resultante vía
+     * [EstadoUiMisAusencias.abrirJustificante] para que la pantalla lance el visor.
+     */
+    fun descargarJustificante(idAusencia: Long, nombreArchivo: String) {
+        if (_estadoUi.value.descargandoJustificanteDe != null) return
+        viewModelScope.launch {
+            _estadoUi.update { it.copy(descargandoJustificanteDe = idAusencia) }
+            ausenciaRepository.descargarJustificante(nombreArchivo)
+                .onSuccess { bytes ->
+                    val uri = GestorArchivosJustificante.guardarEnCacheYObtenerUri(
+                        contextoAplicacion, bytes, nombreArchivo
+                    )
+                    _estadoUi.update {
+                        it.copy(
+                            descargandoJustificanteDe = null,
+                            abrirJustificante = JustificanteParaAbrir(uri, nombreArchivo)
+                        )
+                    }
+                }
+                .onFailure { error ->
+                    _estadoUi.update {
+                        it.copy(
+                            descargandoJustificanteDe = null,
+                            mensajeError = if (error is IOException) {
+                                MensajeUi.Recurso(R.string.error_conexion)
+                            } else {
+                                MensajeUi.Dinamico(error.message ?: "")
+                            }
+                        )
+                    }
+                }
+        }
+    }
+
+    fun aperturaJustificanteConsumida() {
+        _estadoUi.update { it.copy(abrirJustificante = null) }
+    }
+
     companion object {
         fun factory(contexto: Context): ViewModelProvider.Factory =
             object : ViewModelProvider.Factory {
@@ -110,7 +143,7 @@ class MisAusenciasViewModel(
                     val retrofit = ApiClient.crearRetrofit(sessionManager)
                     val apiService = retrofit.create(AusenciaApiService::class.java)
                     val repository = AusenciaRepositoryImpl(apiService, Gson())
-                    return MisAusenciasViewModel(repository) as T
+                    return MisAusenciasViewModel(repository, contexto) as T
                 }
             }
     }

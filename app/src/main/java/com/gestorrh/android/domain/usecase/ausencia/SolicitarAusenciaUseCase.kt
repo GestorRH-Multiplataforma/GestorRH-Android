@@ -17,9 +17,11 @@ import java.time.LocalDate
  * Reglas aplicadas:
  * - `fechaInicio` debe ser hoy o futura.
  * - `fechaFin` debe ser igual o posterior a `fechaInicio`.
+ * - El archivo adjunto (si existe) debe tener extensión soportada (pdf/jpg/jpeg/png)
+ *   y no superar el tamaño máximo admitido.
  *
- * Si la entrada es válida invoca a [IAusenciaRepository.crearAusencia] reenviando el
- * justificante opcional sin modificarlo.
+ * Si la entrada es válida invoca al método correspondiente del repositorio (crear o
+ * actualizar) reenviando el justificante opcional sin modificarlo.
  */
 class SolicitarAusenciaUseCase(
     private val repository: IAusenciaRepository
@@ -29,6 +31,8 @@ class SolicitarAusenciaUseCase(
         data object FechaInicioPasada : ErrorValidacion("fechaInicio_pasada")
         data object FechaFinAnterior : ErrorValidacion("fechaFin_anterior")
         data object TipoVacio : ErrorValidacion("tipo_vacio")
+        data object ArchivoTipoNoSoportado : ErrorValidacion("archivo_tipo_no_soportado")
+        data object ArchivoDemasiadoGrande : ErrorValidacion("archivo_demasiado_grande")
     }
 
     suspend operator fun invoke(
@@ -50,6 +54,14 @@ class SolicitarAusenciaUseCase(
         if (fechaFin == null || fechaFin.isBefore(fechaInicio)) {
             return Result.failure(ErrorValidacion.FechaFinAnterior)
         }
+        if (archivoBytes != null) {
+            if (!extensionSoportada(nombreArchivo)) {
+                return Result.failure(ErrorValidacion.ArchivoTipoNoSoportado)
+            }
+            if (archivoBytes.size > TAMANO_MAXIMO_BYTES) {
+                return Result.failure(ErrorValidacion.ArchivoDemasiadoGrande)
+            }
+        }
 
         val peticion = PeticionAusenciaDTO(
             tipo = tipo,
@@ -58,9 +70,19 @@ class SolicitarAusenciaUseCase(
             fechaFin = fechaFin
         )
         return if (idAusenciaEditar != null) {
-            repository.actualizarAusencia(idAusenciaEditar, peticion)
+            repository.actualizarAusencia(idAusenciaEditar, peticion, archivoBytes, nombreArchivo)
         } else {
             repository.crearAusencia(peticion, archivoBytes, nombreArchivo)
         }
+    }
+
+    private fun extensionSoportada(nombre: String?): Boolean {
+        val extension = nombre?.substringAfterLast('.', "")?.lowercase().orEmpty()
+        return extension in EXTENSIONES_SOPORTADAS
+    }
+
+    companion object {
+        const val TAMANO_MAXIMO_BYTES: Long = 10L * 1024 * 1024
+        val EXTENSIONES_SOPORTADAS: Set<String> = setOf("pdf", "jpg", "jpeg", "png")
     }
 }

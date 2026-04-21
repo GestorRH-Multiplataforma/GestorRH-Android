@@ -6,10 +6,11 @@ import com.gestorrh.android.data.network.ausencia.RespuestaAusenciaDTO
 /**
  * Contrato de dominio para las operaciones sobre ausencias del empleado autenticado.
  *
- * Concentra las dos operaciones que la pantalla de solicitud necesita: leer el
- * diccionario de tipos disponibles desde el servidor (para alimentar el desplegable
- * sin acoplarlo al enum local) y enviar una nueva solicitud usando `multipart/form-data`
- * con la parte JSON `datos` y la parte binaria opcional `archivo`.
+ * Concentra las operaciones necesarias para el flujo de creación, edición, listado
+ * y gestión de justificantes: lectura del diccionario de tipos, envío de solicitudes
+ * con `multipart/form-data` (parte JSON `datos` y parte binaria opcional `archivo`),
+ * consulta del listado propio, actualización y cancelación, y descarga del justificante
+ * ya persistido en el servidor.
  *
  * Las implementaciones devuelven [Result] envolviendo el cuerpo de respuesta en caso
  * de éxito o una [Throwable] cuyo mensaje sea apto para mostrar al usuario directamente
@@ -47,14 +48,19 @@ interface IAusenciaRepository {
     suspend fun obtenerMisAusencias(estado: String? = null): Result<List<RespuestaAusenciaDTO>>
 
     /**
-     * Actualiza una ausencia existente mediante `PUT /api/ausencias/{id}` enviando
-     * [peticion] como JSON. El servidor solo permite la operación si la ausencia está
+     * Actualiza una ausencia existente mediante `PUT /api/ausencias/{id}` usando
+     * `multipart/form-data`. El servidor solo permite la operación si la ausencia está
      * en estado `SOLICITADA`; en caso contrario devuelve 409/400 y el mensaje se
      * propaga tal cual desde el campo `message` del cuerpo de error.
+     *
+     * @param archivoBytes Bytes del nuevo justificante o `null` si no se desea sustituirlo.
+     * @param nombreArchivo Nombre original del nuevo archivo (`filename` del multipart).
      */
     suspend fun actualizarAusencia(
         idAusencia: Long,
-        peticion: PeticionAusenciaDTO
+        peticion: PeticionAusenciaDTO,
+        archivoBytes: ByteArray?,
+        nombreArchivo: String?
     ): Result<RespuestaAusenciaDTO>
 
     /**
@@ -62,4 +68,10 @@ interface IAusenciaRepository {
      * Solo permitido si la ausencia está en estado `SOLICITADA`.
      */
     suspend fun cancelarAusencia(idAusencia: Long): Result<Unit>
+
+    /**
+     * Descarga los bytes del justificante asociado a una ausencia desde
+     * `GET /api/ausencias/justificantes/{nombreArchivo}`.
+     */
+    suspend fun descargarJustificante(nombreArchivo: String): Result<ByteArray>
 }
