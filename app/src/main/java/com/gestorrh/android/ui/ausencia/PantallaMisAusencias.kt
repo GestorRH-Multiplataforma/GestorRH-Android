@@ -1,0 +1,296 @@
+package com.gestorrh.android.ui.ausencia
+
+import android.content.Context
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.EventBusy
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.gestorrh.android.R
+import com.gestorrh.android.core.ui.MensajeUi
+import com.gestorrh.android.data.network.ausencia.RespuestaAusenciaDTO
+import java.time.format.DateTimeFormatter
+
+private val ColorEstadoSolicitada = Color(0xFFF57C00)
+private val ColorEstadoAprobada = Color(0xFF2E7D32)
+private val ColorEstadoRechazada = Color(0xFFD32F2F)
+
+private val FormatoFecha: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PantallaMisAusencias(
+    contexto: Context = LocalContext.current,
+    viewModel: MisAusenciasViewModel = viewModel(
+        factory = MisAusenciasViewModel.factory(contexto.applicationContext)
+    ),
+    alSolicitarNueva: () -> Unit = {}
+) {
+    val estadoUi by viewModel.estadoUi.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val contextoLocal = LocalContext.current
+    val propietarioCicloVida = LocalLifecycleOwner.current
+
+    DisposableEffect(propietarioCicloVida) {
+        val observador = LifecycleEventObserver { _, evento ->
+            if (evento == Lifecycle.Event.ON_RESUME) {
+                viewModel.cargarAusencias()
+            }
+        }
+        propietarioCicloVida.lifecycle.addObserver(observador)
+        onDispose { propietarioCicloVida.lifecycle.removeObserver(observador) }
+    }
+
+    val textoReintentar = stringResource(R.string.mis_ausencias_reintentar)
+
+    LaunchedEffect(estadoUi.mensajeError) {
+        estadoUi.mensajeError?.let { mensaje ->
+            val texto = when (mensaje) {
+                is MensajeUi.Recurso -> contextoLocal.getString(mensaje.idRecurso)
+                is MensajeUi.Dinamico -> mensaje.texto
+            }
+            val resultado = snackbarHostState.showSnackbar(
+                message = texto,
+                actionLabel = textoReintentar,
+                duration = SnackbarDuration.Long
+            )
+            viewModel.errorMostrado()
+            if (resultado == SnackbarResult.ActionPerformed) {
+                viewModel.cargarAusencias()
+            }
+        }
+    }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(title = { Text(stringResource(R.string.mis_ausencias_titulo)) })
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        floatingActionButton = {
+            FloatingActionButton(onClick = alSolicitarNueva) {
+                Icon(
+                    imageVector = Icons.Filled.Add,
+                    contentDescription = stringResource(R.string.mis_ausencias_cd_nueva)
+                )
+            }
+        }
+    ) { padding ->
+        PullToRefreshBox(
+            isRefreshing = estadoUi.cargando && estadoUi.ausencias.isNotEmpty(),
+            onRefresh = { viewModel.cargarAusencias() },
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+        ) {
+            when {
+                estadoUi.cargando && estadoUi.ausencias.isEmpty() -> IndicadorCargando()
+                estadoUi.ausencias.isEmpty() -> EstadoVacio()
+                else -> ListaAusencias(
+                    ausencias = estadoUi.ausencias,
+                    padding = PaddingValues(16.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun IndicadorCargando() {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        CircularProgressIndicator()
+    }
+}
+
+@Composable
+private fun EstadoVacio() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            imageVector = Icons.Filled.EventBusy,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier
+                .padding(bottom = 16.dp)
+                .height(72.dp)
+                .fillMaxWidth()
+        )
+        Text(
+            text = stringResource(R.string.mis_ausencias_vacio_titulo),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Spacer(Modifier.height(8.dp))
+        Text(
+            text = stringResource(R.string.mis_ausencias_vacio_descripcion),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+@Composable
+private fun ListaAusencias(
+    ausencias: List<RespuestaAusenciaDTO>,
+    padding: PaddingValues
+) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = padding,
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        items(ausencias, key = { it.idAusencia }) { ausencia ->
+            TarjetaAusencia(ausencia)
+        }
+    }
+}
+
+@Composable
+private fun TarjetaAusencia(ausencia: RespuestaAusenciaDTO) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = etiquetaTipoAusencia(ausencia.tipo),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.weight(1f)
+                )
+                ChipEstado(estado = ausencia.estado)
+            }
+
+            Spacer(Modifier.height(8.dp))
+
+            Text(
+                text = stringResource(
+                    R.string.mis_ausencias_rango_fechas,
+                    ausencia.fechaInicio.format(FormatoFecha),
+                    ausencia.fechaFin.format(FormatoFecha)
+                ),
+                style = MaterialTheme.typography.bodyMedium
+            )
+
+            if (!ausencia.descripcion.isNullOrBlank()) {
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = ausencia.descripcion,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            if (!ausencia.motivoRechazo.isNullOrBlank()) {
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = stringResource(
+                        R.string.mis_ausencias_observaciones,
+                        ausencia.motivoRechazo
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ChipEstado(estado: String) {
+    val color = when (estado) {
+        "SOLICITADA" -> ColorEstadoSolicitada
+        "APROBADA" -> ColorEstadoAprobada
+        "RECHAZADA" -> ColorEstadoRechazada
+        else -> MaterialTheme.colorScheme.outline
+    }
+    Box(
+        modifier = Modifier
+            .background(color = color, shape = RoundedCornerShape(50))
+            .padding(horizontal = 12.dp, vertical = 4.dp)
+    ) {
+        Text(
+            text = etiquetaEstado(estado),
+            style = MaterialTheme.typography.labelMedium,
+            color = Color.White,
+            fontWeight = FontWeight.Medium
+        )
+    }
+}
+
+@Composable
+private fun etiquetaEstado(estado: String): String {
+    val resId = when (estado) {
+        "SOLICITADA" -> R.string.mis_ausencias_estado_solicitada
+        "APROBADA" -> R.string.mis_ausencias_estado_aprobada
+        "RECHAZADA" -> R.string.mis_ausencias_estado_rechazada
+        else -> null
+    }
+    return resId?.let { stringResource(it) } ?: estado
+}
+
+@Composable
+private fun etiquetaTipoAusencia(tipo: String): String {
+    val resId = when (tipo) {
+        "MEDICA" -> R.string.ausencia_tipo_medica
+        "VACACIONES" -> R.string.ausencia_tipo_vacaciones
+        "MOTIVO_PERSONAL" -> R.string.ausencia_tipo_motivo_personal
+        "OTROS" -> R.string.ausencia_tipo_otros
+        else -> null
+    }
+    return resId?.let { stringResource(it) } ?: tipo
+}
+

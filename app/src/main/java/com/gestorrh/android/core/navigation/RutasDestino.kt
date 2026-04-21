@@ -26,4 +26,12 @@ sealed class RutasDestino(
     data object Ausencias : RutasDestino("ausencias", R.string.nav_ausencias, Icons.Filled.EventBusy)
     data object Perfil : RutasDestino("perfil", R.string.nav_perfil, Icons.Filled.Person)
     data object GestionEquipo : RutasDestino("equipo", R.string.nav_equipo, Icons.Filled.Group)
+
+    /**
+     * Destino interno para el formulario de solicitud de ausencia. No aparece en la
+     * barra de navegación inferior: se alcanza desde el FAB de [Ausencias] y vuelve
+     * a ese destino tras enviar o cancelar.
+     */
+    data object SolicitarAusencia :
+        RutasDestino("ausencias/solicitar", R.string.nav_ausencias, Icons.Filled.EventBusy)
 }

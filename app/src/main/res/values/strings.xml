@@ -110,4 +110,18 @@
     <string name="ausencia_tipo_vacaciones">Vacaciones</string>
     <string name="ausencia_tipo_motivo_personal">Motivo personal</string>
     <string name="ausencia_tipo_otros">Otros</string>
+
+    <!-- Pantalla Mis Ausencias -->
+    <string name="mis_ausencias_titulo">Mis ausencias</string>
+    <string name="mis_ausencias_cd_nueva">Solicitar nueva ausencia</string>
+    <string name="mis_ausencias_reintentar">Reintentar</string>
+    <string name="mis_ausencias_vacio_titulo">No tienes solicitudes de ausencia</string>
+    <string name="mis_ausencias_vacio_descripcion">Cuando solicites una ausencia aparecerá aquí con su estado actual.</string>
+    <!-- %1$s = fecha inicio, %2$s = fecha fin -->
+    <string name="mis_ausencias_rango_fechas">%1$s → %2$s</string>
+    <!-- %1$s = observaciones de la revisión devueltas por el supervisor -->
+    <string name="mis_ausencias_observaciones">Observaciones: %1$s</string>
+    <string name="mis_ausencias_estado_solicitada">SOLICITADA</string>
+    <string name="mis_ausencias_estado_aprobada">APROBADA</string>
+    <string name="mis_ausencias_estado_rechazada">RECHAZADA</string>
 </resources>

@@ -110,4 +110,18 @@
     <string name="ausencia_tipo_vacaciones">Vacation</string>
     <string name="ausencia_tipo_motivo_personal">Personal reason</string>
     <string name="ausencia_tipo_otros">Other</string>
+
+    <!-- My Time Off Screen -->
+    <string name="mis_ausencias_titulo">My time off</string>
+    <string name="mis_ausencias_cd_nueva">Request new time off</string>
+    <string name="mis_ausencias_reintentar">Retry</string>
+    <string name="mis_ausencias_vacio_titulo">No time off requests yet</string>
+    <string name="mis_ausencias_vacio_descripcion">When you request time off it will appear here with its current status.</string>
+    <!-- %1$s = start date, %2$s = end date -->
+    <string name="mis_ausencias_rango_fechas">%1$s → %2$s</string>
+    <!-- %1$s = review notes provided by the supervisor -->
+    <string name="mis_ausencias_observaciones">Notes: %1$s</string>
+    <string name="mis_ausencias_estado_solicitada">PENDING</string>
+    <string name="mis_ausencias_estado_aprobada">APPROVED</string>
+    <string name="mis_ausencias_estado_rechazada">REJECTED</string>
 </resources>
