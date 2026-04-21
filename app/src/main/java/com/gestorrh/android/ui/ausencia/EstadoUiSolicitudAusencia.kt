@@ -20,8 +20,12 @@ data class EstadoUiSolicitudAusencia(
     @StringRes val avisoJustificante: Int? = null,
     val enviando: Boolean = false,
     val mensajeError: MensajeUi? = null,
-    val envioExitoso: Boolean = false
+    val envioExitoso: Boolean = false,
+    val idAusenciaEditar: Long? = null
 ) {
+    val modoEdicion: Boolean
+        get() = idAusenciaEditar != null
+
     val formularioValido: Boolean
         get() = !tipoSeleccionado.isNullOrBlank()
             && fechaInicio != null

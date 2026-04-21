@@ -38,6 +38,7 @@ class SolicitarAusenciaUseCase(
         fechaFin: LocalDate?,
         archivoBytes: ByteArray?,
         nombreArchivo: String?,
+        idAusenciaEditar: Long? = null,
         hoy: LocalDate = LocalDate.now()
     ): Result<RespuestaAusenciaDTO> {
         if (tipo.isNullOrBlank()) {
@@ -56,6 +57,10 @@ class SolicitarAusenciaUseCase(
             fechaInicio = fechaInicio,
             fechaFin = fechaFin
         )
-        return repository.crearAusencia(peticion, archivoBytes, nombreArchivo)
+        return if (idAusenciaEditar != null) {
+            repository.actualizarAusencia(idAusenciaEditar, peticion)
+        } else {
+            repository.crearAusencia(peticion, archivoBytes, nombreArchivo)
+        }
     }
 }

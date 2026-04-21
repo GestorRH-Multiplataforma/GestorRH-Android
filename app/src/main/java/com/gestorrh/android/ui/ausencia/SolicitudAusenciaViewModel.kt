@@ -47,10 +47,19 @@ import java.time.format.DateTimeFormatter
 class SolicitudAusenciaViewModel(
     private val ausenciaRepository: IAusenciaRepository,
     private val solicitarAusenciaUseCase: SolicitarAusenciaUseCase,
-    private val contextoAplicacion: Context
+    private val contextoAplicacion: Context,
+    datosPrerelleno: PrerrellenoEdicion? = null
 ) : ViewModel() {
 
-    private val _estadoUi = MutableStateFlow(EstadoUiSolicitudAusencia())
+    private val _estadoUi = MutableStateFlow(
+        EstadoUiSolicitudAusencia(
+            idAusenciaEditar = datosPrerelleno?.idAusencia,
+            tipoSeleccionado = datosPrerelleno?.tipo,
+            fechaInicio = datosPrerelleno?.fechaInicio,
+            fechaFin = datosPrerelleno?.fechaFin,
+            descripcion = datosPrerelleno?.descripcion.orEmpty()
+        )
+    )
     val estadoUi: StateFlow<EstadoUiSolicitudAusencia> = _estadoUi.asStateFlow()
 
     init {
@@ -165,8 +174,9 @@ class SolicitudAusenciaViewModel(
                 descripcion = estadoActual.descripcion,
                 fechaInicio = estadoActual.fechaInicio,
                 fechaFin = estadoActual.fechaFin,
-                archivoBytes = archivoBytes,
-                nombreArchivo = estadoActual.nombreArchivo
+                archivoBytes = if (estadoActual.modoEdicion) null else archivoBytes,
+                nombreArchivo = if (estadoActual.modoEdicion) null else estadoActual.nombreArchivo,
+                idAusenciaEditar = estadoActual.idAusenciaEditar
             )
 
             resultado
@@ -246,10 +256,27 @@ class SolicitudAusenciaViewModel(
         }
     }
 
+    /**
+     * Conjunto mínimo de datos necesarios para abrir la pantalla en modo edición.
+     * Solo se incluyen los campos editables por el usuario; el resto del
+     * [com.gestorrh.android.data.network.ausencia.RespuestaAusenciaDTO] (estado,
+     * responsable, etc.) no pertenece al formulario.
+     */
+    data class PrerrellenoEdicion(
+        val idAusencia: Long,
+        val tipo: String,
+        val fechaInicio: LocalDate,
+        val fechaFin: LocalDate,
+        val descripcion: String?
+    )
+
     companion object {
         val FORMATO_FECHA: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
 
-        fun factory(contexto: Context): ViewModelProvider.Factory =
+        fun factory(
+            contexto: Context,
+            datosPrerelleno: PrerrellenoEdicion? = null
+        ): ViewModelProvider.Factory =
             object : ViewModelProvider.Factory {
                 @Suppress("UNCHECKED_CAST")
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -268,7 +295,12 @@ class SolicitudAusenciaViewModel(
                         .create()
                     val repository = AusenciaRepositoryImpl(apiService, gson)
                     val useCase = SolicitarAusenciaUseCase(repository)
-                    return SolicitudAusenciaViewModel(repository, useCase, contexto) as T
+                    return SolicitudAusenciaViewModel(
+                        ausenciaRepository = repository,
+                        solicitarAusenciaUseCase = useCase,
+                        contextoAplicacion = contexto,
+                        datosPrerelleno = datosPrerelleno
+                    ) as T
                 }
             }
     }

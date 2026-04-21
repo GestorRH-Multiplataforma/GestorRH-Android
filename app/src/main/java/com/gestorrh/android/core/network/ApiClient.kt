@@ -3,12 +3,15 @@ package com.gestorrh.android.core.network
 import com.gestorrh.android.BuildConfig
 import com.gestorrh.android.core.security.SessionManager
 import com.google.gson.GsonBuilder
+import com.google.gson.JsonPrimitive
+import com.google.gson.JsonSerializer
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 /**
  * Motor central de comunicaciones HTTP de la aplicación.
@@ -41,6 +44,12 @@ object ApiClient {
         val gson = GsonBuilder()
             .registerTypeAdapter(LocalDateTime::class.java, LocalDateTimeDeserializer())
             .registerTypeAdapter(LocalDate::class.java, LocalDateDeserializer())
+            .registerTypeAdapter(
+                LocalDate::class.java,
+                JsonSerializer<LocalDate> { src, _, _ ->
+                    JsonPrimitive(src.format(DateTimeFormatter.ISO_LOCAL_DATE))
+                }
+            )
             .create()
 
         return Retrofit.Builder()
