@@ -66,8 +66,13 @@ private val ColorAvisoAmbar = Color(0xFFB26A00)
 @Composable
 fun PantallaSolicitudAusencia(
     contexto: Context = LocalContext.current,
+    datosPrerelleno: SolicitudAusenciaViewModel.PrerrellenoEdicion? = null,
     viewModel: SolicitudAusenciaViewModel = viewModel(
-        factory = SolicitudAusenciaViewModel.factory(contexto.applicationContext)
+        key = datosPrerelleno?.idAusencia?.let { "editar-$it" } ?: "crear",
+        factory = SolicitudAusenciaViewModel.factory(
+            contexto.applicationContext,
+            datosPrerelleno
+        )
     ),
     alVolver: () -> Unit = {},
     alEnvioExitoso: () -> Unit = {}
@@ -102,9 +107,15 @@ fun PantallaSolicitudAusencia(
         }
     }
 
+    val tituloRes = if (estadoUi.modoEdicion) {
+        R.string.ausencia_titulo_pantalla_editar
+    } else {
+        R.string.ausencia_titulo_pantalla
+    }
+
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text(stringResource(R.string.ausencia_titulo_pantalla)) })
+            TopAppBar(title = { Text(stringResource(tituloRes)) })
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
@@ -143,18 +154,20 @@ fun PantallaSolicitudAusencia(
                 maxLines = 6
             )
 
-            BotonAdjuntar(
-                nombreArchivo = estadoUi.nombreArchivo,
-                onAdjuntar = { selectorArchivo.launch("*/*") },
-                onQuitar = viewModel::quitarArchivo
-            )
-
-            estadoUi.avisoJustificante?.let { idAviso ->
-                Text(
-                    text = stringResource(idAviso),
-                    color = ColorAvisoAmbar,
-                    style = MaterialTheme.typography.bodySmall
+            if (!estadoUi.modoEdicion) {
+                BotonAdjuntar(
+                    nombreArchivo = estadoUi.nombreArchivo,
+                    onAdjuntar = { selectorArchivo.launch("*/*") },
+                    onQuitar = viewModel::quitarArchivo
                 )
+
+                estadoUi.avisoJustificante?.let { idAviso ->
+                    Text(
+                        text = stringResource(idAviso),
+                        color = ColorAvisoAmbar,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
             }
 
             Spacer(Modifier.height(8.dp))
@@ -171,7 +184,12 @@ fun PantallaSolicitudAusencia(
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                 } else {
-                    Text(stringResource(R.string.ausencia_btn_enviar))
+                    val textoBoton = if (estadoUi.modoEdicion) {
+                        R.string.ausencia_btn_actualizar
+                    } else {
+                        R.string.ausencia_btn_enviar
+                    }
+                    Text(stringResource(textoBoton))
                 }
             }
 

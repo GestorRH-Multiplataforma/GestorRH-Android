@@ -90,6 +90,8 @@
 
     <!-- Pantalla Solicitud de Ausencia -->
     <string name="ausencia_titulo_pantalla">Solicitar ausencia</string>
+    <string name="ausencia_titulo_pantalla_editar">Editar solicitud</string>
+    <string name="ausencia_btn_actualizar">Actualizar solicitud</string>
     <string name="ausencia_label_tipo">Tipo de ausencia</string>
     <string name="ausencia_cargando_tipos">Cargando tipos…</string>
     <string name="ausencia_label_fecha_inicio">Fecha de inicio</string>
@@ -124,4 +126,11 @@
     <string name="mis_ausencias_estado_solicitada">SOLICITADA</string>
     <string name="mis_ausencias_estado_aprobada">APROBADA</string>
     <string name="mis_ausencias_estado_rechazada">RECHAZADA</string>
+    <string name="mis_ausencias_btn_editar">Editar</string>
+    <string name="mis_ausencias_btn_cancelar">Cancelar</string>
+    <string name="mis_ausencias_dialog_cancelar_titulo">Cancelar solicitud</string>
+    <string name="mis_ausencias_dialog_cancelar_mensaje">¿Seguro que deseas cancelar esta solicitud de ausencia? Esta acción no se puede deshacer.</string>
+    <string name="mis_ausencias_dialog_cancelar_confirmar">Confirmar</string>
+    <string name="mis_ausencias_dialog_cancelar_volver">Volver</string>
+    <string name="mis_ausencias_cancelada_ok">Solicitud cancelada</string>
 </resources>

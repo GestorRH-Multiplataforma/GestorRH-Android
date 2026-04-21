@@ -45,4 +45,21 @@ interface IAusenciaRepository {
      *        `null` para recuperar todas.
      */
     suspend fun obtenerMisAusencias(estado: String? = null): Result<List<RespuestaAusenciaDTO>>
+
+    /**
+     * Actualiza una ausencia existente mediante `PUT /api/ausencias/{id}` enviando
+     * [peticion] como JSON. El servidor solo permite la operación si la ausencia está
+     * en estado `SOLICITADA`; en caso contrario devuelve 409/400 y el mensaje se
+     * propaga tal cual desde el campo `message` del cuerpo de error.
+     */
+    suspend fun actualizarAusencia(
+        idAusencia: Long,
+        peticion: PeticionAusenciaDTO
+    ): Result<RespuestaAusenciaDTO>
+
+    /**
+     * Cancela (elimina) una ausencia propia mediante `DELETE /api/ausencias/{id}`.
+     * Solo permitido si la ausencia está en estado `SOLICITADA`.
+     */
+    suspend fun cancelarAusencia(idAusencia: Long): Result<Unit>
 }

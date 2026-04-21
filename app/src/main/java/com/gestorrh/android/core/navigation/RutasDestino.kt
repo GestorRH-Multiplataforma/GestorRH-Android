@@ -29,9 +29,46 @@ sealed class RutasDestino(
 
     /**
      * Destino interno para el formulario de solicitud de ausencia. No aparece en la
-     * barra de navegación inferior: se alcanza desde el FAB de [Ausencias] y vuelve
-     * a ese destino tras enviar o cancelar.
+     * barra de navegación inferior: se alcanza desde el FAB de [Ausencias] (modo
+     * creación) o desde el botón "Editar" de una tarjeta (modo edición, con los
+     * argumentos opcionales `id`, `tipo`, `inicio`, `fin` y `descripcion` ya
+     * rellenos en la URL).
      */
-    data object SolicitarAusencia :
-        RutasDestino("ausencias/solicitar", R.string.nav_ausencias, Icons.Filled.EventBusy)
+    data object SolicitarAusencia : RutasDestino(
+        ruta = "ausencias/solicitar?id={id}&tipo={tipo}&inicio={inicio}&fin={fin}&descripcion={descripcion}",
+        tituloResId = R.string.nav_ausencias,
+        icono = Icons.Filled.EventBusy
+    ) {
+        const val ARG_ID: String = "id"
+        const val ARG_TIPO: String = "tipo"
+        const val ARG_INICIO: String = "inicio"
+        const val ARG_FIN: String = "fin"
+        const val ARG_DESCRIPCION: String = "descripcion"
+
+        /** URL de entrada sin argumentos: abre el formulario en modo creación. */
+        const val RUTA_CREAR: String = "ausencias/solicitar"
+
+        /**
+         * Construye la URL de edición con los datos de la ausencia seleccionada.
+         * La descripción se URL-encodea porque puede contener espacios o signos.
+         */
+        fun rutaEditar(
+            id: Long,
+            tipo: String,
+            fechaInicioIso: String,
+            fechaFinIso: String,
+            descripcion: String?
+        ): String {
+            val descCodificada = descripcion
+                ?.takeIf { it.isNotBlank() }
+                ?.let { java.net.URLEncoder.encode(it, "UTF-8") }
+                .orEmpty()
+            return "ausencias/solicitar" +
+                "?id=$id" +
+                "&tipo=$tipo" +
+                "&inicio=$fechaInicioIso" +
+                "&fin=$fechaFinIso" +
+                "&descripcion=$descCodificada"
+        }
+    }
 }

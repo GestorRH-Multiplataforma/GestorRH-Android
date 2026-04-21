@@ -90,6 +90,8 @@
 
     <!-- Time Off Request Screen -->
     <string name="ausencia_titulo_pantalla">Request time off</string>
+    <string name="ausencia_titulo_pantalla_editar">Edit request</string>
+    <string name="ausencia_btn_actualizar">Update request</string>
     <string name="ausencia_label_tipo">Time off type</string>
     <string name="ausencia_cargando_tipos">Loading types…</string>
     <string name="ausencia_label_fecha_inicio">Start date</string>
@@ -124,4 +126,11 @@
     <string name="mis_ausencias_estado_solicitada">PENDING</string>
     <string name="mis_ausencias_estado_aprobada">APPROVED</string>
     <string name="mis_ausencias_estado_rechazada">REJECTED</string>
+    <string name="mis_ausencias_btn_editar">Edit</string>
+    <string name="mis_ausencias_btn_cancelar">Cancel</string>
+    <string name="mis_ausencias_dialog_cancelar_titulo">Cancel request</string>
+    <string name="mis_ausencias_dialog_cancelar_mensaje">Are you sure you want to cancel this time off request? This action cannot be undone.</string>
+    <string name="mis_ausencias_dialog_cancelar_confirmar">Confirm</string>
+    <string name="mis_ausencias_dialog_cancelar_volver">Back</string>
+    <string name="mis_ausencias_cancelada_ok">Request cancelled</string>
 </resources>

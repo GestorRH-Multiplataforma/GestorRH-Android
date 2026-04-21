@@ -15,5 +15,7 @@ import com.gestorrh.android.data.network.ausencia.RespuestaAusenciaDTO
 data class EstadoUiMisAusencias(
     val cargando: Boolean = false,
     val ausencias: List<RespuestaAusenciaDTO> = emptyList(),
-    val mensajeError: MensajeUi? = null
+    val mensajeError: MensajeUi? = null,
+    val cancelando: Boolean = false,
+    val cancelacionExitosa: Boolean = false
 )
