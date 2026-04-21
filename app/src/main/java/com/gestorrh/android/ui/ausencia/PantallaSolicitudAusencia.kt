@@ -1,11 +1,16 @@
 package com.gestorrh.android.ui.ausencia
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,12 +18,19 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.AttachFile
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.FileOpen
+import androidx.compose.material.icons.filled.FolderOpen
+import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
@@ -29,6 +41,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -39,28 +52,39 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import android.graphics.BitmapFactory
+import androidx.compose.foundation.background
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import com.gestorrh.android.R
+import com.gestorrh.android.core.archivos.GestorArchivosJustificante
 import com.gestorrh.android.core.ui.MensajeUi
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 
-private val ColorAvisoAmbar = Color(0xFFB26A00)
+private val ColorAvisoAmbar = Color(0xFFF57C00)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -82,10 +106,35 @@ fun PantallaSolicitudAusencia(
     val contextoLocal = LocalContext.current
     val mensajeExito = stringResource(R.string.ausencia_envio_exitoso)
 
+    var mostrarSelectorFuente by remember { mutableStateOf(false) }
+    var uriCapturaPendiente by remember { mutableStateOf<GestorArchivosJustificante.UriCaptura?>(null) }
+
     val selectorArchivo = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri ->
-        viewModel.seleccionarArchivo(uri)
+        viewModel.seleccionarArchivoSeleccionado(uri)
+    }
+
+    val selectorCamara = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { exito ->
+        val pendiente = uriCapturaPendiente
+        if (exito && pendiente != null) {
+            viewModel.registrarFotoCamara(pendiente.uri, pendiente.rutaAbsoluta)
+        }
+        uriCapturaPendiente = null
+    }
+
+    val solicitudPermisoCamara = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { concedido ->
+        if (concedido) {
+            val captura = GestorArchivosJustificante.crearUriCapturaCamara(contextoLocal)
+            uriCapturaPendiente = captura
+            selectorCamara.launch(captura.uri)
+        } else {
+            viewModel.errorMostrado()
+        }
     }
 
     LaunchedEffect(estadoUi.mensajeError) {
@@ -104,6 +153,15 @@ fun PantallaSolicitudAusencia(
             snackbarHostState.showSnackbar(mensajeExito, duration = SnackbarDuration.Short)
             viewModel.envioConsumido()
             alEnvioExitoso()
+        }
+    }
+
+    LaunchedEffect(estadoUi.abrirJustificante) {
+        estadoUi.abrirJustificante?.let { evento ->
+            GestorArchivosJustificante.abrirConVisorSistema(
+                contextoLocal, evento.uri, evento.nombreArchivo
+            )
+            viewModel.aperturaJustificanteConsumida()
         }
     }
 
@@ -154,20 +212,20 @@ fun PantallaSolicitudAusencia(
                 maxLines = 6
             )
 
-            if (!estadoUi.modoEdicion) {
-                BotonAdjuntar(
-                    nombreArchivo = estadoUi.nombreArchivo,
-                    onAdjuntar = { selectorArchivo.launch("*/*") },
-                    onQuitar = viewModel::quitarArchivo
-                )
+            SeccionAdjunto(
+                estadoUi = estadoUi,
+                onAdjuntar = { mostrarSelectorFuente = true },
+                onQuitar = viewModel::quitarArchivo,
+                onDescargarExistente = viewModel::descargarJustificanteExistente,
+                onEliminarExistente = viewModel::eliminarJustificanteExistente
+            )
 
-                estadoUi.avisoJustificante?.let { idAviso ->
-                    Text(
-                        text = stringResource(idAviso),
-                        color = ColorAvisoAmbar,
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
+            estadoUi.avisoJustificante?.let { idAviso ->
+                Text(
+                    text = stringResource(idAviso),
+                    color = ColorAvisoAmbar,
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
 
             Spacer(Modifier.height(8.dp))
@@ -200,6 +258,229 @@ fun PantallaSolicitudAusencia(
             ) {
                 Text(stringResource(R.string.ausencia_btn_cancelar))
             }
+        }
+    }
+
+    if (mostrarSelectorFuente) {
+        SelectorFuenteAdjunto(
+            onCerrar = { mostrarSelectorFuente = false },
+            onCamaraSeleccionada = {
+                mostrarSelectorFuente = false
+                val permiso = ContextCompat.checkSelfPermission(
+                    contextoLocal, Manifest.permission.CAMERA
+                )
+                if (permiso == PackageManager.PERMISSION_GRANTED) {
+                    val captura = GestorArchivosJustificante.crearUriCapturaCamara(contextoLocal)
+                    uriCapturaPendiente = captura
+                    selectorCamara.launch(captura.uri)
+                } else {
+                    solicitudPermisoCamara.launch(Manifest.permission.CAMERA)
+                }
+            },
+            onArchivoSeleccionado = {
+                mostrarSelectorFuente = false
+                selectorArchivo.launch("*/*")
+            }
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SelectorFuenteAdjunto(
+    onCerrar: () -> Unit,
+    onCamaraSeleccionada: () -> Unit,
+    onArchivoSeleccionado: () -> Unit
+) {
+    val estadoSheet = rememberModalBottomSheetState()
+    ModalBottomSheet(
+        onDismissRequest = onCerrar,
+        sheetState = estadoSheet
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.ausencia_selector_titulo),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            OpcionSelector(
+                icono = Icons.Filled.CameraAlt,
+                texto = stringResource(R.string.ausencia_selector_camara),
+                onClick = onCamaraSeleccionada
+            )
+            OpcionSelector(
+                icono = Icons.Filled.FolderOpen,
+                texto = stringResource(R.string.ausencia_selector_archivo),
+                onClick = onArchivoSeleccionado
+            )
+            Spacer(Modifier.height(8.dp))
+        }
+    }
+}
+
+@Composable
+private fun OpcionSelector(
+    icono: androidx.compose.ui.graphics.vector.ImageVector,
+    texto: String,
+    onClick: () -> Unit
+) {
+    OutlinedButton(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Icon(imageVector = icono, contentDescription = null)
+        Spacer(Modifier.size(12.dp))
+        Text(text = texto, modifier = Modifier.weight(1f))
+    }
+}
+
+@Composable
+private fun SeccionAdjunto(
+    estadoUi: EstadoUiSolicitudAusencia,
+    onAdjuntar: () -> Unit,
+    onQuitar: () -> Unit,
+    onDescargarExistente: () -> Unit,
+    onEliminarExistente: () -> Unit
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        if (estadoUi.hayJustificanteExistenteVisible) {
+            JustificanteExistente(
+                nombre = estadoUi.nombreJustificanteExistente!!,
+                descargando = estadoUi.descargandoJustificante,
+                onDescargar = onDescargarExistente,
+                onEliminar = onEliminarExistente
+            )
+        }
+
+        OutlinedButton(
+            onClick = onAdjuntar,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(Icons.Filled.AttachFile, contentDescription = null)
+            Spacer(Modifier.size(8.dp))
+            val textoBoton = if (estadoUi.hayJustificanteExistenteVisible) {
+                R.string.ausencia_btn_reemplazar
+            } else {
+                R.string.ausencia_btn_adjuntar
+            }
+            Text(stringResource(textoBoton))
+        }
+
+        if (estadoUi.archivoUri != null && estadoUi.nombreArchivo != null) {
+            PreviaArchivoSeleccionado(
+                uri = estadoUi.archivoUri,
+                nombre = estadoUi.nombreArchivo,
+                esImagen = estadoUi.esImagen,
+                onQuitar = onQuitar
+            )
+        }
+    }
+}
+
+@Composable
+private fun JustificanteExistente(
+    nombre: String,
+    descargando: Boolean,
+    onDescargar: () -> Unit,
+    onEliminar: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = Icons.Filled.FileOpen,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary
+        )
+        Spacer(Modifier.size(8.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = stringResource(R.string.ausencia_justificante_actual),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = nombre,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Medium
+            )
+        }
+        IconButton(onClick = onDescargar, enabled = !descargando) {
+            if (descargando) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    strokeWidth = 2.dp
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Filled.Download,
+                    contentDescription = stringResource(R.string.ausencia_cd_descargar_justificante)
+                )
+            }
+        }
+        IconButton(onClick = onEliminar) {
+            Icon(
+                imageVector = Icons.Filled.Delete,
+                contentDescription = stringResource(R.string.ausencia_cd_eliminar_justificante_existente),
+                tint = MaterialTheme.colorScheme.error
+            )
+        }
+    }
+}
+
+@Composable
+private fun PreviaArchivoSeleccionado(
+    uri: Uri,
+    nombre: String,
+    esImagen: Boolean,
+    onQuitar: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        if (esImagen) {
+            MiniaturaImagen(
+                uri = uri,
+                modifier = Modifier
+                    .size(72.dp)
+                    .clip(RoundedCornerShape(8.dp))
+            )
+        } else {
+            Box(
+                modifier = Modifier
+                    .size(72.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.PictureAsPdf,
+                    contentDescription = null,
+                    modifier = Modifier.size(40.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
+        Spacer(Modifier.size(12.dp))
+        Text(
+            text = nombre,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Medium,
+            modifier = Modifier.weight(1f)
+        )
+        IconButton(onClick = onQuitar) {
+            Icon(
+                Icons.Filled.Close,
+                contentDescription = stringResource(R.string.ausencia_cd_quitar_archivo)
+            )
         }
     }
 }
@@ -309,40 +590,28 @@ private fun CampoFecha(
 }
 
 @Composable
-private fun BotonAdjuntar(
-    nombreArchivo: String?,
-    onAdjuntar: () -> Unit,
-    onQuitar: () -> Unit
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        OutlinedButton(
-            onClick = onAdjuntar,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(Icons.Filled.AttachFile, contentDescription = null)
-            Spacer(Modifier.size(8.dp))
-            Text(stringResource(R.string.ausencia_btn_adjuntar))
-        }
-        if (nombreArchivo != null) {
-            Box(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    text = nombreArchivo,
-                    modifier = Modifier
-                        .align(Alignment.CenterStart)
-                        .padding(end = 40.dp),
-                    style = MaterialTheme.typography.bodySmall,
-                    fontWeight = FontWeight.Medium
-                )
-                IconButton(
-                    onClick = onQuitar,
-                    modifier = Modifier.align(Alignment.CenterEnd)
-                ) {
-                    Icon(
-                        Icons.Filled.Close,
-                        contentDescription = stringResource(R.string.ausencia_cd_quitar_archivo)
-                    )
-                }
+private fun MiniaturaImagen(uri: Uri, modifier: Modifier = Modifier) {
+    val contexto = LocalContext.current
+    val bitmap by produceState<android.graphics.Bitmap?>(initialValue = null, uri) {
+        value = withContext(Dispatchers.IO) {
+            try {
+                contexto.contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it) }
+            } catch (e: Exception) {
+                null
             }
+        }
+    }
+    Box(
+        modifier = modifier.background(MaterialTheme.colorScheme.surfaceVariant),
+        contentAlignment = Alignment.Center
+    ) {
+        bitmap?.let {
+            Image(
+                bitmap = it.asImageBitmap(),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
         }
     }
 }

@@ -98,7 +98,16 @@
     <string name="ausencia_label_fecha_fin">Fecha de fin</string>
     <string name="ausencia_label_descripcion">Descripción (opcional)</string>
     <string name="ausencia_btn_adjuntar">Adjuntar justificante</string>
+    <string name="ausencia_btn_reemplazar">Reemplazar justificante</string>
     <string name="ausencia_cd_quitar_archivo">Quitar archivo adjunto</string>
+    <string name="ausencia_selector_titulo">Adjuntar justificante</string>
+    <string name="ausencia_selector_camara">Tomar foto con cámara</string>
+    <string name="ausencia_selector_archivo">Seleccionar archivo</string>
+    <string name="ausencia_justificante_actual">Justificante actual</string>
+    <string name="ausencia_cd_descargar_justificante">Descargar justificante</string>
+    <string name="ausencia_cd_eliminar_justificante_existente">Eliminar justificante actual</string>
+    <string name="ausencia_error_tipo_archivo">Formato no soportado. Solo se admiten PDF, JPG o PNG.</string>
+    <string name="ausencia_error_archivo_grande">El archivo supera el tamaño máximo permitido (10 MB).</string>
     <string name="ausencia_btn_enviar">Enviar solicitud</string>
     <string name="ausencia_btn_cancelar">Cancelar</string>
     <string name="ausencia_dialog_aceptar">Aceptar</string>
@@ -133,4 +142,5 @@
     <string name="mis_ausencias_dialog_cancelar_confirmar">Confirmar</string>
     <string name="mis_ausencias_dialog_cancelar_volver">Volver</string>
     <string name="mis_ausencias_cancelada_ok">Solicitud cancelada</string>
+    <string name="mis_ausencias_cd_descargar_justificante">Descargar justificante</string>
 </resources>

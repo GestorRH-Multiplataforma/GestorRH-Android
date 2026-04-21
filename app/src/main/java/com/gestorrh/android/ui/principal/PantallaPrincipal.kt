@@ -80,7 +80,8 @@ fun PantallaPrincipal(
                                 tipo = ausencia.tipo,
                                 fechaInicioIso = ausencia.fechaInicio.toString(),
                                 fechaFinIso = ausencia.fechaFin.toString(),
-                                descripcion = ausencia.descripcion
+                                descripcion = ausencia.descripcion,
+                                justificante = ausencia.justificante
                             )
                         ) {
                             launchSingleTop = true
@@ -115,6 +116,11 @@ fun PantallaPrincipal(
                         type = NavType.StringType
                         nullable = true
                         defaultValue = null
+                    },
+                    navArgument(RutasDestino.SolicitarAusencia.ARG_JUSTIFICANTE) {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
                     }
                 )
             ) { entrada ->
@@ -124,6 +130,7 @@ fun PantallaPrincipal(
                 val inicioArg = args?.getString(RutasDestino.SolicitarAusencia.ARG_INICIO)
                 val finArg = args?.getString(RutasDestino.SolicitarAusencia.ARG_FIN)
                 val descripcionArg = args?.getString(RutasDestino.SolicitarAusencia.ARG_DESCRIPCION)
+                val justificanteArg = args?.getString(RutasDestino.SolicitarAusencia.ARG_JUSTIFICANTE)
 
                 val datosEdicion = if (
                     id > 0 && !tipoArg.isNullOrBlank() &&
@@ -135,6 +142,9 @@ fun PantallaPrincipal(
                         fechaInicio = LocalDate.parse(inicioArg),
                         fechaFin = LocalDate.parse(finArg),
                         descripcion = descripcionArg
+                            ?.takeIf { it.isNotBlank() }
+                            ?.let { URLDecoder.decode(it, "UTF-8") },
+                        justificante = justificanteArg
                             ?.takeIf { it.isNotBlank() }
                             ?.let { URLDecoder.decode(it, "UTF-8") }
                     )

@@ -46,19 +46,8 @@ class AusenciaRepositoryImpl(
         nombreArchivo: String?
     ): Result<RespuestaAusenciaDTO> = withContext(Dispatchers.IO) {
         try {
-            val datosPart = MultipartBody.Part.createFormData(
-                "datos",
-                null,
-                gson.toJson(peticion).toRequestBody("application/json".toMediaTypeOrNull())
-            )
-
-            val archivoPart = archivoBytes?.let { bytes ->
-                MultipartBody.Part.createFormData(
-                    "archivo",
-                    nombreArchivo ?: "justificante",
-                    bytes.toRequestBody("application/octet-stream".toMediaTypeOrNull())
-                )
-            }
+            val datosPart = construirPartDatos(peticion)
+            val archivoPart = construirPartArchivo(archivoBytes, nombreArchivo)
 
             val respuesta = apiService.crearAusencia(datosPart, archivoPart)
             if (respuesta.isSuccessful && respuesta.body() != null) {
@@ -101,10 +90,15 @@ class AusenciaRepositoryImpl(
 
     override suspend fun actualizarAusencia(
         idAusencia: Long,
-        peticion: PeticionAusenciaDTO
+        peticion: PeticionAusenciaDTO,
+        archivoBytes: ByteArray?,
+        nombreArchivo: String?
     ): Result<RespuestaAusenciaDTO> = withContext(Dispatchers.IO) {
         try {
-            val respuesta = apiService.actualizarAusencia(idAusencia, peticion)
+            val datosPart = construirPartDatos(peticion)
+            val archivoPart = construirPartArchivo(archivoBytes, nombreArchivo)
+
+            val respuesta = apiService.actualizarAusencia(idAusencia, datosPart, archivoPart)
             if (respuesta.isSuccessful && respuesta.body() != null) {
                 Result.success(respuesta.body()!!)
             } else {
@@ -142,6 +136,58 @@ class AusenciaRepositoryImpl(
                 Result.failure(e)
             }
         }
+
+    override suspend fun descargarJustificante(nombreArchivo: String): Result<ByteArray> =
+        withContext(Dispatchers.IO) {
+            try {
+                val respuesta = apiService.descargarJustificante(nombreArchivo)
+                if (respuesta.isSuccessful && respuesta.body() != null) {
+                    Result.success(respuesta.body()!!.bytes())
+                } else {
+                    Result.failure(
+                        Exception(
+                            extraerMensajeError(respuesta.errorBody())
+                                ?: "Error ${respuesta.code()} al descargar el justificante"
+                        )
+                    )
+                }
+            } catch (e: IOException) {
+                Result.failure(e)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+
+    private fun construirPartDatos(peticion: PeticionAusenciaDTO): MultipartBody.Part {
+        return MultipartBody.Part.createFormData(
+            "datos",
+            null,
+            gson.toJson(peticion).toRequestBody("application/json".toMediaTypeOrNull())
+        )
+    }
+
+    private fun construirPartArchivo(
+        archivoBytes: ByteArray?,
+        nombreArchivo: String?
+    ): MultipartBody.Part? {
+        if (archivoBytes == null) return null
+        val tipoMime = tipoMimeDesdeNombre(nombreArchivo)
+        return MultipartBody.Part.createFormData(
+            "archivo",
+            nombreArchivo ?: "justificante",
+            archivoBytes.toRequestBody(tipoMime.toMediaTypeOrNull())
+        )
+    }
+
+    private fun tipoMimeDesdeNombre(nombre: String?): String {
+        val extension = nombre?.substringAfterLast('.', "")?.lowercase().orEmpty()
+        return when (extension) {
+            "pdf" -> "application/pdf"
+            "jpg", "jpeg" -> "image/jpeg"
+            "png" -> "image/png"
+            else -> "application/octet-stream"
+        }
+    }
 
     private fun extraerMensajeError(errorBody: ResponseBody?): String? {
         return try {

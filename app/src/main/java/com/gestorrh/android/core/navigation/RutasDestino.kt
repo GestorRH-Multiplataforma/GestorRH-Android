@@ -35,7 +35,7 @@ sealed class RutasDestino(
      * rellenos en la URL).
      */
     data object SolicitarAusencia : RutasDestino(
-        ruta = "ausencias/solicitar?id={id}&tipo={tipo}&inicio={inicio}&fin={fin}&descripcion={descripcion}",
+        ruta = "ausencias/solicitar?id={id}&tipo={tipo}&inicio={inicio}&fin={fin}&descripcion={descripcion}&justificante={justificante}",
         tituloResId = R.string.nav_ausencias,
         icono = Icons.Filled.EventBusy
     ) {
@@ -44,22 +44,29 @@ sealed class RutasDestino(
         const val ARG_INICIO: String = "inicio"
         const val ARG_FIN: String = "fin"
         const val ARG_DESCRIPCION: String = "descripcion"
+        const val ARG_JUSTIFICANTE: String = "justificante"
 
         /** URL de entrada sin argumentos: abre el formulario en modo creación. */
         const val RUTA_CREAR: String = "ausencias/solicitar"
 
         /**
          * Construye la URL de edición con los datos de la ausencia seleccionada.
-         * La descripción se URL-encodea porque puede contener espacios o signos.
+         * La descripción y el nombre del justificante se URL-encodean porque pueden
+         * contener espacios, acentos o signos reservados.
          */
         fun rutaEditar(
             id: Long,
             tipo: String,
             fechaInicioIso: String,
             fechaFinIso: String,
-            descripcion: String?
+            descripcion: String?,
+            justificante: String?
         ): String {
             val descCodificada = descripcion
+                ?.takeIf { it.isNotBlank() }
+                ?.let { java.net.URLEncoder.encode(it, "UTF-8") }
+                .orEmpty()
+            val justCodificado = justificante
                 ?.takeIf { it.isNotBlank() }
                 ?.let { java.net.URLEncoder.encode(it, "UTF-8") }
                 .orEmpty()
@@ -68,7 +75,8 @@ sealed class RutasDestino(
                 "&tipo=$tipo" +
                 "&inicio=$fechaInicioIso" +
                 "&fin=$fechaFinIso" +
-                "&descripcion=$descCodificada"
+                "&descripcion=$descCodificada" +
+                "&justificante=$justCodificado"
         }
     }
 }

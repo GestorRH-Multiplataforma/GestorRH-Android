@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AttachFile
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.EventBusy
@@ -29,6 +30,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -60,6 +62,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.gestorrh.android.R
+import com.gestorrh.android.core.archivos.GestorArchivosJustificante
 import com.gestorrh.android.core.ui.MensajeUi
 import com.gestorrh.android.data.network.ausencia.RespuestaAusenciaDTO
 import java.time.format.DateTimeFormatter
@@ -110,6 +113,15 @@ fun PantallaMisAusencias(
         }
     }
 
+    LaunchedEffect(estadoUi.abrirJustificante) {
+        estadoUi.abrirJustificante?.let { evento ->
+            GestorArchivosJustificante.abrirConVisorSistema(
+                contextoLocal, evento.uri, evento.nombreArchivo
+            )
+            viewModel.aperturaJustificanteConsumida()
+        }
+    }
+
     LaunchedEffect(estadoUi.mensajeError) {
         estadoUi.mensajeError?.let { mensaje ->
             val texto = when (mensaje) {
@@ -154,9 +166,15 @@ fun PantallaMisAusencias(
                 estadoUi.ausencias.isEmpty() -> EstadoVacio()
                 else -> ListaAusencias(
                     ausencias = estadoUi.ausencias,
+                    descargandoJustificanteDe = estadoUi.descargandoJustificanteDe,
                     padding = PaddingValues(16.dp),
                     alEditar = alEditarAusencia,
-                    alCancelar = { ausenciaAConfirmarCancelar = it }
+                    alCancelar = { ausenciaAConfirmarCancelar = it },
+                    alDescargarJustificante = { ausencia ->
+                        ausencia.justificante?.let { nombre ->
+                            viewModel.descargarJustificante(ausencia.idAusencia, nombre)
+                        }
+                    }
                 )
             }
         }
@@ -231,9 +249,11 @@ private fun EstadoVacio() {
 @Composable
 private fun ListaAusencias(
     ausencias: List<RespuestaAusenciaDTO>,
+    descargandoJustificanteDe: Long?,
     padding: PaddingValues,
     alEditar: (RespuestaAusenciaDTO) -> Unit,
-    alCancelar: (RespuestaAusenciaDTO) -> Unit
+    alCancelar: (RespuestaAusenciaDTO) -> Unit,
+    alDescargarJustificante: (RespuestaAusenciaDTO) -> Unit
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -243,8 +263,10 @@ private fun ListaAusencias(
         items(ausencias, key = { it.idAusencia }) { ausencia ->
             TarjetaAusencia(
                 ausencia = ausencia,
+                descargandoJustificante = descargandoJustificanteDe == ausencia.idAusencia,
                 alEditar = { alEditar(ausencia) },
-                alCancelar = { alCancelar(ausencia) }
+                alCancelar = { alCancelar(ausencia) },
+                alDescargarJustificante = { alDescargarJustificante(ausencia) }
             )
         }
     }
@@ -253,8 +275,10 @@ private fun ListaAusencias(
 @Composable
 private fun TarjetaAusencia(
     ausencia: RespuestaAusenciaDTO,
+    descargandoJustificante: Boolean,
     alEditar: () -> Unit,
-    alCancelar: () -> Unit
+    alCancelar: () -> Unit,
+    alDescargarJustificante: () -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -272,6 +296,27 @@ private fun TarjetaAusencia(
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.weight(1f)
                 )
+                if (!ausencia.justificante.isNullOrBlank()) {
+                    IconButton(
+                        onClick = alDescargarJustificante,
+                        enabled = !descargandoJustificante
+                    ) {
+                        if (descargandoJustificante) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.height(18.dp),
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Filled.AttachFile,
+                                contentDescription = stringResource(
+                                    R.string.mis_ausencias_cd_descargar_justificante
+                                ),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                }
                 ChipEstado(estado = ausencia.estado)
             }
 

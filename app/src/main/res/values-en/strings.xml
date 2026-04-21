@@ -98,7 +98,16 @@
     <string name="ausencia_label_fecha_fin">End date</string>
     <string name="ausencia_label_descripcion">Description (optional)</string>
     <string name="ausencia_btn_adjuntar">Attach supporting document</string>
+    <string name="ausencia_btn_reemplazar">Replace supporting document</string>
     <string name="ausencia_cd_quitar_archivo">Remove attachment</string>
+    <string name="ausencia_selector_titulo">Attach supporting document</string>
+    <string name="ausencia_selector_camara">Take photo with camera</string>
+    <string name="ausencia_selector_archivo">Pick a file</string>
+    <string name="ausencia_justificante_actual">Current attachment</string>
+    <string name="ausencia_cd_descargar_justificante">Download attachment</string>
+    <string name="ausencia_cd_eliminar_justificante_existente">Remove current attachment</string>
+    <string name="ausencia_error_tipo_archivo">Unsupported format. Only PDF, JPG or PNG are allowed.</string>
+    <string name="ausencia_error_archivo_grande">File exceeds the maximum allowed size (10 MB).</string>
     <string name="ausencia_btn_enviar">Submit request</string>
     <string name="ausencia_btn_cancelar">Cancel</string>
     <string name="ausencia_dialog_aceptar">OK</string>
@@ -133,4 +142,5 @@
     <string name="mis_ausencias_dialog_cancelar_confirmar">Confirm</string>
     <string name="mis_ausencias_dialog_cancelar_volver">Back</string>
     <string name="mis_ausencias_cancelada_ok">Request cancelled</string>
+    <string name="mis_ausencias_cd_descargar_justificante">Download attachment</string>
 </resources>
