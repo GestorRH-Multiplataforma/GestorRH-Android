@@ -134,6 +134,17 @@ class MisAusenciasViewModel(
         _estadoUi.update { it.copy(abrirJustificante = null) }
     }
 
+    /**
+     * Notifica que el sistema no ha podido abrir el justificante porque no hay
+     * ninguna aplicación instalada capaz de gestionar su tipo MIME. Se muestra
+     * un mensaje en el Snackbar reutilizando el canal de errores.
+     */
+    fun notificarSinVisorDisponible() {
+        _estadoUi.update {
+            it.copy(mensajeError = MensajeUi.Recurso(R.string.ausencia_error_sin_visor))
+        }
+    }
+
     companion object {
         fun factory(contexto: Context): ViewModelProvider.Factory =
             object : ViewModelProvider.Factory {

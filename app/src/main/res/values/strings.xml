@@ -108,6 +108,7 @@
     <string name="ausencia_cd_eliminar_justificante_existente">Eliminar justificante actual</string>
     <string name="ausencia_error_tipo_archivo">Formato no soportado. Solo se admiten PDF, JPG o PNG.</string>
     <string name="ausencia_error_archivo_grande">El archivo supera el tamaño máximo permitido (10 MB).</string>
+    <string name="ausencia_error_sin_visor">No hay ninguna aplicación disponible para abrir este tipo de archivo.</string>
     <string name="ausencia_btn_enviar">Enviar solicitud</string>
     <string name="ausencia_btn_cancelar">Cancelar</string>
     <string name="ausencia_dialog_aceptar">Aceptar</string>
