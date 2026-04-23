@@ -268,6 +268,18 @@ class SolicitudAusenciaViewModel(
                 nombreNormalizadoParaSubida(estadoActual.nombreArchivo, estadoActual.esImagen)
             }
 
+            // En edición sin archivo nuevo propagamos el flag para que el servidor sepa
+            // si debe borrar el justificante existente (true) o mantenerlo (false).
+            val flagEliminar = if (
+                estadoActual.idAusenciaEditar != null &&
+                archivoBytes == null &&
+                estadoActual.nombreJustificanteExistente != null
+            ) {
+                estadoActual.eliminarJustificanteExistente
+            } else {
+                null
+            }
+
             val resultado = solicitarAusenciaUseCase(
                 tipo = estadoActual.tipoSeleccionado,
                 descripcion = estadoActual.descripcion,
@@ -275,7 +287,8 @@ class SolicitudAusenciaViewModel(
                 fechaFin = estadoActual.fechaFin,
                 archivoBytes = archivoBytes,
                 nombreArchivo = nombreParaSubir,
-                idAusenciaEditar = estadoActual.idAusenciaEditar
+                idAusenciaEditar = estadoActual.idAusenciaEditar,
+                eliminarJustificante = flagEliminar
             )
 
             resultado
