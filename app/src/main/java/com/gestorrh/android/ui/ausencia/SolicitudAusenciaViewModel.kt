@@ -244,6 +244,17 @@ class SolicitudAusenciaViewModel(
         _estadoUi.update { it.copy(abrirJustificante = null) }
     }
 
+    /**
+     * Notifica que el sistema no ha podido abrir el justificante porque no hay
+     * ninguna aplicación instalada capaz de gestionar su tipo MIME. Se muestra
+     * un mensaje en el Snackbar reutilizando el canal de errores.
+     */
+    fun notificarSinVisorDisponible() {
+        _estadoUi.update {
+            it.copy(mensajeError = MensajeUi.Recurso(R.string.ausencia_error_sin_visor))
+        }
+    }
+
     fun errorMostrado() {
         _estadoUi.update { it.copy(mensajeError = null) }
     }
@@ -268,6 +279,18 @@ class SolicitudAusenciaViewModel(
                 nombreNormalizadoParaSubida(estadoActual.nombreArchivo, estadoActual.esImagen)
             }
 
+            // En edición sin archivo nuevo propagamos el flag para que el servidor sepa
+            // si debe borrar el justificante existente (true) o mantenerlo (false).
+            val flagEliminar = if (
+                estadoActual.idAusenciaEditar != null &&
+                archivoBytes == null &&
+                estadoActual.nombreJustificanteExistente != null
+            ) {
+                estadoActual.eliminarJustificanteExistente
+            } else {
+                null
+            }
+
             val resultado = solicitarAusenciaUseCase(
                 tipo = estadoActual.tipoSeleccionado,
                 descripcion = estadoActual.descripcion,
@@ -275,7 +298,8 @@ class SolicitudAusenciaViewModel(
                 fechaFin = estadoActual.fechaFin,
                 archivoBytes = archivoBytes,
                 nombreArchivo = nombreParaSubir,
-                idAusenciaEditar = estadoActual.idAusenciaEditar
+                idAusenciaEditar = estadoActual.idAusenciaEditar,
+                eliminarJustificante = flagEliminar
             )
 
             resultado

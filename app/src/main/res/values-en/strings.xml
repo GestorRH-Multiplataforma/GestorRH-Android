@@ -108,6 +108,7 @@
     <string name="ausencia_cd_eliminar_justificante_existente">Remove current attachment</string>
     <string name="ausencia_error_tipo_archivo">Unsupported format. Only PDF, JPG or PNG are allowed.</string>
     <string name="ausencia_error_archivo_grande">File exceeds the maximum allowed size (10 MB).</string>
+    <string name="ausencia_error_sin_visor">No app available to open this file type.</string>
     <string name="ausencia_btn_enviar">Submit request</string>
     <string name="ausencia_btn_cancelar">Cancel</string>
     <string name="ausencia_dialog_aceptar">OK</string>

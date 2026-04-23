@@ -1,5 +1,6 @@
 package com.gestorrh.android.core.archivos
 
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -97,15 +98,22 @@ object GestorArchivosJustificante {
     /**
      * Lanza un `Intent.ACTION_VIEW` con el [uri] y el tipo MIME inferido del nombre
      * para que el sistema muestre el justificante con la aplicación preferida del usuario.
+     * Devuelve `true` si se ha podido lanzar un visor y `false` si no hay ninguna
+     * aplicación instalada capaz de abrir el tipo MIME indicado.
      */
-    fun abrirConVisorSistema(contexto: Context, uri: Uri, nombreArchivo: String) {
+    fun abrirConVisorSistema(contexto: Context, uri: Uri, nombreArchivo: String): Boolean {
         val mime = mimeDesdeNombre(nombreArchivo)
         val intent = Intent(Intent.ACTION_VIEW).apply {
             setDataAndType(uri, mime)
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
-        contexto.startActivity(intent)
+        return try {
+            contexto.startActivity(intent)
+            true
+        } catch (e: ActivityNotFoundException) {
+            false
+        }
     }
 
     /** Devuelve `true` si [nombre] termina con una extensión de imagen soportada. */

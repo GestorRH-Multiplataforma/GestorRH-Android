@@ -115,10 +115,13 @@ fun PantallaMisAusencias(
 
     LaunchedEffect(estadoUi.abrirJustificante) {
         estadoUi.abrirJustificante?.let { evento ->
-            GestorArchivosJustificante.abrirConVisorSistema(
+            val abierto = GestorArchivosJustificante.abrirConVisorSistema(
                 contextoLocal, evento.uri, evento.nombreArchivo
             )
             viewModel.aperturaJustificanteConsumida()
+            if (!abierto) {
+                viewModel.notificarSinVisorDisponible()
+            }
         }
     }
 

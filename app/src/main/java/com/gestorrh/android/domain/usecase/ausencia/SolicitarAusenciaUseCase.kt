@@ -43,6 +43,7 @@ class SolicitarAusenciaUseCase(
         archivoBytes: ByteArray?,
         nombreArchivo: String?,
         idAusenciaEditar: Long? = null,
+        eliminarJustificante: Boolean? = null,
         hoy: LocalDate = LocalDate.now()
     ): Result<RespuestaAusenciaDTO> {
         if (tipo.isNullOrBlank()) {
@@ -63,11 +64,20 @@ class SolicitarAusenciaUseCase(
             }
         }
 
+        // Solo en modo edición y sin archivo nuevo tiene sentido propagar el flag:
+        // si hay archivo nuevo el servidor lo reemplaza; en modo creación no existe
+        // justificante previo que eliminar.
+        val flagEliminar = if (idAusenciaEditar != null && archivoBytes == null) {
+            eliminarJustificante
+        } else {
+            null
+        }
         val peticion = PeticionAusenciaDTO(
             tipo = tipo,
             descripcion = descripcion?.takeIf { it.isNotBlank() },
             fechaInicio = fechaInicio,
-            fechaFin = fechaFin
+            fechaFin = fechaFin,
+            eliminarJustificante = flagEliminar
         )
         return if (idAusenciaEditar != null) {
             repository.actualizarAusencia(idAusenciaEditar, peticion, archivoBytes, nombreArchivo)
