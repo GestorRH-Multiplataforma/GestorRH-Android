@@ -25,6 +25,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.gestorrh.android.R
 import com.gestorrh.android.core.location.GestorLocalizacion
@@ -53,6 +56,23 @@ fun PantallaDashboard(
 
     LaunchedEffect(Unit) {
         viewModel.cargarFichajesPendientes()
+    }
+
+    // Al volver al Dashboard (por ejemplo tras reconectarse y que `SyncFichajeWorker`
+    // haya vaciado la cola en background) se vuelve a consultar al servidor el estado
+    // de fichaje real y el contador de pendientes para que la UI no se quede desfasada.
+    val propietarioCicloVida = LocalLifecycleOwner.current
+    DisposableEffect(propietarioCicloVida) {
+        val observador = LifecycleEventObserver { _, evento ->
+            if (evento == Lifecycle.Event.ON_RESUME) {
+                viewModel.sincronizarEstado()
+                viewModel.cargarFichajesPendientes()
+            }
+        }
+        propietarioCicloVida.lifecycle.addObserver(observador)
+        onDispose {
+            propietarioCicloVida.lifecycle.removeObserver(observador)
+        }
     }
 
     LaunchedEffect(estadoUi.mensajeError) {
