@@ -7,6 +7,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.provider.OpenableColumns
+import android.util.Log
 import androidx.core.content.FileProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -24,6 +25,7 @@ import java.io.FileOutputStream
  */
 object GestorArchivosJustificante {
 
+    private const val TAG_DIAG = "DiagAdjunto"
     private const val ANCHO_MAXIMO_IMAGEN_PX = 1920
     private const val CALIDAD_JPEG = 80
     private const val SUBDIRECTORIO_CAMARA = "justificantes"
@@ -52,15 +54,26 @@ object GestorArchivosJustificante {
         uri: Uri,
         esImagen: Boolean
     ): ByteArray? = withContext(Dispatchers.IO) {
-        try {
+        val mimeResolver = runCatching { contexto.contentResolver.getType(uri) }.getOrNull()
+        Log.d(
+            TAG_DIAG,
+            "leerBytesParaSubida:entrada scheme=${uri.scheme} esImagen=$esImagen mimeResolver=$mimeResolver"
+        )
+        val bytes = try {
             if (esImagen) {
                 comprimirImagen(contexto, uri)
             } else {
                 contexto.contentResolver.openInputStream(uri)?.use { it.readBytes() }
             }
         } catch (e: Exception) {
+            Log.e(TAG_DIAG, "leerBytesParaSubida:excepcion ${e.javaClass.simpleName}: ${e.message}", e)
             null
         }
+        Log.d(
+            TAG_DIAG,
+            "leerBytesParaSubida:salida bytesNull=${bytes == null} size=${bytes?.size ?: -1}"
+        )
+        bytes
     }
 
     /**
@@ -135,22 +148,37 @@ object GestorArchivosJustificante {
 
     private fun comprimirImagen(contexto: Context, uri: Uri): ByteArray? {
         val opcionesLectura = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        contexto.contentResolver.openInputStream(uri)?.use {
-            BitmapFactory.decodeStream(it, null, opcionesLectura)
-        } ?: return null
+        val streamBounds = contexto.contentResolver.openInputStream(uri)
+        if (streamBounds == null) {
+            Log.w(TAG_DIAG, "comprimirImagen: openInputStream#1 devolvio null")
+            return null
+        }
+        streamBounds.use { BitmapFactory.decodeStream(it, null, opcionesLectura) }
 
         val anchoOriginal = opcionesLectura.outWidth
         val altoOriginal = opcionesLectura.outHeight
-        if (anchoOriginal <= 0 || altoOriginal <= 0) return null
+        Log.d(TAG_DIAG, "comprimirImagen: bounds ancho=$anchoOriginal alto=$altoOriginal")
+        if (anchoOriginal <= 0 || altoOriginal <= 0) {
+            Log.w(TAG_DIAG, "comprimirImagen: dimensiones invalidas, abortando")
+            return null
+        }
 
         val ladoMayor = maxOf(anchoOriginal, altoOriginal)
         val factorSubmuestreo = calcularInSampleSize(ladoMayor, ANCHO_MAXIMO_IMAGEN_PX)
         val opcionesDecodificado = BitmapFactory.Options().apply {
             inSampleSize = factorSubmuestreo
         }
-        val bitmap = contexto.contentResolver.openInputStream(uri)?.use {
+        val streamDecode = contexto.contentResolver.openInputStream(uri)
+        if (streamDecode == null) {
+            Log.w(TAG_DIAG, "comprimirImagen: openInputStream#2 devolvio null")
+            return null
+        }
+        val bitmap = streamDecode.use {
             BitmapFactory.decodeStream(it, null, opcionesDecodificado)
-        } ?: return null
+        } ?: run {
+            Log.w(TAG_DIAG, "comprimirImagen: decodeStream devolvio null")
+            return null
+        }
 
         val bitmapEscalado = escalarSiNecesario(bitmap, ANCHO_MAXIMO_IMAGEN_PX)
         val salida = ByteArrayOutputStream()
