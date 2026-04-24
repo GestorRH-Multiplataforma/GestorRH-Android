@@ -31,6 +31,9 @@
     <string name="fichaje_estado_activo">Trabajando</string>
     <string name="fichaje_btn_iniciar">INICIAR JORNADA</string>
     <string name="fichaje_btn_finalizar">FINALIZAR JORNADA</string>
+    <string name="fichaje_sin_conexion">Sin conexión — el fichaje se enviará automáticamente</string>
+    <string name="fichajes_pendientes">%d fichaje(s) pendiente(s) de sincronizar</string>
+    <string name="fichaje_entrada_duplicada_offline">Ya hay una entrada pendiente de sincronizar. No puedes registrar otra hasta que se envíe.</string>
 
     <string name="dashboard_hoy">Hoy</string>
     <string name="dashboard_sin_asignar">SIN ASIGNAR</string>
