@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Icono monocromático para Android 13+ (Material You).
+    El sistema colorea este vector con el color del wallpaper del usuario.
+    Geometría simplificada: persona + panel de registros.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Cabeza -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M40,20 m-12,0 a12,12 0 1,0 24,0 a12,12 0 1,0 -24,0" />
+
+    <!-- Cuerpo -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M14,66 C14,48 24,40 40,40 C56,40 66,48 66,66 Z" />
+
+    <!-- Panel fondo -->
+    <path
+        android:fillColor="#000000"
+        android:fillAlpha="0.35"
+        android:pathData="M69,36 L93,36 C94.1,36 95,36.9 95,38 L95,78 C95,79.1 94.1,80 93,80 L69,80 C67.9,80 67,79.1 67,78 L67,38 C67,36.9 67.9,36 69,36 Z" />
+
+    <!-- Línea 1 -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M71,45 L91,45 L91,50 L71,50 Z" />
+
+    <!-- Línea 2 -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M71,55 L91,55 L91,60 L71,60 Z" />
+
+    <!-- Línea 3 -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M71,65 L91,65 L91,70 L71,70 Z" />
+
+</vector>

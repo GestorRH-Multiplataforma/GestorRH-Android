@@ -11,6 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -38,9 +39,24 @@ import kotlinx.coroutines.launch
  * Implementa la directriz de "Auto-Login", evaluando la persistencia del Token JWT
  * de manera síncrona en el arranque para decidir la ruta inicial óptima.
  * Observa [AuthEventBus] para redirigir al Login ante cualquier 401 global.
+ *
+ * SplashScreen: llama a [installSplashScreen] ANTES de [setContent] para que el
+ * sistema gestione la transición animada desde el tema Theme.GestorRH.Splash
+ * al tema principal Theme.GestorRH.
  */
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        // ── SplashScreen API ──────────────────────────────────────────────────
+        // Debe llamarse ANTES de super.onCreate() y setContent{}.
+        // Mantiene la splash visible hasta que se evalúa el token JWT (operación
+        // síncrona sobre EncryptedSharedPreferences, < 1ms).
+        val splashScreen = installSplashScreen()
+
+        // Mientras se evalúa el destino inicial podemos mantener la splash activa
+        // con una condición (útil si hubiera trabajo asíncrono previo):
+        // splashScreen.setKeepOnScreenCondition { !isReadyToNavigate }
+        // En este caso la evaluación es síncrona, así que no hace falta.
+
         super.onCreate(savedInstanceState)
 
         val sessionManager = SessionManager(this)

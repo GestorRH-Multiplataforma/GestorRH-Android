@@ -147,4 +147,6 @@
     <string name="mis_ausencias_dialog_cancelar_volver">Back</string>
     <string name="mis_ausencias_cancelada_ok">Request cancelled</string>
     <string name="mis_ausencias_cd_descargar_justificante">Download attachment</string>
+
+    <string name="login_logo_cd">GestorRH logo</string>
 </resources>

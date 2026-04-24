@@ -77,6 +77,7 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     implementation("androidx.compose.material:material-icons-extended")
+    implementation("androidx.core:core-splashscreen:1.0.1")
 
     // 1. Red (Retrofit + Gson + Interceptor para Logs)
     implementation("com.squareup.retrofit2:retrofit:2.9.0")

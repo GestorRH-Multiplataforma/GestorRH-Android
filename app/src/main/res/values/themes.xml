@@ -1,5 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <!-- Tema de arranque: activo mientras se muestra la SplashScreen -->
+    <style name="Theme.GestorRH.Splash" parent="Theme.SplashScreen">
+        <!-- Fondo Navy durante el arranque -->
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
+
+        <!-- Icono: PNG del logo original centrado sobre fondo Navy -->
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_icon</item>
+
+        <!-- Duración de la animación en ms (0 = estático) -->
+        <item name="windowSplashScreenAnimationDuration">300</item>
+
+        <!-- Tema al que transiciona la Activity una vez terminada la splash -->
+        <item name="postSplashScreenTheme">@style/Theme.GestorRH</item>
+    </style>
+
+    <!-- Tema principal de la aplicación -->
     <style name="Theme.GestorRH" parent="android:Theme.Material.Light.NoActionBar" />
+
 </resources>

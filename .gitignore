@@ -43,3 +43,6 @@ keystore.properties
 # Exclusiones de Sistema Operativo (Mac/Windows)
 .DS_Store
 Thumbs.db
+
+# Claude Code internal files
+.claude/
