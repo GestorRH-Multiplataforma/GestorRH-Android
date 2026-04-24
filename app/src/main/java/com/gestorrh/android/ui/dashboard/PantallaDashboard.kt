@@ -51,6 +51,10 @@ fun PantallaDashboard(
     val errorPermisoTexto = stringResource(id = R.string.error_permiso_ubicacion)
     val contextoLocal = LocalContext.current
 
+    LaunchedEffect(Unit) {
+        viewModel.cargarFichajesPendientes()
+    }
+
     LaunchedEffect(estadoUi.mensajeError) {
         estadoUi.mensajeError?.let { mensajeUi ->
             val textoMensaje = when (mensajeUi) {
@@ -59,6 +63,17 @@ fun PantallaDashboard(
             }
             snackbarHostState.showSnackbar(textoMensaje)
             viewModel.errorMostrado()
+        }
+    }
+
+    LaunchedEffect(estadoUi.mensajeInfo) {
+        estadoUi.mensajeInfo?.let { mensajeUi ->
+            val textoMensaje = when (mensajeUi) {
+                is MensajeUi.Recurso -> contextoLocal.getString(mensajeUi.idRecurso)
+                is MensajeUi.Dinamico -> mensajeUi.texto
+            }
+            snackbarHostState.showSnackbar(textoMensaje)
+            viewModel.infoMostrado()
         }
     }
 
@@ -117,6 +132,7 @@ fun PantallaDashboard(
                 tiempoTranscurrido = estadoUi.tiempoTranscurrido,
                 estaCargando = estadoUi.estaCargando,
                 modalidad = estadoUi.modalidadHoy,
+                fichajesPendientes = estadoUi.fichajesPendientesSincronizar,
                 alClickFichar = intentarFichar
             )
 
@@ -240,6 +256,7 @@ private fun WidgetFichaje(
     tiempoTranscurrido: String,
     estaCargando: Boolean,
     modalidad: ModalidadTurno?,
+    fichajesPendientes: Int,
     alClickFichar: () -> Unit
 ) {
     val esActivo = estadoActual == EstadoFichaje.TRABAJANDO
@@ -287,25 +304,51 @@ private fun WidgetFichaje(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            Button(
-                onClick = alClickFichar,
-                modifier = Modifier.fillMaxWidth().height(56.dp),
-                shape = CircleShape,
-                colors = ButtonDefaults.buttonColors(containerColor = colorBoton),
-                enabled = !estaCargando
-            ) {
-                if (estaCargando) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp),
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        strokeWidth = 2.dp
-                    )
-                } else {
-                    Text(
-                        text = stringResource(id = textoBoton),
-                        style = MaterialTheme.typography.labelLarge
-                    )
+            Box(modifier = Modifier.fillMaxWidth()) {
+                Button(
+                    onClick = alClickFichar,
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    shape = CircleShape,
+                    colors = ButtonDefaults.buttonColors(containerColor = colorBoton),
+                    enabled = !estaCargando
+                ) {
+                    if (estaCargando) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text(
+                            text = stringResource(id = textoBoton),
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                    }
                 }
+
+                if (fichajesPendientes > 0) {
+                    Badge(
+                        containerColor = MaterialTheme.colorScheme.error,
+                        contentColor = MaterialTheme.colorScheme.onError,
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .offset(x = (-4).dp, y = (-4).dp)
+                    ) {
+                        Text(
+                            text = fichajesPendientes.toString(),
+                            style = MaterialTheme.typography.labelSmall
+                        )
+                    }
+                }
+            }
+
+            if (fichajesPendientes > 0) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = stringResource(id = R.string.fichajes_pendientes, fichajesPendientes),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.error
+                )
             }
         }
     }

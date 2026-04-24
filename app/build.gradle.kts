@@ -100,4 +100,7 @@ dependencies {
 
     // 6. Lifecycle Compose (collectAsStateWithLifecycle)
     implementation(libs.androidx.lifecycle.runtime.compose)
+
+    // 7. WorkManager (sincronización diferida de fichajes offline)
+    implementation(libs.androidx.work.runtime.ktx)
 }
