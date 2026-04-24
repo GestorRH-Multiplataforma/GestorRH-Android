@@ -1,15 +1,13 @@
 package com.gestorrh.android.ui.login
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.BusinessCenter
-import androidx.compose.material.icons.outlined.Email
-import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -23,6 +21,10 @@ import com.gestorrh.android.core.ui.MensajeUi
  * Interfaz gráfica para la autenticación de usuarios.
  * Sigue el patrón de diseño Unidirectional Data Flow (UDF), reaccionando a los
  * cambios emitidos por el [LoginViewModel] y elevando los eventos de usuario.
+ *
+ * El logotipo se carga desde el recurso PNG `ic_logo` (res/drawable),
+ * usando [painterResource] para respetar el asset original sin reinterpretaciones
+ * de color por parte del sistema.
  *
  * @param viewModel Manejador de la lógica de negocio y estado de la pantalla.
  * @param onLoginExitoso Callback ejecutado cuando el servidor valida las credenciales,
@@ -73,15 +75,24 @@ fun PantallaLogin(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            // TODO: Reemplazar 'imageVector' por 'painterResource(id = R.drawable.logo)' cuando el SVG gráfico esté disponible en la Épica de Diseño.
-            Icon(
-                imageVector = Icons.Outlined.BusinessCenter,
-                contentDescription = "Logo GestorRH",
-                tint = MaterialTheme.colorScheme.primary,
+            // ── Logotipo corporativo ──────────────────────────────────────────
+            // Se usa Image + painterResource en lugar de Icon para que el sistema
+            // NO aplique tinte (tint) sobre el PNG y los colores originales del
+            // logo se muestren fielmente.
+            androidx.compose.foundation.layout.Box(
                 modifier = Modifier
                     .size(100.dp)
-                    .padding(bottom = 16.dp)
-            )
+                    .padding(bottom = 0.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                androidx.compose.foundation.Image(
+                    painter = painterResource(id = R.drawable.ic_logo),
+                    contentDescription = stringResource(id = R.string.login_logo_cd),
+                    modifier = Modifier.size(100.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
 
             Text(
                 text = stringResource(id = R.string.login_title),
@@ -114,9 +125,6 @@ fun PantallaLogin(
                 value = estadoUi.email,
                 onValueChange = { viewModel.actualizarEmail(it) },
                 label = { Text(stringResource(id = R.string.login_email_hint)) },
-                leadingIcon = {
-                    Icon(imageVector = Icons.Outlined.Email, contentDescription = "Email Icon")
-                },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Email,
                     imeAction = ImeAction.Next
@@ -132,9 +140,6 @@ fun PantallaLogin(
                 value = estadoUi.password,
                 onValueChange = { viewModel.actualizarPassword(it) },
                 label = { Text(stringResource(id = R.string.login_password_hint)) },
-                leadingIcon = {
-                    Icon(imageVector = Icons.Outlined.Lock, contentDescription = "Password Icon")
-                },
                 visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Password,
