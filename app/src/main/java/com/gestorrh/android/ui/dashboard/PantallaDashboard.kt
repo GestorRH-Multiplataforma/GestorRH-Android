@@ -12,6 +12,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.EventBusy
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
@@ -48,6 +49,7 @@ import androidx.core.app.ActivityCompat
 
 @Composable
 fun PantallaDashboard(
+    alVerHistorial: () -> Unit,
     contexto: android.content.Context = LocalContext.current,
     viewModel: DashboardViewModel = viewModel(
         factory = DashboardViewModelFactory(contexto.applicationContext)
@@ -197,6 +199,22 @@ fun PantallaDashboard(
                         alClickFichar = intentarFichar
                     )
 
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedButton(
+                onClick = alVerHistorial,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.History,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(stringResource(id = R.string.dashboard_btn_ver_historial))
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
                     Spacer(modifier = Modifier.height(32.dp))
 
                     Row(

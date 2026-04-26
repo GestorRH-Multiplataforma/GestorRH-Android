@@ -7,6 +7,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
@@ -31,6 +32,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun PantallaPerfil(
     alCerrarSesion: () -> Unit,
+    alVerHistorialFichajes: () -> Unit,
     viewModel: PerfilViewModel = viewModel(factory = PerfilViewModel.crearFactory(LocalContext.current))
 ) {
     val estado by viewModel.estadoUi.collectAsState()
@@ -193,7 +195,8 @@ fun PantallaPerfil(
                     perfil = perfilActual,
                     modifier = Modifier.padding(paddingInterior),
                     alCambiarPassword = { viewModel.mostrarDialogCambioPassword() },
-                    alCerrarSesion = { viewModel.mostrarDialogLogout() }
+                    alCerrarSesion = { viewModel.mostrarDialogLogout() },
+                    alVerHistorialFichajes = alVerHistorialFichajes
                 )
             }
         }
@@ -205,7 +208,8 @@ private fun ContenidoPerfil(
     perfil: RespuestaEmpleadoDTO,
     modifier: Modifier = Modifier,
     alCambiarPassword: () -> Unit,
-    alCerrarSesion: () -> Unit
+    alCerrarSesion: () -> Unit,
+    alVerHistorialFichajes: () -> Unit
 ) {
     Column(
         modifier = modifier
@@ -270,6 +274,17 @@ private fun ContenidoPerfil(
         )
 
         Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedButton(
+            onClick = alVerHistorialFichajes,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(imageVector = Icons.Filled.History, contentDescription = null)
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(stringResource(R.string.perfil_btn_ver_mis_fichajes))
+        }
+
+        Spacer(modifier = Modifier.height(4.dp))
 
         OutlinedButton(
             onClick = alCambiarPassword,

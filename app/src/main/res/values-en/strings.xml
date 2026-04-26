@@ -150,6 +150,18 @@
 
     <string name="login_logo_cd">GestorRH logo</string>
 
+    <!-- Time tracking history screen -->
+    <string name="historial_fichajes_titulo">Time tracking history</string>
+    <string name="historial_fichajes_vacio">No records in this period</string>
+    <string name="historial_fichajes_fecha_inicio">From</string>
+    <string name="historial_fichajes_fecha_fin">To</string>
+    <string name="historial_fichajes_aplicar_filtro">Apply filter</string>
+    <string name="historial_fichajes_hora_entrada">Clock in</string>
+    <string name="historial_fichajes_hora_salida">Clock out</string>
+    <string name="historial_fichajes_en_curso">In progress</string>
+    <string name="historial_fichajes_cd_volver">Back</string>
+    <string name="perfil_btn_ver_mis_fichajes">View my records</string>
+    <string name="dashboard_btn_ver_historial">View history</string>
     <!-- Dashboard — dedicated error screen -->
     <string name="dashboard_error_titulo">Could not connect</string>
     <string name="dashboard_error_descripcion">We could not retrieve your clock-in status. Check your connection and try again.</string>
