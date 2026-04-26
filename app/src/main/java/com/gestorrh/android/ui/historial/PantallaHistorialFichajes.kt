@@ -1,6 +1,5 @@
 package com.gestorrh.android.ui.historial
 
-import android.app.DatePickerDialog
 import android.content.Context
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -23,7 +22,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.gestorrh.android.R
 import com.gestorrh.android.core.ui.MensajeUi
 import com.gestorrh.android.data.network.fichaje.RespuestaFichajeDTO
+import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 private val ColorEnCurso = Color(0xFF2E7D32)
@@ -125,8 +126,9 @@ private fun FilaFiltrosFechas(
     alCambiarFechaFin: (LocalDate) -> Unit,
     alAplicarFiltro: () -> Unit
 ) {
-    val contexto = LocalContext.current
     val formateador = remember { DateTimeFormatter.ofPattern("dd/MM/yyyy") }
+    var mostrarSelectorInicio by remember { mutableStateOf(false) }
+    var mostrarSelectorFin by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -143,18 +145,14 @@ private fun FilaFiltrosFechas(
                 fecha = fechaInicio,
                 formateador = formateador,
                 modifier = Modifier.weight(1f),
-                alSeleccionar = {
-                    mostrarDatePicker(contexto, fechaInicio, alCambiarFechaInicio)
-                }
+                alSeleccionar = { mostrarSelectorInicio = true }
             )
             BotonSelectorFecha(
                 etiqueta = stringResource(R.string.historial_fichajes_fecha_fin),
                 fecha = fechaFin,
                 formateador = formateador,
                 modifier = Modifier.weight(1f),
-                alSeleccionar = {
-                    mostrarDatePicker(contexto, fechaFin, alCambiarFechaFin)
-                }
+                alSeleccionar = { mostrarSelectorFin = true }
             )
         }
 
@@ -165,6 +163,22 @@ private fun FilaFiltrosFechas(
         ) {
             Text(stringResource(R.string.historial_fichajes_aplicar_filtro))
         }
+    }
+
+    if (mostrarSelectorInicio) {
+        SelectorFecha(
+            fechaInicial = fechaInicio,
+            alSeleccionar = alCambiarFechaInicio,
+            alDescartar = { mostrarSelectorInicio = false }
+        )
+    }
+
+    if (mostrarSelectorFin) {
+        SelectorFecha(
+            fechaInicial = fechaFin,
+            alSeleccionar = alCambiarFechaFin,
+            alDescartar = { mostrarSelectorFin = false }
+        )
     }
 }
 
@@ -190,6 +204,59 @@ private fun BotonSelectorFecha(
                 style = MaterialTheme.typography.bodyMedium
             )
         }
+    }
+}
+
+/**
+ * Selector de fecha modal basado en el `DatePicker` de Material 3 Compose. Reemplaza
+ * al `DatePickerDialog` nativo de Android para que los colores del calendario y de
+ * los botones respeten la paleta declarada en `MaterialTheme`.
+ *
+ * Las fechas se intercambian con el `DatePickerState` como milisegundos UTC, por lo
+ * que se convierten desde y hacia [LocalDate] usando la zona horaria del dispositivo.
+ *
+ * @param fechaInicial Fecha mostrada como seleccionada al abrir el diálogo.
+ * @param alSeleccionar Callback con la fecha confirmada por el usuario.
+ * @param alDescartar Callback invocado tanto al cancelar como tras confirmar para
+ *                    cerrar el diálogo.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SelectorFecha(
+    fechaInicial: LocalDate,
+    alSeleccionar: (LocalDate) -> Unit,
+    alDescartar: () -> Unit
+) {
+    val zonaHoraria = ZoneId.systemDefault()
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = fechaInicial
+            .atStartOfDay(zonaHoraria)
+            .toInstant()
+            .toEpochMilli()
+    )
+
+    DatePickerDialog(
+        onDismissRequest = alDescartar,
+        confirmButton = {
+            TextButton(onClick = {
+                datePickerState.selectedDateMillis?.let { millis ->
+                    val fecha = Instant.ofEpochMilli(millis)
+                        .atZone(zonaHoraria)
+                        .toLocalDate()
+                    alSeleccionar(fecha)
+                }
+                alDescartar()
+            }) {
+                Text(stringResource(id = android.R.string.ok))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = alDescartar) {
+                Text(stringResource(id = android.R.string.cancel))
+            }
+        }
+    ) {
+        DatePicker(state = datePickerState)
     }
 }
 
@@ -300,18 +367,3 @@ private fun EstadoVacio() {
     }
 }
 
-private fun mostrarDatePicker(
-    contexto: Context,
-    fechaInicial: LocalDate,
-    alSeleccionar: (LocalDate) -> Unit
-) {
-    DatePickerDialog(
-        contexto,
-        { _, year, month, dayOfMonth ->
-            alSeleccionar(LocalDate.of(year, month + 1, dayOfMonth))
-        },
-        fechaInicial.year,
-        fechaInicial.monthValue - 1,
-        fechaInicial.dayOfMonth
-    ).show()
-}
