@@ -173,4 +173,23 @@
     <!-- Location permission permanently denied -->
     <string name="error_permiso_ubicacion_permanente">Location permission permanently denied. Enable it in Settings to clock in.</string>
     <string name="error_permiso_ubicacion_btn_ajustes">Open Settings</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_btn_siguiente">Next</string>
+    <string name="onboarding_btn_empezar">Get started</string>
+    <string name="onboarding_btn_saltar">Skip</string>
+
+    <string name="onboarding_pagina1_titulo">Clock in anywhere</string>
+    <string name="onboarding_pagina1_descripcion">Record your check-in and check-out from your phone. The app automatically validates your location for on-site shifts.</string>
+
+    <string name="onboarding_pagina2_titulo">Check your shifts</string>
+    <string name="onboarding_pagina2_descripcion">Access your schedule at any time. Data is saved on your device so you can check it even without an internet connection.</string>
+
+    <string name="onboarding_pagina3_titulo">Manage your time off</string>
+    <string name="onboarding_pagina3_descripcion">Request holidays or medical leave and attach supporting documents directly from the app.</string>
+
+    <string name="onboarding_pagina4_titulo">Invitation only</string>
+    <string name="onboarding_pagina4_descripcion">This is a corporate application. To access it you need the credentials provided by your HR manager.</string>
+
+    <string name="onboarding_cd_ilustracion">Feature illustration</string>
 </resources>
