@@ -29,6 +29,8 @@ import com.gestorrh.android.ui.login.PantallaLogin
 import com.gestorrh.android.ui.principal.PantallaPrincipal
 import com.gestorrh.android.ui.theme.GestorRHTheme
 import kotlinx.coroutines.launch
+import com.gestorrh.android.core.onboarding.OnboardingManager
+import com.gestorrh.android.ui.onboarding.PantallaOnboarding
 
 /**
  * Actividad principal y punto de entrada (Entry Point) de la aplicación Android.
@@ -60,6 +62,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         val sessionManager = SessionManager(this)
+        val onboardingManager = OnboardingManager(this)
         val retrofit = ApiClient.crearRetrofit(sessionManager)
         val authRepository = AuthRepository(retrofit.create(AuthApi::class.java))
         val baseDatos = GestorRhDatabase.getInstance(this)
@@ -86,10 +89,10 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                val destinoInicial = if (sessionManager.getToken() != null) {
-                    "principal"
-                } else {
-                    "login"
+                val destinoInicial = when {
+                    !onboardingManager.onboardingCompletado() -> "onboarding"
+                    sessionManager.getToken() != null -> "principal"
+                    else -> "login"
                 }
 
                 Box(modifier = Modifier.fillMaxSize()) {
@@ -97,6 +100,17 @@ class MainActivity : ComponentActivity() {
                         navController = controladorNavegacion,
                         startDestination = destinoInicial
                     ) {
+
+                        composable("onboarding") {
+                            PantallaOnboarding(
+                                alCompletarOnboarding = {
+                                    onboardingManager.marcarOnboardingCompletado()
+                                    controladorNavegacion.navigate("login") {
+                                        popUpTo("onboarding") { inclusive = true }
+                                    }
+                                }
+                            )
+                        }
 
                         composable("login") {
                             val fabricaViewModel = object : ViewModelProvider.Factory {

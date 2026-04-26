@@ -173,4 +173,23 @@
     <!-- Permiso ubicación denegado permanentemente -->
     <string name="error_permiso_ubicacion_permanente">Permiso de ubicación denegado permanentemente. Actívalo en Ajustes para poder fichar.</string>
     <string name="error_permiso_ubicacion_btn_ajustes">Abrir Ajustes</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_btn_siguiente">Siguiente</string>
+    <string name="onboarding_btn_empezar">Empezar</string>
+    <string name="onboarding_btn_saltar">Saltar</string>
+
+    <string name="onboarding_pagina1_titulo">Ficha donde estés</string>
+    <string name="onboarding_pagina1_descripcion">Registra tu entrada y salida desde el móvil. La app valida tu ubicación automáticamente para el fichaje presencial.</string>
+
+    <string name="onboarding_pagina2_titulo">Consulta tus turnos</string>
+    <string name="onboarding_pagina2_descripcion">Accede a tu cuadrante en cualquier momento. Los datos se guardan en el dispositivo para que puedas consultarlos sin conexión.</string>
+
+    <string name="onboarding_pagina3_titulo">Gestiona tus ausencias</string>
+    <string name="onboarding_pagina3_descripcion">Solicita vacaciones o permisos médicos y adjunta justificantes directamente desde la app.</string>
+
+    <string name="onboarding_pagina4_titulo">Acceso por invitación</string>
+    <string name="onboarding_pagina4_descripcion">Esta aplicación es de uso corporativo. Para acceder necesitas las credenciales que te proporcionará tu responsable de RRHH.</string>
+
+    <string name="onboarding_cd_ilustracion">Ilustración de la funcionalidad</string>
 </resources>
