@@ -15,6 +15,7 @@ import com.gestorrh.android.ui.ausencia.PantallaMisAusencias
 import com.gestorrh.android.ui.ausencia.PantallaSolicitudAusencia
 import com.gestorrh.android.ui.ausencia.SolicitudAusenciaViewModel
 import com.gestorrh.android.ui.dashboard.PantallaDashboard
+import com.gestorrh.android.ui.historial.PantallaHistorialFichajes
 import com.gestorrh.android.ui.perfil.PantallaPerfil
 import com.gestorrh.android.ui.turnos.PantallaMisTurnos
 import java.net.URLDecoder
@@ -57,7 +58,15 @@ fun PantallaPrincipal(
         ) {
 
             composable(RutasDestino.Inicio.ruta) {
-                PantallaDashboard()
+                PantallaDashboard(
+                    alVerHistorial = {
+                        controladorNavegacionInterno.navigate(
+                            RutasDestino.HistorialFichajes.ruta
+                        ) {
+                            launchSingleTop = true
+                        }
+                    }
+                )
             }
 
             composable(RutasDestino.Turnos.ruta) {
@@ -170,7 +179,22 @@ fun PantallaPrincipal(
             }
 
             composable(RutasDestino.Perfil.ruta) {
-                PantallaPerfil(alCerrarSesion = alCerrarSesion)
+                PantallaPerfil(
+                    alCerrarSesion = alCerrarSesion,
+                    alVerHistorialFichajes = {
+                        controladorNavegacionInterno.navigate(
+                            RutasDestino.HistorialFichajes.ruta
+                        ) {
+                            launchSingleTop = true
+                        }
+                    }
+                )
+            }
+
+            composable(RutasDestino.HistorialFichajes.ruta) {
+                PantallaHistorialFichajes(
+                    alVolver = { controladorNavegacionInterno.popBackStack() }
+                )
             }
         }
     }

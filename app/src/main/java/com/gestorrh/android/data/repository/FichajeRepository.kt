@@ -9,6 +9,7 @@ import com.gestorrh.android.domain.repository.IFichajeRepository
 import okhttp3.ResponseBody
 import org.json.JSONException
 import org.json.JSONObject
+import java.time.LocalDate
 
 /**
  * Implementación de [IFichajeRepository] que delega en el servicio Retrofit [FichajeApiService].
@@ -57,6 +58,27 @@ class FichajeRepository(private val apiService: FichajeApiService) : IFichajeRep
             } else {
                 val mensaje = extraerMensajeError(respuesta.errorBody())
                     ?: "Error ${respuesta.code()} al fichar salida"
+                Result.failure(Exception(mensaje))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun obtenerHistorialFichajes(
+        fechaInicio: LocalDate,
+        fechaFin: LocalDate
+    ): Result<List<RespuestaFichajeDTO>> {
+        return try {
+            val respuesta = apiService.obtenerHistorial(
+                fechaInicio = fechaInicio.toString(),
+                fechaFin = fechaFin.toString()
+            )
+            if (respuesta.isSuccessful && respuesta.body() != null) {
+                Result.success(respuesta.body()!!)
+            } else {
+                val mensaje = extraerMensajeError(respuesta.errorBody())
+                    ?: "Error ${respuesta.code()} al obtener el historial de fichajes"
                 Result.failure(Exception(mensaje))
             }
         } catch (e: Exception) {

@@ -149,4 +149,17 @@
     <string name="mis_ausencias_cd_descargar_justificante">Descargar justificante</string>
 
     <string name="login_logo_cd">Logotipo de GestorRH</string>
+
+    <!-- Pantalla Historial de Fichajes -->
+    <string name="historial_fichajes_titulo">Historial de fichajes</string>
+    <string name="historial_fichajes_vacio">No hay fichajes en este periodo</string>
+    <string name="historial_fichajes_fecha_inicio">Desde</string>
+    <string name="historial_fichajes_fecha_fin">Hasta</string>
+    <string name="historial_fichajes_aplicar_filtro">Aplicar filtro</string>
+    <string name="historial_fichajes_hora_entrada">Entrada</string>
+    <string name="historial_fichajes_hora_salida">Salida</string>
+    <string name="historial_fichajes_en_curso">En curso</string>
+    <string name="historial_fichajes_cd_volver">Volver</string>
+    <string name="perfil_btn_ver_mis_fichajes">Ver mis fichajes</string>
+    <string name="dashboard_btn_ver_historial">Ver historial</string>
 </resources>

@@ -6,6 +6,7 @@ import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.EventBusy
 import androidx.compose.material.icons.filled.Group
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.gestorrh.android.R
@@ -34,6 +35,17 @@ sealed class RutasDestino(
      * argumentos opcionales `id`, `tipo`, `inicio`, `fin` y `descripcion` ya
      * rellenos en la URL).
      */
+    /**
+     * Destino interno para el historial de fichajes personales del empleado autenticado.
+     * No aparece en la barra de navegación inferior: se alcanza desde la pestaña de
+     * [Perfil] o desde el botón secundario de la pantalla de [Inicio] (fichaje).
+     */
+    data object HistorialFichajes : RutasDestino(
+        ruta = "fichajes/historial",
+        tituloResId = R.string.historial_fichajes_titulo,
+        icono = Icons.Filled.History
+    )
+
     data object SolicitarAusencia : RutasDestino(
         ruta = "ausencias/solicitar?id={id}&tipo={tipo}&inicio={inicio}&fin={fin}&descripcion={descripcion}&justificante={justificante}",
         tituloResId = R.string.nav_ausencias,
