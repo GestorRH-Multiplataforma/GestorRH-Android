@@ -37,6 +37,7 @@ data class EstadoUiDashboard(
     val estaCargando: Boolean = true,
     val mensajeError: MensajeUi? = null,
     val mensajeInfo: MensajeUi? = null,
+    val errorCritico: Boolean = false,
     val idFichajeAbierto: Long? = null,
     val modalidadHoy: ModalidadTurno? = null,
     val tieneTurnoHoy: Boolean = false,
@@ -97,9 +98,14 @@ class DashboardViewModel(
                     }
                 }
                 .onFailure { e ->
-                    val mensaje = if (e.message != null) MensajeUi.Dinamico(e.message!!)
-                    else MensajeUi.Recurso(R.string.error_conexion)
-                    mostrarError(mensaje)
+                    val hayEstadoConocido = _estadoUi.value.idFichajeAbierto != null
+                    if (hayEstadoConocido) {
+                        val mensaje = if (e.message != null) MensajeUi.Dinamico(e.message!!)
+                        else MensajeUi.Recurso(R.string.error_conexion)
+                        mostrarError(mensaje)
+                    } else {
+                        _estadoUi.update { it.copy(errorCritico = true) }
+                    }
                 }
 
             _estadoUi.update { it.copy(estaCargando = false) }
@@ -255,6 +261,11 @@ class DashboardViewModel(
 
     fun infoMostrado() {
         _estadoUi.update { it.copy(mensajeInfo = null) }
+    }
+
+    fun reintentarTrasErrorCritico() {
+        _estadoUi.update { it.copy(errorCritico = false) }
+        sincronizarEstado()
     }
 
     private fun mostrarError(mensaje: MensajeUi) {

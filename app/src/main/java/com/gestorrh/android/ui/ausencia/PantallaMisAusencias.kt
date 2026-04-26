@@ -66,6 +66,7 @@ import com.gestorrh.android.core.archivos.GestorArchivosJustificante
 import com.gestorrh.android.core.ui.MensajeUi
 import com.gestorrh.android.data.network.ausencia.RespuestaAusenciaDTO
 import java.time.format.DateTimeFormatter
+import androidx.lifecycle.compose.LocalLifecycleOwner
 
 private val ColorEstadoSolicitada = Color(0xFFF57C00)
 private val ColorEstadoAprobada = Color(0xFF2E7D32)
@@ -98,6 +99,10 @@ fun PantallaMisAusencias(
         }
         propietarioCicloVida.lifecycle.addObserver(observador)
         onDispose { propietarioCicloVida.lifecycle.removeObserver(observador) }
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.iniciarPolling(propietarioCicloVida.lifecycle)
     }
 
     val textoReintentar = stringResource(R.string.mis_ausencias_reintentar)

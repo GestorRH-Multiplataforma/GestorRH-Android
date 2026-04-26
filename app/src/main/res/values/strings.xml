@@ -149,4 +149,16 @@
     <string name="mis_ausencias_cd_descargar_justificante">Descargar justificante</string>
 
     <string name="login_logo_cd">Logotipo de GestorRH</string>
+
+    <!-- Dashboard — pantalla de error dedicada -->
+    <string name="dashboard_error_titulo">No se pudo conectar</string>
+    <string name="dashboard_error_descripcion">No hemos podido obtener tu estado de fichaje. Comprueba tu conexión e inténtalo de nuevo.</string>
+    <string name="dashboard_error_btn_reintentar">Reintentar</string>
+
+    <!-- Mis Ausencias — polling -->
+    <string name="mis_ausencias_actualizando">Actualizando…</string>
+
+    <!-- Permiso ubicación denegado permanentemente -->
+    <string name="error_permiso_ubicacion_permanente">Permiso de ubicación denegado permanentemente. Actívalo en Ajustes para poder fichar.</string>
+    <string name="error_permiso_ubicacion_btn_ajustes">Abrir Ajustes</string>
 </resources>
