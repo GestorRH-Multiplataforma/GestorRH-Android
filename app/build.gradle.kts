@@ -86,6 +86,7 @@ dependencies {
 
     // 2. Navegación en Jetpack Compose
     implementation("androidx.navigation:navigation-compose:2.7.7")
+    implementation("com.google.accompanist:accompanist-navigation-animation:0.34.0")
 
     // 3. Seguridad (EncryptedSharedPreferences para el JWT)
     implementation("androidx.security:security-crypto-ktx:1.1.0-alpha06")
