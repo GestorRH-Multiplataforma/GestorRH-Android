@@ -38,6 +38,14 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.material.icons.filled.WifiOff
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
+import androidx.activity.compose.LocalActivityResultRegistryOwner
+import androidx.core.app.ActivityCompat
 
 @Composable
 fun PantallaDashboard(
@@ -60,9 +68,6 @@ fun PantallaDashboard(
         viewModel.cargarFichajesPendientes()
     }
 
-    // Al volver al Dashboard (por ejemplo tras reconectarse y que `SyncFichajeWorker`
-    // haya vaciado la cola en background) se vuelve a consultar al servidor el estado
-    // de fichaje real y el contador de pendientes para que la UI no se quede desfasada.
     val propietarioCicloVida = LocalLifecycleOwner.current
     DisposableEffect(propietarioCicloVida) {
         val observador = LifecycleEventObserver { _, evento ->
@@ -99,6 +104,10 @@ fun PantallaDashboard(
         }
     }
 
+    val activity = contexto as? android.app.Activity
+    val textoCta = stringResource(id = R.string.error_permiso_ubicacion_btn_ajustes)
+    val textoPermanente = stringResource(id = R.string.error_permiso_ubicacion_permanente)
+
     val lanzadorPermisos = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
         onResult = { concedido ->
@@ -108,8 +117,33 @@ fun PantallaDashboard(
                     viewModel.alternarFichaje(ubicacion)
                 }
             } else {
-                scopeDeCorrutina.launch {
-                    snackbarHostState.showSnackbar(errorPermisoTexto)
+                val denegadoPermanentemente = activity != null &&
+                        !ActivityCompat.shouldShowRequestPermissionRationale(
+                            activity,
+                            android.Manifest.permission.ACCESS_FINE_LOCATION
+                        )
+
+                if (denegadoPermanentemente) {
+                    scopeDeCorrutina.launch {
+                        val resultado = snackbarHostState.showSnackbar(
+                            message = textoPermanente,
+                            actionLabel = textoCta,
+                            duration = SnackbarDuration.Long
+                        )
+                        if (resultado == SnackbarResult.ActionPerformed) {
+                            val intent = Intent(
+                                Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                Uri.fromParts("package", contexto.packageName, null)
+                            ).apply {
+                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            }
+                            contexto.startActivity(intent)
+                        }
+                    }
+                } else {
+                    scopeDeCorrutina.launch {
+                        snackbarHostState.showSnackbar(errorPermisoTexto)
+                    }
                 }
             }
         }
@@ -138,25 +172,32 @@ fun PantallaDashboard(
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) { paddingValores ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValores)
-                .padding(24.dp)
-                .verticalScroll(rememberScrollState())
-        ) {
-            CabeceraDashboard(nombreEmpleado = estadoUi.nombreEmpleado)
+        when {
+            estadoUi.errorCritico -> {
+                PantallaErrorCriticoDashboard(
+                    alReintentar = viewModel::reintentarTrasErrorCritico
+                )
+            }
+            else -> {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValores)
+                        .padding(24.dp)
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    CabeceraDashboard(nombreEmpleado = estadoUi.nombreEmpleado)
 
-            Spacer(modifier = Modifier.height(40.dp))
+                    Spacer(modifier = Modifier.height(40.dp))
 
-            WidgetFichaje(
-                estadoActual = estadoUi.estadoActual,
-                tiempoTranscurrido = estadoUi.tiempoTranscurrido,
-                estaCargando = estadoUi.estaCargando,
-                modalidad = estadoUi.modalidadHoy,
-                fichajesPendientes = estadoUi.fichajesPendientesSincronizar,
-                alClickFichar = intentarFichar
-            )
+                    WidgetFichaje(
+                        estadoActual = estadoUi.estadoActual,
+                        tiempoTranscurrido = estadoUi.tiempoTranscurrido,
+                        estaCargando = estadoUi.estaCargando,
+                        modalidad = estadoUi.modalidadHoy,
+                        fichajesPendientes = estadoUi.fichajesPendientesSincronizar,
+                        alClickFichar = intentarFichar
+                    )
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -174,23 +215,26 @@ fun PantallaDashboard(
             }
 
             Spacer(modifier = Modifier.height(32.dp))
+                    Spacer(modifier = Modifier.height(32.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                TarjetaInformativa(
-                    modifier = Modifier.weight(1f),
-                    titulo = stringResource(id = R.string.dashboard_turno_titulo),
-                    valor = if (estadoUi.tieneTurnoHoy) estadoUi.modalidadHoy?.name ?: stringResource(id = R.string.dashboard_sin_asignar) else stringResource(id = R.string.dashboard_libre),
-                    icono = Icons.Filled.CalendarToday
-                )
-                TarjetaInformativa(
-                    modifier = Modifier.weight(1f),
-                    titulo = stringResource(id = R.string.dashboard_ausencia_titulo),
-                    valor = stringResource(id = R.string.dashboard_cero_pendientes),
-                    icono = Icons.Filled.EventBusy
-                )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        TarjetaInformativa(
+                            modifier = Modifier.weight(1f),
+                            titulo = stringResource(id = R.string.dashboard_turno_titulo),
+                            valor = if (estadoUi.tieneTurnoHoy) estadoUi.modalidadHoy?.name ?: stringResource(id = R.string.dashboard_sin_asignar) else stringResource(id = R.string.dashboard_libre),
+                            icono = Icons.Filled.CalendarToday
+                        )
+                        TarjetaInformativa(
+                            modifier = Modifier.weight(1f),
+                            titulo = stringResource(id = R.string.dashboard_ausencia_titulo),
+                            valor = stringResource(id = R.string.dashboard_cero_pendientes),
+                            icono = Icons.Filled.EventBusy
+                        )
+                    }
+                }
             }
         }
     }
@@ -297,6 +341,7 @@ private fun WidgetFichaje(
     alClickFichar: () -> Unit
 ) {
     val esActivo = estadoActual == EstadoFichaje.TRABAJANDO
+    val feedbackHaptico = LocalHapticFeedback.current
 
     val colorFondoCard = if (esActivo) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant
     val colorTextoEstado = if (esActivo) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
@@ -343,7 +388,10 @@ private fun WidgetFichaje(
 
             Box(modifier = Modifier.fillMaxWidth()) {
                 Button(
-                    onClick = alClickFichar,
+                    onClick = {
+                        feedbackHaptico.performHapticFeedback(HapticFeedbackType.LongPress)
+                        alClickFichar()
+                    },
                     modifier = Modifier.fillMaxWidth().height(56.dp),
                     shape = CircleShape,
                     colors = ButtonDefaults.buttonColors(containerColor = colorBoton),
@@ -387,6 +435,51 @@ private fun WidgetFichaje(
                     color = MaterialTheme.colorScheme.error
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun PantallaErrorCriticoDashboard(
+    alReintentar: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            imageVector = Icons.Filled.WifiOff,
+            contentDescription = null,
+            modifier = Modifier.size(72.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Text(
+            text = stringResource(id = R.string.dashboard_error_titulo),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = stringResource(id = R.string.dashboard_error_descripcion),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Button(onClick = alReintentar) {
+            Text(text = stringResource(id = R.string.dashboard_error_btn_reintentar))
         }
     }
 }

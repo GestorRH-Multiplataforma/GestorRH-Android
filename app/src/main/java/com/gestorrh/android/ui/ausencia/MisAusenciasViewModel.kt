@@ -19,6 +19,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.io.IOException
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.delay
 
 /**
  * ViewModel del listado "Mis ausencias".
@@ -59,6 +62,30 @@ class MisAusenciasViewModel(
                         )
                     }
                 }
+        }
+    }
+
+    /**
+     * Inicia un bucle de refresco periódico cada [INTERVALO_POLLING_MS] ms.
+     *
+     * Se vincula al [Lifecycle] de la pantalla mediante [repeatOnLifecycle]:
+     * el polling se pausa automáticamente cuando la app va a segundo plano
+     * (estado STARTED → STOPPED) y se reanuda al volver al primer plano,
+     * sin necesidad de gestión manual en la UI.
+     *
+     * La primera carga la realiza [cargarAusencias] desde la pantalla en
+     * ON_RESUME, por lo que aquí esperamos el intervalo completo antes del
+     * primer tick para no duplicar la petición inicial.
+     */
+    fun iniciarPolling(lifecycle: Lifecycle) {
+        viewModelScope.launch {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                delay(INTERVALO_POLLING_MS)
+                while (true) {
+                    cargarAusencias()
+                    delay(INTERVALO_POLLING_MS)
+                }
+            }
         }
     }
 
@@ -146,6 +173,7 @@ class MisAusenciasViewModel(
     }
 
     companion object {
+        private const val INTERVALO_POLLING_MS = 60_000L
         fun factory(contexto: Context): ViewModelProvider.Factory =
             object : ViewModelProvider.Factory {
                 @Suppress("UNCHECKED_CAST")

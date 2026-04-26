@@ -162,4 +162,15 @@
     <string name="historial_fichajes_cd_volver">Volver</string>
     <string name="perfil_btn_ver_mis_fichajes">Ver mis fichajes</string>
     <string name="dashboard_btn_ver_historial">Ver historial</string>
+    <!-- Dashboard — pantalla de error dedicada -->
+    <string name="dashboard_error_titulo">No se pudo conectar</string>
+    <string name="dashboard_error_descripcion">No hemos podido obtener tu estado de fichaje. Comprueba tu conexión e inténtalo de nuevo.</string>
+    <string name="dashboard_error_btn_reintentar">Reintentar</string>
+
+    <!-- Mis Ausencias — polling -->
+    <string name="mis_ausencias_actualizando">Actualizando…</string>
+
+    <!-- Permiso ubicación denegado permanentemente -->
+    <string name="error_permiso_ubicacion_permanente">Permiso de ubicación denegado permanentemente. Actívalo en Ajustes para poder fichar.</string>
+    <string name="error_permiso_ubicacion_btn_ajustes">Abrir Ajustes</string>
 </resources>

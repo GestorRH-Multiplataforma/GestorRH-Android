@@ -1,5 +1,9 @@
 package com.gestorrh.android.ui.principal
 
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -21,11 +25,19 @@ import com.gestorrh.android.ui.turnos.PantallaMisTurnos
 import java.net.URLDecoder
 import java.time.LocalDate
 
+private const val DURACION_TRANSICION_MS = 300
+
 /**
- * Contenedor maestro de la experiencia "Post-Login".
- * Implementa el patrón visual Scaffold (Andamio), inyectando la barra de navegación
- * inferior y definiendo el enrutador interno (NavHost) para cambiar entre los
- * dominios de negocio principales (Fichaje, Turnos, Ausencias, Perfil).
+ * Contenedor maestro de la experiencia post-login.
+ *
+ * Implementa el patrón Scaffold con barra de navegación inferior y un NavHost
+ * con transiciones animadas entre destinos:
+ *
+ * - Navegación entre pestañas principales: fade cruzado suave (fadeIn + fadeOut)
+ *   para transmitir cambio de contexto sin brusquedad.
+ * - Navegación hacia pantallas secundarias (formulario de ausencia): deslizamiento
+ *   hacia arriba en la entrada y hacia abajo en la salida, siguiendo las
+ *   directrices de Material Design 3 para flujos de creación/edición.
  */
 @Composable
 fun PantallaPrincipal(
@@ -33,8 +45,6 @@ fun PantallaPrincipal(
 ) {
     val controladorNavegacionInterno = rememberNavController()
 
-    // PUNTO ESTRATÉGICO PARA LA ÉPICA 6:
-    // Aquí es donde en el futuro leeremos el rol del usuario.
     val pestañasBase = listOf(
         RutasDestino.Inicio,
         RutasDestino.Turnos,
@@ -54,7 +64,20 @@ fun PantallaPrincipal(
         NavHost(
             navController = controladorNavegacionInterno,
             startDestination = RutasDestino.Inicio.ruta,
-            modifier = Modifier.padding(paddingInterior)
+            modifier = Modifier.padding(paddingInterior),
+            // Transición por defecto para todas las pestañas principales: fade cruzado
+            enterTransition = {
+                fadeIn(animationSpec = tween(DURACION_TRANSICION_MS))
+            },
+            exitTransition = {
+                fadeOut(animationSpec = tween(DURACION_TRANSICION_MS))
+            },
+            popEnterTransition = {
+                fadeIn(animationSpec = tween(DURACION_TRANSICION_MS))
+            },
+            popExitTransition = {
+                fadeOut(animationSpec = tween(DURACION_TRANSICION_MS))
+            }
         ) {
 
             composable(RutasDestino.Inicio.ruta) {
@@ -131,7 +154,28 @@ fun PantallaPrincipal(
                         nullable = true
                         defaultValue = null
                     }
-                )
+                ),
+                enterTransition = {
+                    slideIntoContainer(
+                        towards = AnimatedContentTransitionScope.SlideDirection.Up,
+                        animationSpec = tween(DURACION_TRANSICION_MS)
+                    )
+                },
+                exitTransition = {
+                    slideOutOfContainer(
+                        towards = AnimatedContentTransitionScope.SlideDirection.Down,
+                        animationSpec = tween(DURACION_TRANSICION_MS)
+                    )
+                },
+                popEnterTransition = {
+                    fadeIn(animationSpec = tween(DURACION_TRANSICION_MS))
+                },
+                popExitTransition = {
+                    slideOutOfContainer(
+                        towards = AnimatedContentTransitionScope.SlideDirection.Down,
+                        animationSpec = tween(DURACION_TRANSICION_MS)
+                    )
+                }
             ) { entrada ->
                 val args = entrada.arguments
                 val id = args?.getLong(RutasDestino.SolicitarAusencia.ARG_ID) ?: -1L

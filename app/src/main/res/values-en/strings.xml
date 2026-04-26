@@ -162,4 +162,15 @@
     <string name="historial_fichajes_cd_volver">Back</string>
     <string name="perfil_btn_ver_mis_fichajes">View my records</string>
     <string name="dashboard_btn_ver_historial">View history</string>
+    <!-- Dashboard — dedicated error screen -->
+    <string name="dashboard_error_titulo">Could not connect</string>
+    <string name="dashboard_error_descripcion">We could not retrieve your clock-in status. Check your connection and try again.</string>
+    <string name="dashboard_error_btn_reintentar">Retry</string>
+
+    <!-- My Time Off — polling -->
+    <string name="mis_ausencias_actualizando">Updating…</string>
+
+    <!-- Location permission permanently denied -->
+    <string name="error_permiso_ubicacion_permanente">Location permission permanently denied. Enable it in Settings to clock in.</string>
+    <string name="error_permiso_ubicacion_btn_ajustes">Open Settings</string>
 </resources>
