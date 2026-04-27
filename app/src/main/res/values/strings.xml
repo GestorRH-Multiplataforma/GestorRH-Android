@@ -164,7 +164,8 @@
     <string name="historial_fichajes_en_curso">En curso</string>
     <string name="historial_fichajes_cd_volver">Volver</string>
     <string name="perfil_btn_ver_mis_fichajes">Ver mis fichajes</string>
-    <string name="dashboard_btn_ver_historial">Ver historial</string>
+    <string name="dashboard_ultimos_fichajes_titulo">Últimos fichajes</string>
+    <string name="dashboard_ver_todos">Ver todos</string>
     <!-- Dashboard — pantalla de error dedicada -->
     <string name="dashboard_error_titulo">No se pudo conectar</string>
     <string name="dashboard_error_descripcion">No hemos podido obtener tu estado de fichaje. Comprueba tu conexión e inténtalo de nuevo.</string>

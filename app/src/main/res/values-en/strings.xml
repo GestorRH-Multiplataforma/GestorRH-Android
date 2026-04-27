@@ -161,7 +161,8 @@
     <string name="historial_fichajes_en_curso">In progress</string>
     <string name="historial_fichajes_cd_volver">Back</string>
     <string name="perfil_btn_ver_mis_fichajes">View my records</string>
-    <string name="dashboard_btn_ver_historial">View history</string>
+    <string name="dashboard_ultimos_fichajes_titulo">Recent clock-ins</string>
+    <string name="dashboard_ver_todos">View all</string>
     <!-- Dashboard — dedicated error screen -->
     <string name="dashboard_error_titulo">Could not connect</string>
     <string name="dashboard_error_descripcion">We could not retrieve your clock-in status. Check your connection and try again.</string>
