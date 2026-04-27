@@ -259,7 +259,7 @@ fun PantallaSolicitudAusencia(
                 modifier = Modifier.fillMaxWidth(),
                 enabled = !estadoUi.enviando
             ) {
-                Text(stringResource(R.string.ausencia_btn_cancelar))
+                Text(stringResource(R.string.ausencia_btn_volver))
             }
         }
     }

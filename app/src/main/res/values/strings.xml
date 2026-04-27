@@ -116,7 +116,7 @@
     <string name="ausencia_error_archivo_grande">El archivo supera el tamaño máximo permitido (10 MB).</string>
     <string name="ausencia_error_sin_visor">No hay ninguna aplicación disponible para abrir este tipo de archivo.</string>
     <string name="ausencia_btn_enviar">Enviar solicitud</string>
-    <string name="ausencia_btn_cancelar">Cancelar</string>
+    <string name="ausencia_btn_volver">Volver</string>
     <string name="ausencia_dialog_aceptar">Aceptar</string>
     <string name="ausencia_dialog_cancelar">Cancelar</string>
     <string name="ausencia_envio_exitoso">Solicitud enviada correctamente</string>

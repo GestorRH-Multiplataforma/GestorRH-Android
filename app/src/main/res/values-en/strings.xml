@@ -113,7 +113,7 @@
     <string name="ausencia_error_archivo_grande">File exceeds the maximum allowed size (10 MB).</string>
     <string name="ausencia_error_sin_visor">No app available to open this file type.</string>
     <string name="ausencia_btn_enviar">Submit request</string>
-    <string name="ausencia_btn_cancelar">Cancel</string>
+    <string name="ausencia_btn_volver">Go back</string>
     <string name="ausencia_dialog_aceptar">OK</string>
     <string name="ausencia_dialog_cancelar">Cancel</string>
     <string name="ausencia_envio_exitoso">Request sent successfully</string>
