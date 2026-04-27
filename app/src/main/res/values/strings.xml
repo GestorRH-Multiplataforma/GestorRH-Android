@@ -116,7 +116,11 @@
     <string name="ausencia_error_archivo_grande">El archivo supera el tamaño máximo permitido (10 MB).</string>
     <string name="ausencia_error_sin_visor">No hay ninguna aplicación disponible para abrir este tipo de archivo.</string>
     <string name="ausencia_btn_enviar">Enviar solicitud</string>
-    <string name="ausencia_btn_cancelar">Cancelar</string>
+    <string name="ausencia_btn_volver">Volver</string>
+    <string name="ausencia_dialogo_salir_titulo">¿Salir sin guardar?</string>
+    <string name="ausencia_dialogo_salir_mensaje">Los datos del formulario se perderán. ¿Estás seguro de que quieres salir?</string>
+    <string name="ausencia_dialogo_salir_confirmar">Salir</string>
+    <string name="ausencia_dialogo_salir_cancelar">Continuar editando</string>
     <string name="ausencia_dialog_aceptar">Aceptar</string>
     <string name="ausencia_dialog_cancelar">Cancelar</string>
     <string name="ausencia_envio_exitoso">Solicitud enviada correctamente</string>
