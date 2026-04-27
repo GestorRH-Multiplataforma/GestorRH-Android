@@ -10,11 +10,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.EventBusy
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -34,9 +34,14 @@ import com.gestorrh.android.R
 import com.gestorrh.android.core.location.GestorLocalizacion
 import com.gestorrh.android.core.ui.MensajeUi
 import com.gestorrh.android.data.network.fichaje.ModalidadTurno
+import com.gestorrh.android.ui.theme.SemanticSuccess
+import com.gestorrh.android.ui.theme.SemanticWarning
 import kotlinx.coroutines.launch
+import androidx.compose.ui.graphics.Color
 import java.time.LocalDate
+import java.time.LocalTime
 import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
 import java.util.Locale
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -74,6 +79,8 @@ fun PantallaDashboard(
             if (evento == Lifecycle.Event.ON_RESUME) {
                 viewModel.sincronizarEstado()
                 viewModel.cargarFichajesPendientes()
+                viewModel.cargarProximoTurno()
+                viewModel.cargarProximaAusencia()
             }
         }
         propietarioCicloVida.lifecycle.addObserver(observador)
@@ -221,17 +228,13 @@ fun PantallaDashboard(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        TarjetaInformativa(
+                        TarjetaProximoTurno(
                             modifier = Modifier.weight(1f),
-                            titulo = stringResource(id = R.string.dashboard_turno_titulo),
-                            valor = if (estadoUi.tieneTurnoHoy) estadoUi.modalidadHoy?.name ?: stringResource(id = R.string.dashboard_sin_asignar) else stringResource(id = R.string.dashboard_libre),
-                            icono = Icons.Filled.CalendarToday
+                            proximoTurno = estadoUi.proximoTurno
                         )
-                        TarjetaInformativa(
+                        TarjetaProximaAusencia(
                             modifier = Modifier.weight(1f),
-                            titulo = stringResource(id = R.string.dashboard_ausencia_titulo),
-                            valor = stringResource(id = R.string.dashboard_cero_pendientes),
-                            icono = Icons.Filled.EventBusy
+                            proximaAusencia = estadoUi.proximaAusencia
                         )
                     }
                 }
@@ -300,7 +303,10 @@ private fun TarjetaInformativa(
     modifier: Modifier = Modifier,
     titulo: String,
     valor: String,
-    icono: ImageVector
+    icono: ImageVector,
+    subtitulo: String? = null,
+    detalle: String? = null,
+    colorDetalle: Color? = null
 ) {
     Card(
         modifier = modifier,
@@ -327,7 +333,140 @@ private fun TarjetaInformativa(
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             )
+            if (!subtitulo.isNullOrBlank()) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = subtitulo,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            if (!detalle.isNullOrBlank()) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = detalle,
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = colorDetalle ?: MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
+    }
+}
+
+@Composable
+private fun TarjetaProximoTurno(
+    modifier: Modifier = Modifier,
+    proximoTurno: ResumenProximoTurno?
+) {
+    val titulo = stringResource(id = R.string.dashboard_turno_titulo)
+    if (proximoTurno == null) {
+        TarjetaInformativa(
+            modifier = modifier,
+            titulo = titulo,
+            valor = stringResource(id = R.string.dashboard_sin_turno),
+            icono = Icons.Filled.Schedule
+        )
+        return
+    }
+    TarjetaInformativa(
+        modifier = modifier,
+        titulo = titulo,
+        valor = proximoTurno.nombreTurno,
+        subtitulo = formatearFechaYHorarioTurno(
+            fecha = proximoTurno.fecha,
+            horaInicio = proximoTurno.horaInicio,
+            horaFin = proximoTurno.horaFin
+        ),
+        icono = Icons.Filled.Schedule
+    )
+}
+
+@Composable
+private fun TarjetaProximaAusencia(
+    modifier: Modifier = Modifier,
+    proximaAusencia: ResumenProximaAusencia?
+) {
+    val titulo = stringResource(id = R.string.dashboard_ausencia_titulo)
+    if (proximaAusencia == null) {
+        TarjetaInformativa(
+            modifier = modifier,
+            titulo = titulo,
+            valor = stringResource(id = R.string.dashboard_sin_ausencias),
+            icono = Icons.Filled.EventBusy
+        )
+        return
+    }
+    val (etiquetaEstado, colorEstado) = when (proximaAusencia.estado) {
+        "SOLICITADA" -> stringResource(id = R.string.dashboard_estado_ausencia_pendiente) to SemanticWarning
+        "APROBADA" -> stringResource(id = R.string.dashboard_estado_ausencia_aprobada) to SemanticSuccess
+        else -> proximaAusencia.estado to MaterialTheme.colorScheme.onSurfaceVariant
+    }
+    TarjetaInformativa(
+        modifier = modifier,
+        titulo = titulo,
+        valor = etiquetaTipoAusenciaDashboard(proximaAusencia.tipo),
+        subtitulo = formatearRangoFechasAusencia(proximaAusencia.fechaInicio, proximaAusencia.fechaFin),
+        detalle = etiquetaEstado,
+        colorDetalle = colorEstado,
+        icono = Icons.Filled.EventBusy
+    )
+}
+
+@Composable
+private fun etiquetaTipoAusenciaDashboard(tipo: String): String {
+    val resId = when (tipo) {
+        "MEDICA" -> R.string.ausencia_tipo_medica
+        "VACACIONES" -> R.string.ausencia_tipo_vacaciones
+        "MOTIVO_PERSONAL" -> R.string.ausencia_tipo_motivo_personal
+        "OTROS" -> R.string.ausencia_tipo_otros
+        else -> null
+    }
+    return resId?.let { stringResource(it) } ?: tipo
+}
+
+@Composable
+private fun formatearFechaYHorarioTurno(
+    fecha: LocalDate,
+    horaInicio: LocalTime?,
+    horaFin: LocalTime?
+): String {
+    val formatoHora = remember { DateTimeFormatter.ofPattern("HH:mm") }
+    val formatoFecha = remember { DateTimeFormatter.ofPattern("dd/MM") }
+    val locale = Locale.getDefault()
+    val horaInicioStr = horaInicio?.format(formatoHora).orEmpty()
+    val horaFinStr = horaFin?.format(formatoHora).orEmpty()
+    val hoy = LocalDate.now()
+    return when {
+        fecha == hoy -> stringResource(
+            id = R.string.dashboard_turno_horario_hoy,
+            horaInicioStr,
+            horaFinStr
+        )
+        fecha == hoy.plusDays(1) -> stringResource(
+            id = R.string.dashboard_turno_horario_manana,
+            horaInicioStr,
+            horaFinStr
+        )
+        else -> {
+            val diaSemana = fecha.dayOfWeek.getDisplayName(TextStyle.FULL, locale)
+                .replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() }
+            stringResource(
+                id = R.string.dashboard_turno_horario_proximo,
+                diaSemana,
+                fecha.format(formatoFecha),
+                horaInicioStr
+            )
+        }
+    }
+}
+
+private fun formatearRangoFechasAusencia(inicio: LocalDate, fin: LocalDate): String {
+    val formatter = DateTimeFormatter.ofPattern("dd/MM")
+    return if (inicio == fin) {
+        inicio.format(formatter)
+    } else {
+        "${inicio.format(formatter)} - ${fin.format(formatter)}"
     }
 }
 

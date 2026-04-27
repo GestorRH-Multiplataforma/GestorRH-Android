@@ -5,6 +5,7 @@ import android.location.Location
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.google.gson.Gson
 import com.gestorrh.android.R
 import com.gestorrh.android.core.network.ApiClient
 import com.gestorrh.android.core.network.hayConexion
@@ -13,12 +14,18 @@ import com.gestorrh.android.core.ui.MensajeUi
 import com.gestorrh.android.data.local.GestorRhDatabase
 import com.gestorrh.android.data.local.dao.FichajePendienteDao
 import com.gestorrh.android.data.local.entity.FichajePendienteEntity
+import com.gestorrh.android.data.network.asignacion.AsignacionApiService
+import com.gestorrh.android.data.network.ausencia.AusenciaApiService
 import com.gestorrh.android.data.network.fichaje.FichajeApiService
 import com.gestorrh.android.data.network.fichaje.ModalidadTurno
 import com.gestorrh.android.data.network.fichaje.PeticionFichajeEntradaDTO
 import com.gestorrh.android.data.network.fichaje.PeticionFichajeSalidaDTO
 import com.gestorrh.android.data.repository.FichajeRepository
+import com.gestorrh.android.data.repository.asignacion.AsignacionRepositoryImpl
+import com.gestorrh.android.data.repository.ausencia.AusenciaRepositoryImpl
 import com.gestorrh.android.data.sync.FichajeSyncManager
+import com.gestorrh.android.domain.repository.IAsignacionRepository
+import com.gestorrh.android.domain.repository.IAusenciaRepository
 import com.gestorrh.android.domain.repository.IFichajeRepository
 import com.gestorrh.android.domain.usecase.fichaje.GuardarFichajePendienteUseCase
 import kotlinx.coroutines.Job
@@ -26,9 +33,13 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.format.DateTimeParseException
 import java.time.temporal.ChronoUnit
 
 data class EstadoUiDashboard(
@@ -44,7 +55,33 @@ data class EstadoUiDashboard(
     /** Nombre completo del empleado autenticado, leído desde [SessionManager] sin llamadas de red. */
     val nombreEmpleado: String = "",
     /** Número de fichajes en la cola offline a la espera de ser sincronizados por `SyncFichajeWorker`. */
-    val fichajesPendientesSincronizar: Int = 0
+    val fichajesPendientesSincronizar: Int = 0,
+    /** Resumen del próximo turno asignado (hoy o futuro), o `null` si no hay ninguno. */
+    val proximoTurno: ResumenProximoTurno? = null,
+    /** Resumen de la próxima ausencia solicitada o aprobada, o `null` si no hay ninguna. */
+    val proximaAusencia: ResumenProximaAusencia? = null
+)
+
+/**
+ * Datos crudos del próximo turno expuestos al UI para que pueda formatear
+ * la fecha y el horario con los recursos localizados (`stringResource`).
+ */
+data class ResumenProximoTurno(
+    val nombreTurno: String,
+    val fecha: LocalDate,
+    val horaInicio: LocalTime?,
+    val horaFin: LocalTime?
+)
+
+/**
+ * Datos crudos de la próxima ausencia (estado `SOLICITADA` o `APROBADA`)
+ * para que el UI traduzca tipo y estado a recursos.
+ */
+data class ResumenProximaAusencia(
+    val tipo: String,
+    val fechaInicio: LocalDate,
+    val fechaFin: LocalDate,
+    val estado: String
 )
 
 enum class EstadoFichaje {
@@ -56,6 +93,8 @@ class DashboardViewModel(
     private val sessionManager: SessionManager,
     private val fichajePendienteDao: FichajePendienteDao,
     private val guardarFichajePendienteUseCase: GuardarFichajePendienteUseCase,
+    private val asignacionRepository: IAsignacionRepository,
+    private val ausenciaRepository: IAusenciaRepository,
     private val contextoAplicacion: Context
 ) : ViewModel() {
 
@@ -71,6 +110,78 @@ class DashboardViewModel(
 
         sincronizarEstado()
         cargarFichajesPendientes()
+        cargarProximoTurno()
+        cargarProximaAusencia()
+    }
+
+    /**
+     * Recupera la asignación más cercana en el futuro (incluido hoy) usando el flujo
+     * reactivo de la caché Room — la sincronización contra el backend se delega al
+     * `Repository`, que actualizará el flujo cuando termine. Si no hay asignaciones
+     * futuras o falla la lectura, el estado expuesto queda en `null`.
+     */
+    fun cargarProximoTurno() {
+        viewModelScope.launch {
+            asignacionRepository.sincronizar()
+            val asignaciones = asignacionRepository.observarAsignaciones().firstOrNull()
+                ?: return@launch
+            val hoy = LocalDate.now()
+            val proxima = asignaciones
+                .mapNotNull { entidad ->
+                    val fecha = parsearFecha(entidad.fecha) ?: return@mapNotNull null
+                    if (fecha < hoy) return@mapNotNull null
+                    ResumenProximoTurno(
+                        nombreTurno = entidad.descripcionTurno,
+                        fecha = fecha,
+                        horaInicio = parsearHora(entidad.horaInicio),
+                        horaFin = parsearHora(entidad.horaFin)
+                    )
+                }
+                .minByOrNull { it.fecha }
+            _estadoUi.update { it.copy(proximoTurno = proxima) }
+        }
+    }
+
+    /**
+     * Recupera la ausencia futura más cercana en estado `SOLICITADA` o `APROBADA`.
+     * Las ausencias rechazadas o ya finalizadas se ignoran para que la tarjeta solo
+     * informe de algo accionable. Los errores se silencian: la tarjeta cae a su
+     * estado vacío en lugar de generar ruido en el dashboard.
+     */
+    fun cargarProximaAusencia() {
+        viewModelScope.launch {
+            val resultado = ausenciaRepository.obtenerMisAusencias(estado = null)
+            val ausencias = resultado.getOrNull() ?: return@launch
+            val hoy = LocalDate.now()
+            val proxima = ausencias
+                .filter { it.estado == ESTADO_AUSENCIA_SOLICITADA || it.estado == ESTADO_AUSENCIA_APROBADA }
+                .filter { !it.fechaInicio.isBefore(hoy) }
+                .minByOrNull { it.fechaInicio }
+                ?.let { dto ->
+                    ResumenProximaAusencia(
+                        tipo = dto.tipo,
+                        fechaInicio = dto.fechaInicio,
+                        fechaFin = dto.fechaFin,
+                        estado = dto.estado
+                    )
+                }
+            _estadoUi.update { it.copy(proximaAusencia = proxima) }
+        }
+    }
+
+    private fun parsearFecha(valor: String): LocalDate? = try {
+        LocalDate.parse(valor)
+    } catch (e: DateTimeParseException) {
+        null
+    }
+
+    private fun parsearHora(valor: String?): LocalTime? {
+        if (valor.isNullOrBlank()) return null
+        return try {
+            LocalTime.parse(valor)
+        } catch (e: DateTimeParseException) {
+            null
+        }
     }
 
     /**
@@ -295,6 +406,11 @@ class DashboardViewModel(
         val segundos = segundosTotales % 60
         return String.format("%02d:%02d:%02d", horas, minutos, segundos)
     }
+
+    companion object {
+        private const val ESTADO_AUSENCIA_SOLICITADA = "SOLICITADA"
+        private const val ESTADO_AUSENCIA_APROBADA = "APROBADA"
+    }
 }
 
 // ── FACTORY MANUAL ────────────────────────────────────────────────────────────
@@ -310,12 +426,21 @@ class DashboardViewModelFactory(private val contexto: Context) : ViewModelProvid
             val fichajePendienteDao = GestorRhDatabase.getInstance(contextoAplicacion).fichajePendienteDao()
             val guardarFichajePendienteUseCase = GuardarFichajePendienteUseCase(fichajePendienteDao)
 
+            val asignacionApi = retrofit.create(AsignacionApiService::class.java)
+            val asignacionDao = GestorRhDatabase.getInstance(contextoAplicacion).asignacionDao()
+            val asignacionRepository = AsignacionRepositoryImpl(asignacionApi, asignacionDao)
+
+            val ausenciaApi = retrofit.create(AusenciaApiService::class.java)
+            val ausenciaRepository = AusenciaRepositoryImpl(ausenciaApi, Gson())
+
             @Suppress("UNCHECKED_CAST")
             return DashboardViewModel(
                 fichajeRepository = fichajeRepository,
                 sessionManager = sessionManager,
                 fichajePendienteDao = fichajePendienteDao,
                 guardarFichajePendienteUseCase = guardarFichajePendienteUseCase,
+                asignacionRepository = asignacionRepository,
+                ausenciaRepository = ausenciaRepository,
                 contextoAplicacion = contextoAplicacion
             ) as T
         }
