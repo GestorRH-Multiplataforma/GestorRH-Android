@@ -15,6 +15,17 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
 
+/**
+ * Implementación de [IAusenciaRepository] que delega en [AusenciaApiService].
+ *
+ * Construye las peticiones `multipart/form-data` para crear y actualizar ausencias
+ * (parte JSON `datos` con [PeticionAusenciaDTO] y parte binaria opcional `archivo`),
+ * y centraliza la conversión de respuestas HTTP en [Result] extrayendo el campo
+ * `message` del cuerpo de error de la API Spring Boot cuando esté disponible.
+ *
+ * @param apiService Servicio Retrofit para los endpoints de ausencias.
+ * @param gson Serializador usado para construir la parte `datos` del multipart.
+ */
 class AusenciaRepositoryImpl(
     private val apiService: AusenciaApiService,
     private val gson: Gson
