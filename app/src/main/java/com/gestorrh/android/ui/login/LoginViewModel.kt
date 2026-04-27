@@ -76,11 +76,15 @@ class LoginViewModel(
                     sessionManager.saveSession(respuesta.token, respuesta.nombre)
                     _estadoUi.update { it.copy(estaCargando = false, loginExitoso = true) }
                 }
-                .onFailure {
+                .onFailure { error ->
                     _estadoUi.update {
                         it.copy(
                             estaCargando = false,
-                            mensajeError = MensajeUi.Recurso(R.string.login_error_credentials),
+                            mensajeError = if (error is java.io.IOException) {
+                                MensajeUi.Recurso(R.string.error_conexion)
+                            } else {
+                                MensajeUi.Recurso(R.string.login_error_credentials)
+                            },
                             botonLoginHabilitado = true
                         )
                     }
