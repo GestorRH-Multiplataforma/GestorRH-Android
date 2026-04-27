@@ -33,7 +33,7 @@ jobs:
       - name: Generar secrets.properties para CI
         run: |
           echo "DEV_BASE_URL=\"http://localhost:8080/api/\"" > secrets.properties
-          echo "PROD_BASE_URL=\"https://api.gestorrh.com/api/\"" >> secrets.properties
+          echo "PROD_BASE_URL=\"${{ secrets.PROD_BASE_URL }}\"" >> secrets.properties
 
       - name: Compilar APK (assembleDebug)
         env:
