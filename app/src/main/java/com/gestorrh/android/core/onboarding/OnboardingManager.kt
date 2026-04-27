@@ -2,6 +2,7 @@ package com.gestorrh.android.core.onboarding
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.core.content.edit
 
 /**
  * Gestiona la persistencia del estado del onboarding.
@@ -32,9 +33,7 @@ class OnboardingManager(contexto: Context) {
      * "Empezar" o "Saltar" en la pantalla de onboarding.
      */
     fun marcarOnboardingCompletado() {
-        preferencias.edit()
-            .putBoolean(CLAVE_ONBOARDING_COMPLETADO, true)
-            .apply()
+        preferencias.edit { putBoolean(CLAVE_ONBOARDING_COMPLETADO, true) }
     }
 
     companion object {

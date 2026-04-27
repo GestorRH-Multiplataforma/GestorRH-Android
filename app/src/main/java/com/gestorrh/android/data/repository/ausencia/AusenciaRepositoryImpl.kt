@@ -4,7 +4,6 @@ import com.gestorrh.android.data.network.ausencia.AusenciaApiService
 import com.gestorrh.android.data.network.ausencia.PeticionAusenciaDTO
 import com.gestorrh.android.data.network.ausencia.RespuestaAusenciaDTO
 import com.gestorrh.android.domain.repository.IAusenciaRepository
-import android.util.Log
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -16,6 +15,17 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
 
+/**
+ * Implementación de [IAusenciaRepository] que delega en [AusenciaApiService].
+ *
+ * Construye las peticiones `multipart/form-data` para crear y actualizar ausencias
+ * (parte JSON `datos` con [PeticionAusenciaDTO] y parte binaria opcional `archivo`),
+ * y centraliza la conversión de respuestas HTTP en [Result] extrayendo el campo
+ * `message` del cuerpo de error de la API Spring Boot cuando esté disponible.
+ *
+ * @param apiService Servicio Retrofit para los endpoints de ausencias.
+ * @param gson Serializador usado para construir la parte `datos` del multipart.
+ */
 class AusenciaRepositoryImpl(
     private val apiService: AusenciaApiService,
     private val gson: Gson
@@ -171,18 +181,8 @@ class AusenciaRepositoryImpl(
         archivoBytes: ByteArray?,
         nombreArchivo: String?
     ): MultipartBody.Part? {
-        if (archivoBytes == null) {
-            Log.d(
-                "DiagAdjunto",
-                "construirPartArchivo: bytes null -> no se envia parte archivo"
-            )
-            return null
-        }
+        if (archivoBytes == null) return null
         val tipoMime = tipoMimeDesdeNombre(nombreArchivo)
-        Log.d(
-            "DiagAdjunto",
-            "construirPartArchivo: incluyendo parte archivo size=${archivoBytes.size} mime=$tipoMime"
-        )
         return MultipartBody.Part.createFormData(
             "archivo",
             nombreArchivo ?: "justificante",

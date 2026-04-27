@@ -2,7 +2,6 @@ package com.gestorrh.android.ui.ausencia
 
 import android.content.Context
 import android.net.Uri
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -162,10 +161,6 @@ class SolicitudAusenciaViewModel(
         val nombre = nombreOriginal?.takeIf { it.isNotBlank() } ?: "justificante"
         val esImagen = GestorArchivosJustificante.esImagenPorNombre(nombre)
         val esPdf = nombre.substringAfterLast('.', "").lowercase() == "pdf"
-        Log.d(
-            "DiagAdjunto",
-            "aplicarArchivo: scheme=${uri.scheme} tieneNombre=${nombreOriginal != null} esImagen=$esImagen esPdf=$esPdf"
-        )
         if (!esImagen && !esPdf) {
             _estadoUi.update {
                 it.copy(mensajeError = MensajeUi.Recurso(R.string.ausencia_error_tipo_archivo))
@@ -275,11 +270,6 @@ class SolicitudAusenciaViewModel(
         viewModelScope.launch {
             _estadoUi.update { it.copy(enviando = true, mensajeError = null) }
 
-            Log.d(
-                "DiagAdjunto",
-                "enviar:estado archivoUri=${estadoActual.archivoUri != null} nombre=${estadoActual.nombreArchivo != null} esImagen=${estadoActual.esImagen} modoEdicion=${estadoActual.modoEdicion}"
-            )
-
             val archivoBytes = estadoActual.archivoUri?.let { uri ->
                 GestorArchivosJustificante.leerBytesParaSubida(
                     contextoAplicacion, uri, estadoActual.esImagen
@@ -289,13 +279,6 @@ class SolicitudAusenciaViewModel(
                 nombreNormalizadoParaSubida(estadoActual.nombreArchivo, estadoActual.esImagen)
             }
 
-            Log.d(
-                "DiagAdjunto",
-                "enviar:preUseCase bytesNull=${archivoBytes == null} size=${archivoBytes?.size ?: -1} nombreNull=${nombreParaSubir == null}"
-            )
-
-            // En edición sin archivo nuevo propagamos el flag para que el servidor sepa
-            // si debe borrar el justificante existente (true) o mantenerlo (false).
             val flagEliminar = if (
                 estadoActual.idAusenciaEditar != null &&
                 archivoBytes == null &&

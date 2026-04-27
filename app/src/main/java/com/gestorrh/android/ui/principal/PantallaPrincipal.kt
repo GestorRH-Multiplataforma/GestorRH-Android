@@ -65,7 +65,6 @@ fun PantallaPrincipal(
             navController = controladorNavegacionInterno,
             startDestination = RutasDestino.Inicio.ruta,
             modifier = Modifier.padding(paddingInterior),
-            // Transición por defecto para todas las pestañas principales: fade cruzado
             enterTransition = {
                 fadeIn(animationSpec = tween(DURACION_TRANSICION_MS))
             },

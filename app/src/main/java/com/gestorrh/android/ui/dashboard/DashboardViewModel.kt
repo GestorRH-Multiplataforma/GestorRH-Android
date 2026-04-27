@@ -91,6 +91,23 @@ enum class EstadoFichaje {
     TRABAJANDO, FUERA_TURNO
 }
 
+/**
+ * ViewModel de la pantalla principal del empleado.
+ *
+ * Centraliza el estado del fichaje en curso (cronómetro, modalidad del turno,
+ * último resultado de la API), del próximo turno y de la próxima ausencia.
+ * Coordina las peticiones online con la persistencia local de fichajes
+ * pendientes cuando el dispositivo carece de conexión, garantizando que
+ * el empleado siempre pueda registrar su jornada.
+ *
+ * @property fichajeRepository Acceso a las operaciones de fichaje contra la API.
+ * @property sessionManager Fuente de la identidad del empleado autenticado.
+ * @property fichajePendienteDao DAO Room para fichajes acumulados sin conexión.
+ * @property guardarFichajePendienteUseCase Caso de uso que valida y persiste un fichaje pendiente.
+ * @property asignacionRepository Acceso al cuadrante de turnos del empleado.
+ * @property ausenciaRepository Acceso a la lista de ausencias del empleado.
+ * @property contextoAplicacion Contexto de aplicación necesario para chequear conectividad.
+ */
 class DashboardViewModel(
     private val fichajeRepository: IFichajeRepository,
     private val sessionManager: SessionManager,
@@ -287,8 +304,6 @@ class DashboardViewModel(
             }
 
             if (!contextoAplicacion.hayConexion()) {
-                // Si ya existe una entrada pendiente, impedimos duplicar: el empleado
-                // no puede haber iniciado dos jornadas simultáneas offline.
                 val entradasPendientes = fichajePendienteDao.contarPorTipo(
                     FichajePendienteEntity.TIPO_ENTRADA
                 )
@@ -388,8 +403,6 @@ class DashboardViewModel(
             }
     }
 
-    // ── FUNCIONES AUXILIARES ──────────────────────────────────────────────────
-
     fun errorMostrado() {
         _estadoUi.update { it.copy(mensajeError = null) }
     }
@@ -428,7 +441,7 @@ class DashboardViewModel(
         val horas = segundosTotales / 3600
         val minutos = (segundosTotales % 3600) / 60
         val segundos = segundosTotales % 60
-        return String.format("%02d:%02d:%02d", horas, minutos, segundos)
+        return String.format(java.util.Locale.ROOT, "%02d:%02d:%02d", horas, minutos, segundos)
     }
 
     companion object {
@@ -437,8 +450,10 @@ class DashboardViewModel(
     }
 }
 
-// ── FACTORY MANUAL ────────────────────────────────────────────────────────────
-
+/**
+ * Factory manual para [DashboardViewModel]. Resuelve dependencias a partir
+ * del contexto de aplicación pasado por la pantalla.
+ */
 class DashboardViewModelFactory(private val contexto: Context) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(DashboardViewModel::class.java)) {

@@ -15,6 +15,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -38,13 +39,13 @@ fun PantallaPerfil(
     val estado by viewModel.estadoUi.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
-    val context = LocalContext.current
+    val recursos = LocalResources.current
 
     val mensajeExito = estado.mensajeExito
     LaunchedEffect(mensajeExito) {
         if (mensajeExito != null) {
             val texto = when (mensajeExito) {
-                is MensajeUi.Recurso -> context.getString(mensajeExito.idRecurso)
+                is MensajeUi.Recurso -> recursos.getString(mensajeExito.idRecurso)
                 is MensajeUi.Dinamico -> mensajeExito.texto
             }
             scope.launch { snackbarHostState.showSnackbar(texto) }

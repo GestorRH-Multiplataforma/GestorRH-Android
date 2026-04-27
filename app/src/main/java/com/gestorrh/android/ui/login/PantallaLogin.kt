@@ -75,10 +75,6 @@ fun PantallaLogin(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            // ── Logotipo corporativo ──────────────────────────────────────────
-            // Se usa Image + painterResource en lugar de Icon para que el sistema
-            // NO aplique tinte (tint) sobre el PNG y los colores originales del
-            // logo se muestren fielmente.
             androidx.compose.foundation.layout.Box(
                 modifier = Modifier
                     .size(100.dp)

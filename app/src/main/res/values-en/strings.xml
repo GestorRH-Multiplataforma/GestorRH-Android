@@ -4,12 +4,10 @@
     <string name="login_email_hint">Email address</string>
     <string name="login_password_hint">Password</string>
     <string name="login_button">Sign In</string>
-    <string name="login_error_empty">Fields cannot be empty</string>
     <string name="login_subtitle">Organize your company, connect your team</string>
     <string name="login_forgot_password">Forgot your password?</string>
     <string name="login_forgot_password_dialog_text">For security reasons, automatic password recovery is disabled. Please contact HR or your supervisor to reset your access.</string>
     <string name="login_error_credentials">Invalid credentials</string>
-    <string name="login_error_network">Server connection error</string>
     <string name="login_button_loading">Connecting…</string>
     <string name="nav_inicio">Home</string>
     <string name="nav_turnos">Shifts</string>
@@ -172,7 +170,6 @@
     <string name="dashboard_error_btn_reintentar">Retry</string>
 
     <!-- My Time Off — polling -->
-    <string name="mis_ausencias_actualizando">Updating…</string>
 
     <!-- Location permission permanently denied -->
     <string name="error_permiso_ubicacion_permanente">Location permission permanently denied. Enable it in Settings to clock in.</string>

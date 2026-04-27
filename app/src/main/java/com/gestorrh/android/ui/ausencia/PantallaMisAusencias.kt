@@ -53,6 +53,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -66,7 +67,6 @@ import com.gestorrh.android.core.archivos.GestorArchivosJustificante
 import com.gestorrh.android.core.ui.MensajeUi
 import com.gestorrh.android.data.network.ausencia.RespuestaAusenciaDTO
 import java.time.format.DateTimeFormatter
-import androidx.lifecycle.compose.LocalLifecycleOwner
 
 private val ColorEstadoRechazada = Color(0xFFD32F2F)
 
@@ -85,6 +85,7 @@ fun PantallaMisAusencias(
     val estadoUi by viewModel.estadoUi.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val contextoLocal = LocalContext.current
+    val recursos = LocalResources.current
     val propietarioCicloVida = LocalLifecycleOwner.current
 
     var ausenciaAConfirmarCancelar by remember { mutableStateOf<RespuestaAusenciaDTO?>(null) }
@@ -131,7 +132,7 @@ fun PantallaMisAusencias(
     LaunchedEffect(estadoUi.mensajeError) {
         estadoUi.mensajeError?.let { mensaje ->
             val texto = when (mensaje) {
-                is MensajeUi.Recurso -> contextoLocal.getString(mensaje.idRecurso)
+                is MensajeUi.Recurso -> recursos.getString(mensaje.idRecurso)
                 is MensajeUi.Dinamico -> mensaje.texto
             }
             val resultado = snackbarHostState.showSnackbar(

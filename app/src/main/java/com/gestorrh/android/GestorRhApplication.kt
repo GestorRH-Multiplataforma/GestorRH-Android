@@ -20,10 +20,6 @@ class GestorRhApplication : Application(), Configuration.Provider {
 
     override fun onCreate() {
         super.onCreate()
-        // Punto de extensión para futuras inicializaciones globales:
-        //   - Timber (logging)
-        //   - Firebase (crashlytics, push)
-        //   - LeakCanary (solo debug)
     }
 
     /**

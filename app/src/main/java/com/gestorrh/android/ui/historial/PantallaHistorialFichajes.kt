@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -41,12 +42,12 @@ fun PantallaHistorialFichajes(
 ) {
     val estadoUi by viewModel.estadoUi.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
-    val contextoLocal = LocalContext.current
+    val recursos = LocalResources.current
 
     LaunchedEffect(estadoUi.mensajeError) {
         estadoUi.mensajeError?.let { mensajeUi ->
             val texto = when (mensajeUi) {
-                is MensajeUi.Recurso -> contextoLocal.getString(mensajeUi.idRecurso)
+                is MensajeUi.Recurso -> recursos.getString(mensajeUi.idRecurso)
                 is MensajeUi.Dinamico -> mensajeUi.texto
             }
             snackbarHostState.showSnackbar(texto)

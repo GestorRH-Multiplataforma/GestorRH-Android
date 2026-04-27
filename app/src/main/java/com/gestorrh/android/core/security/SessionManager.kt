@@ -1,6 +1,7 @@
 package com.gestorrh.android.core.security
 
 import android.content.Context
+import androidx.core.content.edit
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 
@@ -30,7 +31,7 @@ class SessionManager(contexto: Context) {
     companion object {
         private const val CLAVE_TOKEN_JWT = "token_jwt"
         private const val CLAVE_NOMBRE_EMPLEADO = "nombre_empleado"
-        // TODO(P2-01): añadir persistencia de rol
+        // TODO(#17): añadir persistencia de rol
     }
 
     /**
@@ -40,10 +41,10 @@ class SessionManager(contexto: Context) {
      * @param nombre Nombre completo del empleado tal como lo devuelve la API.
      */
     fun saveSession(token: String, nombre: String) {
-        preferenciasCifradas.edit()
-            .putString(CLAVE_TOKEN_JWT, token)
-            .putString(CLAVE_NOMBRE_EMPLEADO, nombre)
-            .apply()
+        preferenciasCifradas.edit {
+            putString(CLAVE_TOKEN_JWT, token)
+            putString(CLAVE_NOMBRE_EMPLEADO, nombre)
+        }
     }
 
     /**
@@ -65,9 +66,9 @@ class SessionManager(contexto: Context) {
      * Invocado durante el logout manual o cuando el servidor devuelve 401.
      */
     fun clearSession() {
-        preferenciasCifradas.edit()
-            .remove(CLAVE_TOKEN_JWT)
-            .remove(CLAVE_NOMBRE_EMPLEADO)
-            .apply()
+        preferenciasCifradas.edit {
+            remove(CLAVE_TOKEN_JWT)
+            remove(CLAVE_NOMBRE_EMPLEADO)
+        }
     }
 }

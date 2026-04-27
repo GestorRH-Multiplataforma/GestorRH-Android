@@ -69,6 +69,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -106,6 +107,7 @@ fun PantallaSolicitudAusencia(
     val estadoUi by viewModel.estadoUi.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val contextoLocal = LocalContext.current
+    val recursos = LocalResources.current
     val mensajeExito = stringResource(R.string.ausencia_envio_exitoso)
 
     var mostrarSelectorFuente by remember { mutableStateOf(false) }
@@ -161,7 +163,7 @@ fun PantallaSolicitudAusencia(
     LaunchedEffect(estadoUi.mensajeError) {
         estadoUi.mensajeError?.let { mensaje ->
             val texto = when (mensaje) {
-                is MensajeUi.Recurso -> contextoLocal.getString(mensaje.idRecurso)
+                is MensajeUi.Recurso -> recursos.getString(mensaje.idRecurso)
                 is MensajeUi.Dinamico -> mensaje.texto
             }
             snackbarHostState.showSnackbar(texto, duration = SnackbarDuration.Long)

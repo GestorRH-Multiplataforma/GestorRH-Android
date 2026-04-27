@@ -10,6 +10,15 @@ import com.gestorrh.android.data.local.entity.FichajePendienteEntity
 class GuardarFichajePendienteUseCase(
     private val fichajePendienteDao: FichajePendienteDao
 ) {
+    /**
+     * Encola un nuevo fichaje pendiente con la marca de tiempo actual.
+     *
+     * @param tipo Discriminante del fichaje (ENTRADA o SALIDA) tal como lo espera la API.
+     * @param latitud Coordenada GPS si el turno es presencial; `null` para teletrabajo.
+     * @param longitud Coordenada GPS si el turno es presencial; `null` para teletrabajo.
+     * @return [Result.success] con el `id` autogenerado de la fila Room insertada, o
+     *         [Result.failure] envolviendo la excepción de I/O si la inserción falla.
+     */
     suspend operator fun invoke(
         tipo: String,
         latitud: Double?,

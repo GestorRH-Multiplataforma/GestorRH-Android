@@ -57,6 +57,22 @@ android {
         compose = true
         buildConfig = true
     }
+
+    lint {
+        warningsAsErrors = true
+        abortOnError = true
+        disable += listOf(
+            "GradleDependency",
+            "NewerVersionAvailable",
+            "AndroidGradlePluginVersion",
+            "UseTomlInstead",
+            "IconLauncherShape",
+            "IconLocation",
+            "PluralsCandidate",
+            "Typos",
+            "StaticFieldLeak"
+        )
+    }
 }
 
 dependencies {
