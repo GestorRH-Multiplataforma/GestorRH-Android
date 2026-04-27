@@ -20,6 +20,7 @@ import com.gestorrh.android.data.network.fichaje.FichajeApiService
 import com.gestorrh.android.data.network.fichaje.ModalidadTurno
 import com.gestorrh.android.data.network.fichaje.PeticionFichajeEntradaDTO
 import com.gestorrh.android.data.network.fichaje.PeticionFichajeSalidaDTO
+import com.gestorrh.android.data.network.fichaje.RespuestaFichajeDTO
 import com.gestorrh.android.data.repository.FichajeRepository
 import com.gestorrh.android.data.repository.asignacion.AsignacionRepositoryImpl
 import com.gestorrh.android.data.repository.ausencia.AusenciaRepositoryImpl
@@ -59,7 +60,9 @@ data class EstadoUiDashboard(
     /** Resumen del próximo turno asignado (hoy o futuro), o `null` si no hay ninguno. */
     val proximoTurno: ResumenProximoTurno? = null,
     /** Resumen de la próxima ausencia solicitada o aprobada, o `null` si no hay ninguna. */
-    val proximaAusencia: ResumenProximaAusencia? = null
+    val proximaAusencia: ResumenProximaAusencia? = null,
+    /** Últimos fichajes (máximo 3) de los últimos 7 días, mostrados inline en el dashboard. */
+    val ultimosFichajes: List<RespuestaFichajeDTO> = emptyList()
 )
 
 /**
@@ -112,6 +115,27 @@ class DashboardViewModel(
         cargarFichajesPendientes()
         cargarProximoTurno()
         cargarProximaAusencia()
+        cargarUltimosFichajes()
+    }
+
+    /**
+     * Recupera los últimos fichajes del empleado en los 7 días previos para mostrarlos
+     * inline en el dashboard. Limitado a 3 entradas, ordenados por hora de entrada
+     * descendente. Los errores se silencian: si la petición falla, la sección
+     * simplemente queda vacía y el dashboard sigue siendo usable.
+     */
+    fun cargarUltimosFichajes() {
+        viewModelScope.launch {
+            val hoy = LocalDate.now()
+            val hace7Dias = hoy.minusDays(7)
+            fichajeRepository.obtenerHistorialFichajes(hace7Dias, hoy)
+                .onSuccess { fichajes ->
+                    val ultimos = fichajes
+                        .sortedByDescending { it.horaEntrada }
+                        .take(3)
+                    _estadoUi.update { it.copy(ultimosFichajes = ultimos) }
+                }
+        }
     }
 
     /**

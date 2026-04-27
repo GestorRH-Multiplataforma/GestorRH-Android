@@ -82,7 +82,7 @@ fun PantallaPrincipal(
 
             composable(RutasDestino.Inicio.ruta) {
                 PantallaDashboard(
-                    alVerHistorial = {
+                    alVerHistorialCompleto = {
                         controladorNavegacionInterno.navigate(
                             RutasDestino.HistorialFichajes.ruta
                         ) {

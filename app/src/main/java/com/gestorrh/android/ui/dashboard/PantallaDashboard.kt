@@ -10,8 +10,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.EventBusy
-import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Schedule
@@ -34,6 +34,7 @@ import com.gestorrh.android.R
 import com.gestorrh.android.core.location.GestorLocalizacion
 import com.gestorrh.android.core.ui.MensajeUi
 import com.gestorrh.android.data.network.fichaje.ModalidadTurno
+import com.gestorrh.android.data.network.fichaje.RespuestaFichajeDTO
 import com.gestorrh.android.ui.theme.SemanticSuccess
 import com.gestorrh.android.ui.theme.SemanticWarning
 import kotlinx.coroutines.launch
@@ -54,7 +55,7 @@ import androidx.core.app.ActivityCompat
 
 @Composable
 fun PantallaDashboard(
-    alVerHistorial: () -> Unit,
+    alVerHistorialCompleto: () -> Unit,
     contexto: android.content.Context = LocalContext.current,
     viewModel: DashboardViewModel = viewModel(
         factory = DashboardViewModelFactory(contexto.applicationContext)
@@ -81,6 +82,7 @@ fun PantallaDashboard(
                 viewModel.cargarFichajesPendientes()
                 viewModel.cargarProximoTurno()
                 viewModel.cargarProximaAusencia()
+                viewModel.cargarUltimosFichajes()
             }
         }
         propietarioCicloVida.lifecycle.addObserver(observador)
@@ -206,22 +208,6 @@ fun PantallaDashboard(
                         alClickFichar = intentarFichar
                     )
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            OutlinedButton(
-                onClick = alVerHistorial,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.History,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(stringResource(id = R.string.dashboard_btn_ver_historial))
-            }
-
-            Spacer(modifier = Modifier.height(32.dp))
                     Spacer(modifier = Modifier.height(32.dp))
 
                     Row(
@@ -241,6 +227,14 @@ fun PantallaDashboard(
                                 .weight(1f)
                                 .fillMaxHeight(),
                             proximaAusencia = estadoUi.proximaAusencia
+                        )
+                    }
+
+                    if (estadoUi.ultimosFichajes.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(24.dp))
+                        SeccionUltimosFichajes(
+                            ultimosFichajes = estadoUi.ultimosFichajes,
+                            alVerTodos = alVerHistorialCompleto
                         )
                     }
                 }
@@ -579,6 +573,115 @@ private fun WidgetFichaje(
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.error
                 )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SeccionUltimosFichajes(
+    ultimosFichajes: List<RespuestaFichajeDTO>,
+    alVerTodos: () -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = stringResource(id = R.string.dashboard_ultimos_fichajes_titulo),
+                style = MaterialTheme.typography.titleMedium
+            )
+            TextButton(onClick = alVerTodos) {
+                Text(stringResource(id = R.string.dashboard_ver_todos))
+            }
+        }
+        ultimosFichajes.forEach { fichaje ->
+            CardFichajeResumido(fichaje = fichaje)
+        }
+    }
+}
+
+@Composable
+private fun CardFichajeResumido(fichaje: RespuestaFichajeDTO) {
+    val formatoFecha = remember { DateTimeFormatter.ofPattern("dd/MM/yyyy") }
+    val formatoHora = remember { DateTimeFormatter.ofPattern("HH:mm") }
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = fichaje.fecha.format(formatoFecha),
+                    style = MaterialTheme.typography.labelMedium
+                )
+                fichaje.descripcionTurno?.let {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = stringResource(id = R.string.historial_fichajes_hora_entrada),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = fichaje.horaEntrada.format(formatoHora),
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = stringResource(id = R.string.historial_fichajes_hora_salida),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    if (fichaje.horaSalida != null) {
+                        Text(
+                            text = fichaje.horaSalida.format(formatoHora),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                    } else {
+                        Text(
+                            text = stringResource(id = R.string.historial_fichajes_en_curso),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = SemanticSuccess
+                        )
+                    }
+                }
             }
         }
     }
