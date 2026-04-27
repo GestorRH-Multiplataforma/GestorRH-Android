@@ -16,6 +16,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -412,14 +413,17 @@ private fun CeldaDia(
 ) {
     val colorFondo = when {
         esHoy -> MaterialTheme.colorScheme.primaryContainer
+        tieneTurno -> MaterialTheme.colorScheme.surfaceVariant
         else -> Color.Transparent
     }
+    val opacidad = if (tieneTurno || esHoy) 1f else 0.4f
 
     Column(
         modifier = modifier
             .aspectRatio(1f)
             .clip(MaterialTheme.shapes.small)
             .background(colorFondo)
+            .alpha(opacidad)
             .clickable(enabled = tieneTurno, onClick = alClick),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -431,7 +435,7 @@ private fun CeldaDia(
                 esHoy -> MaterialTheme.colorScheme.onPrimaryContainer
                 else -> MaterialTheme.colorScheme.onSurface
             },
-            fontWeight = if (esHoy) FontWeight.Bold else FontWeight.Normal
+            fontWeight = if (esHoy || tieneTurno) FontWeight.Bold else FontWeight.Normal
         )
         if (tieneTurno) {
             Spacer(modifier = Modifier.height(2.dp))
