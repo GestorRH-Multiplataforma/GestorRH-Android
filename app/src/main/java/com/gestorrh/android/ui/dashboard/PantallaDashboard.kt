@@ -35,6 +35,7 @@ import com.gestorrh.android.core.location.GestorLocalizacion
 import com.gestorrh.android.core.ui.MensajeUi
 import com.gestorrh.android.data.network.fichaje.ModalidadTurno
 import com.gestorrh.android.data.network.fichaje.RespuestaFichajeDTO
+import com.gestorrh.android.ui.ausencia.AusenciaUtils
 import com.gestorrh.android.ui.theme.SemanticSuccess
 import com.gestorrh.android.ui.theme.SemanticWarning
 import kotlinx.coroutines.launch
@@ -397,10 +398,13 @@ private fun TarjetaProximaAusencia(
         )
         return
     }
-    val (etiquetaEstado, colorEstado) = when (proximaAusencia.estado) {
-        "SOLICITADA" -> stringResource(id = R.string.dashboard_estado_ausencia_pendiente) to SemanticWarning
-        "APROBADA" -> stringResource(id = R.string.dashboard_estado_ausencia_aprobada) to SemanticSuccess
-        else -> proximaAusencia.estado to MaterialTheme.colorScheme.onSurfaceVariant
+    val etiquetaEstado = stringResource(
+        id = AusenciaUtils.obtenerStringEstado(proximaAusencia.estado)
+    )
+    val colorEstado = when (proximaAusencia.estado.uppercase()) {
+        "SOLICITADA" -> SemanticWarning
+        "APROBADA" -> SemanticSuccess
+        else -> MaterialTheme.colorScheme.onSurfaceVariant
     }
     TarjetaInformativa(
         modifier = modifier,
