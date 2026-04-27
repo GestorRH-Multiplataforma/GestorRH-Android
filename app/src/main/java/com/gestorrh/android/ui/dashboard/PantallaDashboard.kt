@@ -225,15 +225,21 @@ fun PantallaDashboard(
                     Spacer(modifier = Modifier.height(32.dp))
 
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(IntrinsicSize.Min),
                         horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         TarjetaProximoTurno(
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight(),
                             proximoTurno = estadoUi.proximoTurno
                         )
                         TarjetaProximaAusencia(
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight(),
                             proximaAusencia = estadoUi.proximaAusencia
                         )
                     }
