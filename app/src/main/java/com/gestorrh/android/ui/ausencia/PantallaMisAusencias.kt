@@ -68,8 +68,6 @@ import com.gestorrh.android.data.network.ausencia.RespuestaAusenciaDTO
 import java.time.format.DateTimeFormatter
 import androidx.lifecycle.compose.LocalLifecycleOwner
 
-private val ColorEstadoSolicitada = Color(0xFFF57C00)
-private val ColorEstadoAprobada = Color(0xFF2E7D32)
 private val ColorEstadoRechazada = Color(0xFFD32F2F)
 
 private val FormatoFecha: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
@@ -406,35 +404,21 @@ private fun TarjetaAusencia(
 
 @Composable
 private fun ChipEstado(estado: String) {
-    val color = when (estado) {
-        "SOLICITADA" -> ColorEstadoSolicitada
-        "APROBADA" -> ColorEstadoAprobada
-        "RECHAZADA" -> ColorEstadoRechazada
-        else -> MaterialTheme.colorScheme.outline
-    }
     Box(
         modifier = Modifier
-            .background(color = color, shape = RoundedCornerShape(50))
+            .background(
+                color = AusenciaUtils.obtenerColorEstado(estado),
+                shape = RoundedCornerShape(50)
+            )
             .padding(horizontal = 12.dp, vertical = 4.dp)
     ) {
         Text(
-            text = etiquetaEstado(estado),
+            text = stringResource(id = AusenciaUtils.obtenerStringEstado(estado)),
             style = MaterialTheme.typography.labelMedium,
             color = Color.White,
             fontWeight = FontWeight.Medium
         )
     }
-}
-
-@Composable
-private fun etiquetaEstado(estado: String): String {
-    val resId = when (estado) {
-        "SOLICITADA" -> R.string.mis_ausencias_estado_solicitada
-        "APROBADA" -> R.string.mis_ausencias_estado_aprobada
-        "RECHAZADA" -> R.string.mis_ausencias_estado_rechazada
-        else -> null
-    }
-    return resId?.let { stringResource(it) } ?: estado
 }
 
 @Composable

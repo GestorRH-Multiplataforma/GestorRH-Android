@@ -32,8 +32,6 @@
     <string name="dashboard_turno_horario_manana">Mañana %1$s-%2$s</string>
     <!-- Formato del horario cuando es otro día: %1$s = día semana, %2$s = dd/MM, %3$s = hora inicio -->
     <string name="dashboard_turno_horario_proximo">%1$s %2$s - %3$s</string>
-    <string name="dashboard_estado_ausencia_pendiente">Pendiente</string>
-    <string name="dashboard_estado_ausencia_aprobada">Aprobada</string>
     <string name="fichaje_estado_fuera">Fuera de turno</string>
     <string name="fichaje_estado_activo">Trabajando</string>
     <string name="fichaje_btn_iniciar">INICIAR JORNADA</string>
@@ -143,9 +141,10 @@
     <string name="mis_ausencias_rango_fechas">%1$s → %2$s</string>
     <!-- %1$s = observaciones de la revisión devueltas por el supervisor -->
     <string name="mis_ausencias_observaciones">Observaciones: %1$s</string>
-    <string name="mis_ausencias_estado_solicitada">SOLICITADA</string>
-    <string name="mis_ausencias_estado_aprobada">APROBADA</string>
-    <string name="mis_ausencias_estado_rechazada">RECHAZADA</string>
+    <string name="ausencia_estado_solicitada">Pendiente</string>
+    <string name="ausencia_estado_aprobada">Aprobada</string>
+    <string name="ausencia_estado_rechazada">Rechazada</string>
+    <string name="ausencia_estado_desconocido">Estado desconocido</string>
     <string name="mis_ausencias_btn_editar">Editar</string>
     <string name="mis_ausencias_btn_cancelar">Cancelar</string>
     <string name="mis_ausencias_dialog_cancelar_titulo">Cancelar solicitud</string>
