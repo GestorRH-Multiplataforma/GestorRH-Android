@@ -80,10 +80,9 @@ class MisAusenciasViewModel(
     fun iniciarPolling(lifecycle: Lifecycle) {
         viewModelScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                delay(INTERVALO_POLLING_MS)
                 while (true) {
-                    cargarAusencias()
                     delay(INTERVALO_POLLING_MS)
+                    cargarAusencias()
                 }
             }
         }
