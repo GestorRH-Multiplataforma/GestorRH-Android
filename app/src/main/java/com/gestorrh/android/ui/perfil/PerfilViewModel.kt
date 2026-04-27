@@ -8,6 +8,8 @@ import com.gestorrh.android.R
 import com.gestorrh.android.core.network.ApiClient
 import com.gestorrh.android.core.security.SessionManager
 import com.gestorrh.android.core.ui.MensajeUi
+import com.gestorrh.android.data.local.GestorRhDatabase
+import com.gestorrh.android.data.local.dao.AsignacionDao
 import com.gestorrh.android.data.network.empleado.EmpleadoApi
 import com.gestorrh.android.data.repository.PerfilRepository
 import com.gestorrh.android.domain.repository.IPerfilRepository
@@ -28,7 +30,8 @@ import kotlinx.coroutines.launch
  */
 class PerfilViewModel(
     private val perfilRepository: IPerfilRepository,
-    private val sessionManager: SessionManager
+    private val sessionManager: SessionManager,
+    private val asignacionDao: AsignacionDao
 ) : ViewModel() {
 
     private val _estadoUi = MutableStateFlow(EstadoUiPerfil())
@@ -63,7 +66,10 @@ class PerfilViewModel(
 
     fun cerrarSesion(alCerrarSesion: () -> Unit) {
         sessionManager.clearSession()
-        alCerrarSesion()
+        viewModelScope.launch {
+            asignacionDao.deleteAll()
+            alCerrarSesion()
+        }
     }
 
     fun mostrarDialogCambioPassword() {
@@ -132,7 +138,8 @@ class PerfilViewModel(
                     val retrofit = ApiClient.crearRetrofit(sessionManager)
                     val empleadoApi = retrofit.create(EmpleadoApi::class.java)
                     val perfilRepository = PerfilRepository(empleadoApi)
-                    return PerfilViewModel(perfilRepository, sessionManager) as T
+                    val asignacionDao = GestorRhDatabase.getInstance(contexto).asignacionDao()
+                    return PerfilViewModel(perfilRepository, sessionManager, asignacionDao) as T
                 }
             }
         }
