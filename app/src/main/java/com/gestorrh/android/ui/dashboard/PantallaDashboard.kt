@@ -52,7 +52,7 @@ import androidx.compose.material.icons.filled.WifiOff
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
-import androidx.activity.compose.LocalActivityResultRegistryOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.core.app.ActivityCompat
 
 @Composable
@@ -63,7 +63,7 @@ fun PantallaDashboard(
         factory = DashboardViewModelFactory(contexto.applicationContext)
     )
 ) {
-    val estadoUi by viewModel.estadoUi.collectAsState()
+    val estadoUi by viewModel.estadoUi.collectAsStateWithLifecycle()
 
     val scopeDeCorrutina = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
