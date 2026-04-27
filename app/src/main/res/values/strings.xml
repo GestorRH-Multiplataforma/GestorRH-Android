@@ -22,11 +22,18 @@
     <string name="dashboard_saludo_generico">¡Bienvenido!</string>
     <!-- Patrón de formato de fecha localizado para java.time.DateTimeFormatter -->
     <string name="dashboard_formato_fecha">EEEE, d \'de\' MMMM</string>
-    <string name="dashboard_turno_titulo">Siguiente Turno</string>
-    <string name="dashboard_turno_valor">08:00 – 16:00</string>
-    <string name="dashboard_ausencia_titulo">Ausencias</string>
-    <string name="dashboard_ausencia_valor">Ninguna pendiente</string>
-    <string name="dashboard_placeholder_fichaje">[ Aquí irá el Widget de Fichaje P0–08 ]</string>
+    <string name="dashboard_turno_titulo">Próximo turno</string>
+    <string name="dashboard_sin_turno">Sin turno asignado</string>
+    <string name="dashboard_ausencia_titulo">Próxima ausencia</string>
+    <string name="dashboard_sin_ausencias">Sin ausencias próximas</string>
+    <!-- Formato del horario del próximo turno cuando es hoy: %1$s = hora inicio, %2$s = hora fin (HH:mm) -->
+    <string name="dashboard_turno_horario_hoy">Hoy %1$s-%2$s</string>
+    <!-- Formato del horario del próximo turno cuando es mañana: %1$s = hora inicio, %2$s = hora fin -->
+    <string name="dashboard_turno_horario_manana">Mañana %1$s-%2$s</string>
+    <!-- Formato del horario cuando es otro día: %1$s = día semana, %2$s = dd/MM, %3$s = hora inicio -->
+    <string name="dashboard_turno_horario_proximo">%1$s %2$s - %3$s</string>
+    <string name="dashboard_estado_ausencia_pendiente">Pendiente</string>
+    <string name="dashboard_estado_ausencia_aprobada">Aprobada</string>
     <string name="fichaje_estado_fuera">Fuera de turno</string>
     <string name="fichaje_estado_activo">Trabajando</string>
     <string name="fichaje_btn_iniciar">INICIAR JORNADA</string>
@@ -35,10 +42,6 @@
     <string name="fichajes_pendientes">%d fichaje(s) pendiente(s) de sincronizar</string>
     <string name="fichaje_entrada_duplicada_offline">Ya hay una entrada pendiente de sincronizar. No puedes registrar otra hasta que se envíe.</string>
 
-    <string name="dashboard_hoy">Hoy</string>
-    <string name="dashboard_sin_asignar">SIN ASIGNAR</string>
-    <string name="dashboard_libre">LIBRE</string>
-    <string name="dashboard_cero_pendientes">0 Pendientes</string>
     <string name="dashboard_modalidad_remota">MODALIDAD REMOTA</string>
 
     <string name="error_permiso_ubicacion">Permiso de ubicación denegado. No se puede fichar.</string>
