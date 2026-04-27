@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.net.Uri
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -31,6 +32,7 @@ import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.FileOpen
 import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.PictureAsPdf
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
@@ -107,7 +109,26 @@ fun PantallaSolicitudAusencia(
     val mensajeExito = stringResource(R.string.ausencia_envio_exitoso)
 
     var mostrarSelectorFuente by remember { mutableStateOf(false) }
+    var mostrarDialogoSalir by remember { mutableStateOf(false) }
     var uriCapturaPendiente by remember { mutableStateOf<GestorArchivosJustificante.UriCaptura?>(null) }
+
+    val hayDatosEnFormulario = estadoUi.tipoSeleccionado != null ||
+        estadoUi.fechaInicio != null ||
+        estadoUi.fechaFin != null ||
+        estadoUi.descripcion.isNotBlank() ||
+        estadoUi.archivoUri != null
+
+    val intentarVolver: () -> Unit = {
+        if (hayDatosEnFormulario) {
+            mostrarDialogoSalir = true
+        } else {
+            alVolver()
+        }
+    }
+
+    BackHandler(enabled = hayDatosEnFormulario) {
+        mostrarDialogoSalir = true
+    }
 
     val selectorArchivo = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -255,13 +276,36 @@ fun PantallaSolicitudAusencia(
             }
 
             OutlinedButton(
-                onClick = alVolver,
+                onClick = intentarVolver,
                 modifier = Modifier.fillMaxWidth(),
                 enabled = !estadoUi.enviando
             ) {
                 Text(stringResource(R.string.ausencia_btn_volver))
             }
         }
+    }
+
+    if (mostrarDialogoSalir) {
+        AlertDialog(
+            onDismissRequest = { mostrarDialogoSalir = false },
+            title = { Text(stringResource(R.string.ausencia_dialogo_salir_titulo)) },
+            text = { Text(stringResource(R.string.ausencia_dialogo_salir_mensaje)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        mostrarDialogoSalir = false
+                        alVolver()
+                    }
+                ) {
+                    Text(stringResource(R.string.ausencia_dialogo_salir_confirmar))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { mostrarDialogoSalir = false }) {
+                    Text(stringResource(R.string.ausencia_dialogo_salir_cancelar))
+                }
+            }
+        )
     }
 
     if (mostrarSelectorFuente) {

@@ -114,6 +114,10 @@
     <string name="ausencia_error_sin_visor">No app available to open this file type.</string>
     <string name="ausencia_btn_enviar">Submit request</string>
     <string name="ausencia_btn_volver">Go back</string>
+    <string name="ausencia_dialogo_salir_titulo">Exit without saving?</string>
+    <string name="ausencia_dialogo_salir_mensaje">Form data will be lost. Are you sure you want to exit?</string>
+    <string name="ausencia_dialogo_salir_confirmar">Exit</string>
+    <string name="ausencia_dialogo_salir_cancelar">Keep editing</string>
     <string name="ausencia_dialog_aceptar">OK</string>
     <string name="ausencia_dialog_cancelar">Cancel</string>
     <string name="ausencia_envio_exitoso">Request sent successfully</string>
