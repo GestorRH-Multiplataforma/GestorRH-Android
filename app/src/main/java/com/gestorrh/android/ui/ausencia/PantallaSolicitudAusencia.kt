@@ -616,7 +616,7 @@ private fun CampoFecha(
                 TextButton(onClick = {
                     estadoPicker.selectedDateMillis?.let { millis ->
                         val fechaSeleccionada = Instant.ofEpochMilli(millis)
-                            .atZone(ZoneId.of("UTC"))
+                            .atZone(ZoneId.systemDefault())
                             .toLocalDate()
                         onFechaSeleccionada(fechaSeleccionada)
                     }
