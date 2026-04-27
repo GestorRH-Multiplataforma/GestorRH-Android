@@ -20,6 +20,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -52,7 +53,7 @@ fun PantallaMisTurnos(
 ) {
     val estadoUi by viewModel.estadoUi.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
-    val contextoLocal = LocalContext.current
+    val recursos = LocalResources.current
 
     val textoReintentar = stringResource(id = R.string.turnos_reintentar)
     val textoSinConexion = stringResource(id = R.string.turnos_sin_conexion)
@@ -60,7 +61,7 @@ fun PantallaMisTurnos(
     LaunchedEffect(estadoUi.mensajeError) {
         estadoUi.mensajeError?.let { mensajeUi ->
             val textoMensaje = when (mensajeUi) {
-                is MensajeUi.Recurso -> contextoLocal.getString(mensajeUi.idRecurso)
+                is MensajeUi.Recurso -> recursos.getString(mensajeUi.idRecurso)
                 is MensajeUi.Dinamico -> mensajeUi.texto
             }
             val resultado = snackbarHostState.showSnackbar(

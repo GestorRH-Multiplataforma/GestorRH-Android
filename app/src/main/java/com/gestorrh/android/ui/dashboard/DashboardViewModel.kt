@@ -287,8 +287,6 @@ class DashboardViewModel(
             }
 
             if (!contextoAplicacion.hayConexion()) {
-                // Si ya existe una entrada pendiente, impedimos duplicar: el empleado
-                // no puede haber iniciado dos jornadas simultáneas offline.
                 val entradasPendientes = fichajePendienteDao.contarPorTipo(
                     FichajePendienteEntity.TIPO_ENTRADA
                 )
@@ -388,8 +386,6 @@ class DashboardViewModel(
             }
     }
 
-    // ── FUNCIONES AUXILIARES ──────────────────────────────────────────────────
-
     fun errorMostrado() {
         _estadoUi.update { it.copy(mensajeError = null) }
     }
@@ -428,7 +424,7 @@ class DashboardViewModel(
         val horas = segundosTotales / 3600
         val minutos = (segundosTotales % 3600) / 60
         val segundos = segundosTotales % 60
-        return String.format("%02d:%02d:%02d", horas, minutos, segundos)
+        return String.format(java.util.Locale.ROOT, "%02d:%02d:%02d", horas, minutos, segundos)
     }
 
     companion object {
@@ -437,8 +433,10 @@ class DashboardViewModel(
     }
 }
 
-// ── FACTORY MANUAL ────────────────────────────────────────────────────────────
-
+/**
+ * Factory manual para [DashboardViewModel]. Resuelve dependencias a partir
+ * del contexto de aplicación pasado por la pantalla.
+ */
 class DashboardViewModelFactory(private val contexto: Context) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(DashboardViewModel::class.java)) {

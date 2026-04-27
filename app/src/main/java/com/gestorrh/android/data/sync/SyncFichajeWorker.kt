@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import com.gestorrh.android.BuildConfig
 import com.gestorrh.android.core.network.ApiClient
 import com.gestorrh.android.core.security.SessionManager
 import com.gestorrh.android.data.local.GestorRhDatabase
@@ -34,11 +35,11 @@ class SyncFichajeWorker(
         .create(FichajeApiService::class.java)
 
     override suspend fun doWork(): Result {
-        Log.d(TAG, "Iniciando sincronización de fichajes pendientes")
+        if (BuildConfig.DEBUG) Log.d(TAG, "Iniciando sincronización de fichajes pendientes")
         val pendientes = fichajePendienteDao.obtenerTodos()
 
         if (pendientes.isEmpty()) {
-            Log.d(TAG, "No hay fichajes pendientes")
+            if (BuildConfig.DEBUG) Log.d(TAG, "No hay fichajes pendientes")
             return Result.success()
         }
 
@@ -74,7 +75,7 @@ class SyncFichajeWorker(
 
             when {
                 respuesta.isSuccessful -> {
-                    Log.d(TAG, "Fichaje ${fichaje.id} sincronizado (${fichaje.tipo})")
+                    if (BuildConfig.DEBUG) Log.d(TAG, "Fichaje ${fichaje.id} sincronizado (${fichaje.tipo})")
                     ResultadoSync.EXITO
                 }
                 respuesta.code() in 400..499 -> {

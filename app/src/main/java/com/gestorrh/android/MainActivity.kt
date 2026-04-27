@@ -48,17 +48,7 @@ import com.gestorrh.android.ui.onboarding.PantallaOnboarding
  */
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-        // ── SplashScreen API ──────────────────────────────────────────────────
-        // Debe llamarse ANTES de super.onCreate() y setContent{}.
-        // Mantiene la splash visible hasta que se evalúa el token JWT (operación
-        // síncrona sobre EncryptedSharedPreferences, < 1ms).
-        val splashScreen = installSplashScreen()
-
-        // Mientras se evalúa el destino inicial podemos mantener la splash activa
-        // con una condición (útil si hubiera trabajo asíncrono previo):
-        // splashScreen.setKeepOnScreenCondition { !isReadyToNavigate }
-        // En este caso la evaluación es síncrona, así que no hace falta.
-
+        installSplashScreen()
         super.onCreate(savedInstanceState)
 
         val sessionManager = SessionManager(this)

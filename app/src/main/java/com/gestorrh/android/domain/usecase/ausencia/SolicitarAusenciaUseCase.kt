@@ -64,9 +64,6 @@ class SolicitarAusenciaUseCase(
             }
         }
 
-        // Solo en modo edición y sin archivo nuevo tiene sentido propagar el flag:
-        // si hay archivo nuevo el servidor lo reemplaza; en modo creación no existe
-        // justificante previo que eliminar.
         val flagEliminar = if (idAusenciaEditar != null && archivoBytes == null) {
             eliminarJustificante
         } else {

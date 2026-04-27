@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -69,7 +70,7 @@ fun PantallaDashboard(
     val gestorLocalizacion = remember { GestorLocalizacion(contexto) }
 
     val errorPermisoTexto = stringResource(id = R.string.error_permiso_ubicacion)
-    val contextoLocal = LocalContext.current
+    val recursos = LocalResources.current
 
     LaunchedEffect(Unit) {
         viewModel.cargarFichajesPendientes()
@@ -95,7 +96,7 @@ fun PantallaDashboard(
     LaunchedEffect(estadoUi.mensajeError) {
         estadoUi.mensajeError?.let { mensajeUi ->
             val textoMensaje = when (mensajeUi) {
-                is MensajeUi.Recurso -> contextoLocal.getString(mensajeUi.idRecurso)
+                is MensajeUi.Recurso -> recursos.getString(mensajeUi.idRecurso)
                 is MensajeUi.Dinamico -> mensajeUi.texto
             }
             snackbarHostState.showSnackbar(textoMensaje)
@@ -106,7 +107,7 @@ fun PantallaDashboard(
     LaunchedEffect(estadoUi.mensajeInfo) {
         estadoUi.mensajeInfo?.let { mensajeUi ->
             val textoMensaje = when (mensajeUi) {
-                is MensajeUi.Recurso -> contextoLocal.getString(mensajeUi.idRecurso)
+                is MensajeUi.Recurso -> recursos.getString(mensajeUi.idRecurso)
                 is MensajeUi.Dinamico -> mensajeUi.texto
             }
             snackbarHostState.showSnackbar(textoMensaje)
@@ -246,15 +247,11 @@ fun PantallaDashboard(
 
 @Composable
 private fun CabeceraDashboard(nombreEmpleado: String) {
-    // Fecha actual formateada y localizada con java.time, sin llamadas de red adicionales.
-    // El patrón de formato se carga desde strings.xml para que cada locale tenga su propia
-    // representación (ES: "EEEE, d 'de' MMMM" / EN: "EEEE, MMMM d").
     val patronFecha = stringResource(id = R.string.dashboard_formato_fecha)
     val fechaHoy = remember(patronFecha) {
         val locale = Locale.getDefault()
         val formatter = DateTimeFormatter.ofPattern(patronFecha, locale)
         val fechaFormateada = LocalDate.now().format(formatter)
-        // Capitaliza la primera letra (los locales suelen devolver el día en minúsculas)
         fechaFormateada.replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() }
     }
 

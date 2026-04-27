@@ -4,13 +4,11 @@
     <string name="login_email_hint">Correo electrónico</string>
     <string name="login_password_hint">Contraseña</string>
     <string name="login_button">Iniciar Sesión</string>
-    <string name="login_error_empty">Los campos no pueden estar vacíos</string>
     <string name="login_subtitle">Organiza tu empresa, conecta a tu equipo</string>
     <string name="login_forgot_password">¿Has olvidado tu contraseña?</string>
     <string name="login_forgot_password_dialog_text">Por motivos de seguridad, la recuperación automática de contraseñas está deshabilitada. Por favor, contacta con RRHH o tu supervisor para restablecer tu acceso.</string>
     <string name="login_error_credentials">Credenciales incorrectas</string>
-    <string name="login_error_network">Error de conexión con el servidor</string>
-    <string name="login_button_loading">Conectando...</string>
+    <string name="login_button_loading">Conectando…</string>
     <string name="nav_inicio">Inicio</string>
     <string name="nav_turnos">Turnos</string>
     <string name="nav_ausencias">Ausencias</string>
@@ -173,9 +171,6 @@
     <string name="dashboard_error_titulo">No se pudo conectar</string>
     <string name="dashboard_error_descripcion">No hemos podido obtener tu estado de fichaje. Comprueba tu conexión e inténtalo de nuevo.</string>
     <string name="dashboard_error_btn_reintentar">Reintentar</string>
-
-    <!-- Mis Ausencias — polling -->
-    <string name="mis_ausencias_actualizando">Actualizando…</string>
 
     <!-- Permiso ubicación denegado permanentemente -->
     <string name="error_permiso_ubicacion_permanente">Permiso de ubicación denegado permanentemente. Actívalo en Ajustes para poder fichar.</string>
