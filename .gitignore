@@ -44,6 +44,6 @@ keystore.properties
 .DS_Store
 Thumbs.db
 
-# Claude Code internal files
+# Archivos internos de herramientas de desarrollo local
 .claude/
 CLAUDE.md

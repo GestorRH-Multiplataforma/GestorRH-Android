@@ -24,6 +24,7 @@ android {
     defaultConfig {
         applicationId = "com.gestorrh.android"
         minSdk = 27
+        //noinspection OldTargetApi
         targetSdk = 36
         versionCode = (System.getenv("BUILD_NUMBER")?.toIntOrNull()) ?: 1
         versionName = "1.0.0"
@@ -32,18 +33,33 @@ android {
 
     buildTypes {
         debug {
-            // Entorno DEV (Pruebas locales)
             val devUrl = secrets.getProperty("DEV_BASE_URL")
                 ?: throw GradleException("ERROR ARQUITECTURA: Falta DEV_BASE_URL en secrets.properties")
             buildConfigField("String", "BASE_URL", devUrl)
         }
-        release {
-            isMinifyEnabled = false
+
+        create("staging") {
+            initWith(getByName("debug"))
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            // Entorno PROD (Despliegue final)
+            val devUrl = secrets.getProperty("DEV_BASE_URL")
+                ?: throw GradleException("ERROR ARQUITECTURA: Falta DEV_BASE_URL en secrets.properties")
+            buildConfigField("String", "BASE_URL", devUrl)
+            applicationIdSuffix = ".staging"
+            versionNameSuffix = "-staging"
+        }
+
+        release {
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
             val prodUrl = secrets.getProperty("PROD_BASE_URL")
                 ?: throw GradleException("ERROR ARQUITECTURA: Falta PROD_BASE_URL en secrets.properties")
             buildConfigField("String", "BASE_URL", prodUrl)

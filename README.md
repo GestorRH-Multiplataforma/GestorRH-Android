@@ -1,7 +1,7 @@
 # GestorRH - Cliente Android
  
 [![Android CI](https://github.com/GestorRH-Multiplataforma/gestorrh-android/actions/workflows/android-ci.yml/badge.svg)](https://github.com/GestorRH-Multiplataforma/gestorrh-android/actions/workflows/android-ci.yml)
-[![Version](https://img.shields.io/badge/version-v0.9.0--beta-yellow)](https://github.com/GestorRH-Multiplataforma/gestorrh-android/releases/tag/v0.9.0-beta)
+[![Version](https://img.shields.io/badge/version-v1.0.0-green)](https://github.com/GestorRH-Multiplataforma/gestorrh-android/releases/tag/v1.0.0)
 [![Kotlin](https://img.shields.io/badge/Kotlin-1.9.22-7F52FF?logo=kotlin&logoColor=white)](https://kotlinlang.org/)
 [![Android SDK](https://img.shields.io/badge/SDK-34%2B-3DDC84?logo=android&logoColor=white)](https://developer.android.com/)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
@@ -11,9 +11,9 @@ Cliente móvil nativo desarrollado para el ecosistema **GestorRH 2.0**. Esta apl
 > Este repositorio forma parte del ecosistema **GestorRH Multiplataforma**. Para entender el contexto general del proyecto (API, cliente escritorio y arquitectura global), consulta el [README de la organización](https://github.com/GestorRH-Multiplataforma#gestorrh---ecosistema-multiplataforma).
  
 ---
- 
+
 ## Tecnologías Utilizadas
- 
+
 - **Lenguaje:** Kotlin 1.9.22
 - **UI:** Jetpack Compose con Material Design 3
 - **Arquitectura:** Clean Architecture + MVVM
@@ -22,6 +22,9 @@ Cliente móvil nativo desarrollado para el ecosistema **GestorRH 2.0**. Esta apl
 - **Persistencia Local:** Room Database (soporte offline)
 - **Navegación:** Compose Navigation con rutas fuertemente tipadas
 - **Concurrencia:** Kotlin Coroutines & Flow
+- **Seguridad:** EncryptedSharedPreferences + ProGuard/R8
+- **Sincronización offline:** WorkManager
+- **Geolocalización:** FusedLocationProviderClient (Play Services)
 - **CI/CD:** GitHub Actions
 ---
  
@@ -36,89 +39,111 @@ Cliente móvil nativo desarrollado para el ecosistema **GestorRH 2.0**. Esta apl
  
 ```
 app/src/main/java/com/gestorrh/android/
-├── MainActivity.kt            # Entry point: inicializa dependencias globales, gestiona
-│                              #   auto-login y observa AuthEventBus para redirigir ante 401
+├── MainActivity.kt
+├── GestorRhApplication.kt       
 │
-├── core/                      # Infraestructura transversal (sin lógica de negocio)
+├── core/
+│   ├── archivos/
+│   │   └── GestorArchivosJustificante.kt  
 │   ├── location/
-│   │   └── GestorLocalizacion.kt      # Wrapper de FusedLocationProviderClient
+│   │   └── GestorLocalizacion.kt
 │   ├── navigation/
-│   │   ├── BarraNavegacionInferior.kt # BottomBar dinámica inyectable por rol
-│   │   └── RutasDestino.kt            # Sealed class con todas las rutas de la app
+│   │   ├── BarraNavegacionInferior.kt
+│   │   └── RutasDestino.kt
 │   ├── network/
-│   │   ├── ApiClient.kt               # Motor HTTP: Retrofit + OkHttp + Gson
-│   │   ├── AuthInterceptor.kt         # Inyección de JWT e interceptación global de 401
-│   │   ├── LocalDateDeserializer.kt   # Adaptador Gson para LocalDate
+│   │   ├── ApiClient.kt
+│   │   ├── AuthInterceptor.kt
+│   │   ├── ConectividadUtils.kt           
+│   │   ├── LocalDateDeserializer.kt
 │   │   └── LocalDateTimeDeserializer.kt
+│   ├── onboarding/
+│   │   └── OnboardingManager.kt           
 │   ├── security/
-│   │   ├── AuthEventBus.kt            # Canal SharedFlow para eventos de sesión expirada
-│   │   └── SessionManager.kt         # Persistencia cifrada del JWT (EncryptedSharedPreferences)
+│   │   ├── AuthEventBus.kt
+│   │   └── SessionManager.kt
 │   └── ui/
-│       └── MensajeUi.kt               # Abstracción de mensajes de error (Recurso / Dinámico)
+│       └── MensajeUi.kt
 │
-├── data/                      # Capa de datos: fuentes locales y remotas
+├── data/
 │   ├── local/
-│   │   ├── GestorRhDatabase.kt        # Base de datos Room (singleton)
+│   │   ├── GestorRhDatabase.kt
 │   │   ├── dao/
-│   │   │   └── AsignacionDao.kt       # DAO con upsert, observación reactiva y deleteAll
+│   │   │   ├── AsignacionDao.kt
+│   │   │   └── FichajePendienteDao.kt    
 │   │   ├── entity/
-│   │   │   └── AsignacionEntity.kt    # Entidad Room para caché offline de turnos
+│   │   │   ├── AsignacionEntity.kt
+│   │   │   └── FichajePendienteEntity.kt  
 │   │   └── mapper/
-│   │       └── AsignacionMapper.kt    # Conversión DTO → Entity con timestamp de sincronización
+│   │       └── AsignacionMapper.kt
 │   ├── network/
-│   │   ├── asignacion/                # AsignacionApiService + DTOs
-│   │   ├── ausencia/                  # AusenciaApiService + DTOs (multipart)
-│   │   ├── autenticacion/             # AuthApi + PeticionLoginDTO + RespuestaLoginDTO
-│   │   ├── empleado/                  # EmpleadoApi + DTOs de perfil y cambio de contraseña
-│   │   └── fichaje/                   # FichajeApiService + DTOs de entrada, salida y estado BFF
-│   └── repository/
-│       ├── AuthRepository.kt          # Login → Result<RespuestaLoginDTO>
-│       ├── FichajeRepository.kt       # Estado actual, entrada y salida → Result
-│       ├── PerfilRepository.kt        # Perfil y cambio de contraseña → Result
-│       ├── asignacion/
-│       │   └── AsignacionRepositoryImpl.kt  # Estrategia offline-first con Room + Retrofit
-│       └── ausencia/
-│           └── AusenciaRepositoryImpl.kt    # Tipos + creación multipart → Result
-│
-├── domain/                    # Contratos puros (interfaces + casos de uso)
+│   │   ├── asignacion/
+│   │   ├── ausencia/
+│   │   ├── autenticacion/
+│   │   ├── empleado/
+│   │   └── fichaje/
 │   ├── repository/
-│   │   ├── IAsignacionRepository.kt   # Flow reactivo + sincronización
-│   │   ├── IAusenciaRepository.kt     # Tipos y creación de ausencias
-│   │   ├── IAuthRepository.kt         # Autenticación
-│   │   ├── IFichajeRepository.kt      # Estado actual, entrada y salida
-│   │   ├── IPerfilRepository.kt       # Perfil y contraseña
-│   │   └── ResultadoSincronizacion.kt # Sealed class: Exito / SinConexion / Error
-│   └── usecase/
-│       └── ausencia/
-│           └── SolicitarAusenciaUseCase.kt  # Validación de fechas y tipo antes de enviar
+│   │   ├── AuthRepository.kt
+│   │   ├── FichajeRepository.kt
+│   │   ├── PerfilRepository.kt
+│   │   ├── asignacion/
+│   │   │   └── AsignacionRepositoryImpl.kt
+│   │   └── ausencia/
+│   │       └── AusenciaRepositoryImpl.kt
+│   └── sync/                              
+│       ├── FichajeSyncManager.kt
+│       └── SyncFichajeWorker.kt
 │
-└── ui/                        # Capa de presentación (Jetpack Compose + MVVM)
+├── domain/
+│   ├── repository/
+│   │   ├── IAsignacionRepository.kt
+│   │   ├── IAusenciaRepository.kt
+│   │   ├── IAuthRepository.kt
+│   │   ├── IFichajeRepository.kt
+│   │   ├── IPerfilRepository.kt
+│   │   └── ResultadoSincronizacion.kt
+│   └── usecase/
+│       ├── ausencia/
+│       │   └── SolicitarAusenciaUseCase.kt
+│       └── fichaje/                      
+│           ├── GuardarFichajePendienteUseCase.kt
+│           └── ObtenerHistorialFichajesUseCase.kt
+│
+└── ui/
     ├── ausencia/
+    │   ├── AusenciaUtils.kt               
+    │   ├── EstadoUiMisAusencias.kt       
     │   ├── EstadoUiSolicitudAusencia.kt
+    │   ├── MisAusenciasViewModel.kt       
+    │   ├── PantallaMisAusencias.kt        
     │   ├── PantallaSolicitudAusencia.kt
     │   └── SolicitudAusenciaViewModel.kt
     ├── dashboard/
-    │   ├── DashboardViewModel.kt      # Cronómetro reactivo + orquestador de fichaje
+    │   ├── DashboardViewModel.kt
     │   └── PantallaDashboard.kt
+    ├── historial/                         
+    │   ├── EstadoUiHistorialFichajes.kt
+    │   ├── HistorialFichajesViewModel.kt
+    │   └── PantallaHistorialFichajes.kt
     ├── login/
     │   ├── EstadoUiLogin.kt
     │   ├── LoginViewModel.kt
     │   └── PantallaLogin.kt
+    ├── onboarding.kt                      
     ├── perfil/
     │   ├── EstadoUiPerfil.kt
     │   ├── PantallaPerfil.kt
     │   └── PerfilViewModel.kt
     ├── principal/
-    │   └── PantallaPrincipal.kt       # Scaffold maestro post-login con NavHost interno
+    │   └── PantallaPrincipal.kt
     ├── theme/
-    │   ├── Color.kt                   # Paleta corporativa (NavyPrimary + CyanSecondary)
+    │   ├── Color.kt
     │   ├── Shape.kt
-    │   ├── Theme.kt                   # Dark/Light con soporte de color dinámico desactivado
+    │   ├── Theme.kt
     │   └── Type.kt
     └── turnos/
         ├── EstadoUiMisTurnos.kt
-        ├── MisTurnosViewModel.kt      # Offline-first: observa Room, sincroniza en background
-        └── PantallaMisTurnos.kt       # Vista lista y calendario con BottomSheet de detalle
+        ├── MisTurnosViewModel.kt
+        └── PantallaMisTurnos.kt
 ```
  
 ---
@@ -127,7 +152,8 @@ app/src/main/java/com/gestorrh/android/
  
 ### Variables de Configuración
  
-La aplicación utiliza un archivo `secrets.properties` en la raíz del proyecto para gestionar las URLs del backend según el entorno. Este archivo **no se sube al repositorio** (incluido en `.gitignore`).
+La aplicación utiliza un archivo `secrets.properties` en la raíz del proyecto para gestionar las URLs del backend según el entorno. Este archivo **no se sube al repositorio** (incluido en `.gitignore`) y se inyecta en CI mediante
+GitHub Secrets.
  
 Crea el archivo manualmente con el siguiente contenido:
  
@@ -140,8 +166,15 @@ PROD_BASE_URL="https://tu-dominio.com/api/"
 |---|---|---|
 | `DEV_BASE_URL` | URL de la API en entorno de desarrollo | `http://10.0.2.2:8080/api/` |
 | `PROD_BASE_URL` | URL de la API en entorno de producción | *(tu dominio real)* |
- 
-> **Nota:** Para conectar desde un **dispositivo físico**, sustituye `10.0.2.2` por la IP local de tu máquina donde corre la API.
+
+> **Nota para CI:** La variable `PROD_BASE_URL` se gestiona como
+> GitHub Secret en el repositorio y se inyecta automáticamente
+> en el pipeline. No es necesario configurarla manualmente para
+> que el CI compile correctamente.
+
+> **Nota para dispositivo físico:** Para conectar desde un
+> dispositivo físico sustituye `10.0.2.2` por la IP local de
+> tu máquina donde corre la API.
  
 ### Instalación y Ejecución
  
@@ -150,30 +183,53 @@ PROD_BASE_URL="https://tu-dominio.com/api/"
 3. Abre el proyecto en Android Studio y sincroniza con Gradle para descargar las dependencias definidas en `libs.versions.toml`.
 4. Ejecuta la variante `debug` en un emulador o dispositivo físico.
 ---
- 
+
 ## Funcionalidades Implementadas
- 
-- **Autenticación Stateless:** Gestión de tokens JWT con persistencia segura, interceptor 401 global y renovación de sesión con logout automático.
-- **Fichaje con Geovallado:** Uso de `FusedLocationProviderClient` para validar la posición del empleado al iniciar o finalizar jornada.
-- **Dashboard BFF:** Panel central que sincroniza el estado actual del empleado (fichajes activos y turnos) en una sola petición optimizada al backend.
-- **Gestión de Turnos:** Listado y sincronización de los turnos asignados al empleado.
-- **Gestión de Ausencias:** Formulario de solicitud con soporte multipart para adjuntar justificantes, y listado de ausencias propias con polling.
-- **Perfil de Usuario:** Pantalla de perfil con cambio de contraseña y logout global.
-- **Persistencia Offline:** Room Database para consulta de datos sin conexión.
-- **Soporte Multilingüe:** Localización completa para Castellano (ES) e Inglés (EN).
-- **Modo Oscuro:** Soporte nativo para temas Dark/Light según la configuración del sistema.
+
+- **Autenticación Stateless:** Gestión de tokens JWT con persistencia segura,
+  interceptor 401 global y renovación de sesión con logout automático.
+- **Onboarding:** Pantalla de bienvenida con HorizontalPager que se muestra
+  únicamente en el primer arranque.
+- **Fichaje con Geovallado:** Uso de `FusedLocationProviderClient` para validar
+  la posición del empleado al iniciar o finalizar jornada.
+- **Dashboard BFF:** Panel central que sincroniza el estado actual del empleado
+  en una sola petición optimizada al backend, con widget de próximo turno y
+  próxima ausencia.
+- **Gestión de Turnos:** Listado y sincronización offline-first de los turnos
+  asignados, con vista lista y vista calendario.
+- **Gestión de Ausencias:** Formulario de solicitud con soporte multipart para
+  adjuntar justificantes, listado propio con polling automático y flujo completo
+  de edición y cancelación.
+- **Historial de Fichajes:** Consulta del historial personal con filtro por
+  rango de fechas.
+- **Perfil de Usuario:** Pantalla de perfil con cambio de contraseña y logout
+  global.
+- **Persistencia Offline:** Room Database para consulta de datos sin conexión y
+  cola de fichajes pendientes sincronizada por WorkManager.
+- **Soporte Multilingüe:** Localización completa para Castellano (ES) e
+  Inglés (EN).
+- **Modo Oscuro:** Soporte nativo para temas Dark/Light según la configuración
+  del sistema.
+- **Minificación y Ofuscación:** ProGuard/R8 activado en release para reducir
+  el tamaño del APK y proteger el código.
 ---
- 
+
 ## CI/CD
- 
-El proyecto dispone de un pipeline de integración continua definido en `.github/workflows/android-ci.yml` que se ejecuta automáticamente en cada push a `main`, `feature/**`, `fix/**` o `refactor/**`, y en cada Pull Request a `main`.
- 
+
+El proyecto dispone de un pipeline de integración continua definido en
+`.github/workflows/android-ci.yml` que se ejecuta automáticamente en cada
+push a `main`, `feature/**`, `fix/**` o `refactor/**`, y en cada Pull Request
+a `main`.
+
 El pipeline realiza las siguientes etapas en orden:
- 
-1. **Configuración del entorno:** Prepara JDK 17 con caché de Gradle para acelerar builds sucesivos.
-2. **Generación de secrets:** Inyecta las variables de entorno necesarias (`DEV_BASE_URL`, `PROD_BASE_URL`) para que el proyecto compile correctamente en CI.
-3. **Compilación:** Genera el APK de debug con `./gradlew assembleDebug`.
+
+1. **Configuración del entorno:** Prepara JDK 17 con caché de Gradle.
+2. **Generación de secrets:** Inyecta `DEV_BASE_URL` y `PROD_BASE_URL`
+   desde GitHub Secrets para que el proyecto compile correctamente en CI.
+3. **Compilación Debug:** Genera el APK de debug con `./gradlew assembleDebug`.
 4. **Tests:** Ejecuta los tests unitarios con `./gradlew testDebugUnitTest`.
+5. **Compilación Release:** Valida que el APK de release compila correctamente
+   con `./gradlew assembleRelease`.
 ---
  
 ## Versionado
@@ -184,17 +240,26 @@ Este proyecto utiliza **Git tags anotados** para marcar hitos funcionales, sigui
 - **MINOR**: nuevas funcionalidades compatibles (épicas cerradas).
 - **PATCH**: correcciones compatibles sin ruptura de funcionalidad.
 ### Hitos publicados
- 
+
 - **`v0.1.0`** → infraestructura base y autenticación.
-  Arquitectura Clean + MVVM lista, Retrofit configurado, Navigation Compose implementado y flujo de login con persistencia de JWT funcional.
+  Arquitectura Clean + MVVM lista, Retrofit configurado, Navigation Compose
+  implementado y flujo de login con persistencia de JWT funcional.
+
 - **`v0.5.0`** → motor de fichaje operativo.
-  Validación GPS nativa con `FusedLocationProviderClient`, UI reactiva del cronómetro de jornada y comunicación de entrada/salida con el backend.
-- **`v0.9.0-beta`** → versión beta actual. *(latest)*
-  Incluye persistencia offline con Room, listado de turnos, pantalla de perfil con logout global y formulario de ausencias con soporte multipart.
+  Validación GPS nativa con `FusedLocationProviderClient`, UI reactiva del
+  cronómetro de jornada y comunicación de entrada/salida con el backend.
+
+- **`v0.9.0-beta`** → versión beta.
+  Incluye persistencia offline con Room, listado de turnos, pantalla de perfil
+  con logout global y formulario de ausencias con soporte multipart.
+
+- **`v1.0.0`** → primera versión estable del rol EMPLEADO. *(latest)*
+  Historial de fichajes personales, listado y sincronización de ausencias con
+  polling, minificación y ofuscación del APK de release activadas, corrección
+  del flujo de logout con limpieza de caché, onboarding y soporte multilingüe
+  completo (ES/EN).
 ### Roadmap
- 
-- **`v1.0.0`** → primera versión estable del rol EMPLEADO. *(en desarrollo)*
-  Completará el backlog del empleado con: historial de fichajes personales, listado y sincronización de ausencias con polling, documentación KDoc completa y limpieza de código, además de las mejoras de calidad e infraestructura pendientes.
+
 - **`v2.0.0`** → rol SUPERVISOR completo. *(planificado)*
   Añadirá todas las funcionalidades de gestión de equipo: navegación condicional por rol, cuadrante del departamento, dashboard estadístico, modificación manual de fichajes, validación de ausencias del equipo y asignación de turnos a empleados.
 ### Criterio de uso
