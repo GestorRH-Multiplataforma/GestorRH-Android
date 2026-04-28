@@ -27,7 +27,7 @@ android {
         //noinspection OldTargetApi
         targetSdk = 36
         versionCode = (System.getenv("BUILD_NUMBER")?.toIntOrNull()) ?: 1
-        versionName = "1.0.0"
+        versionName = "1.0.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

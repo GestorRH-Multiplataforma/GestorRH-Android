@@ -19,7 +19,7 @@ interface AuthApi {
      * @return La respuesta HTTP del servidor. Un código 200 contendrá el Token JWT en el cuerpo,
      * mientras que los códigos 401 o 403 indicarán credenciales inválidas o falta de permisos.
      */
-    @POST("auth/login-empleado")
+    @POST("api/auth/login-empleado")
     suspend fun login(
         @Body peticion: PeticionLoginDTO
     ): Response<RespuestaLoginDTO>

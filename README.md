@@ -1,7 +1,7 @@
 # GestorRH - Cliente Android
  
 [![Android CI](https://github.com/GestorRH-Multiplataforma/gestorrh-android/actions/workflows/android-ci.yml/badge.svg)](https://github.com/GestorRH-Multiplataforma/gestorrh-android/actions/workflows/android-ci.yml)
-[![Version](https://img.shields.io/badge/version-v1.0.0-green)](https://github.com/GestorRH-Multiplataforma/gestorrh-android/releases/tag/v1.0.0)
+[![Version](https://img.shields.io/badge/version-v1.0.1--stable-brightgreen)](https://github.com/GestorRH-Multiplataforma/gestorrh-android/releases/tag/v1.0.1)
 [![Kotlin](https://img.shields.io/badge/Kotlin-1.9.22-7F52FF?logo=kotlin&logoColor=white)](https://kotlinlang.org/)
 [![Android SDK](https://img.shields.io/badge/SDK-34%2B-3DDC84?logo=android&logoColor=white)](https://developer.android.com/)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
@@ -253,11 +253,13 @@ Este proyecto utiliza **Git tags anotados** para marcar hitos funcionales, sigui
   Incluye persistencia offline con Room, listado de turnos, pantalla de perfil
   con logout global y formulario de ausencias con soporte multipart.
 
-- **`v1.0.0`** → primera versión estable del rol EMPLEADO. *(latest)*
+- **`v1.0.0`** → primera versión estable del rol EMPLEADO.
   Historial de fichajes personales, listado y sincronización de ausencias con
   polling, minificación y ofuscación del APK de release activadas, corrección
   del flujo de logout con limpieza de caché, onboarding y soporte multilingüe
   completo (ES/EN).
+- **`v1.0.1`** → corrección de conectividad con producción. *(latest)*
+    Corregido el prefijo del endpoint de autenticación para ser consistente con la `PROD_BASE_URL` de producción, resolviendo el fallo de login en dispositivos físicos.
 ### Roadmap
 
 - **`v2.0.0`** → rol SUPERVISOR completo. *(planificado)*
