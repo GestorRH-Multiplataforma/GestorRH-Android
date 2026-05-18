@@ -52,6 +52,7 @@ import androidx.compose.material.icons.filled.WifiOff
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.core.app.ActivityCompat
 
@@ -207,6 +208,7 @@ fun PantallaDashboard(
                         estaCargando = estadoUi.estaCargando,
                         modalidad = estadoUi.modalidadHoy,
                         fichajesPendientes = estadoUi.fichajesPendientesSincronizar,
+                        horaInicioPendiente = estadoUi.proximoTurno?.horaInicio,
                         alClickFichar = intentarFichar
                     )
 
@@ -478,6 +480,7 @@ private fun WidgetFichaje(
     estaCargando: Boolean,
     modalidad: ModalidadTurno?,
     fichajesPendientes: Int,
+    horaInicioPendiente: LocalTime?,
     alClickFichar: () -> Unit
 ) {
     val esActivo = estadoActual == EstadoFichaje.TRABAJANDO
@@ -487,7 +490,17 @@ private fun WidgetFichaje(
     val colorTextoEstado = if (esActivo) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
     val colorBoton = if (esActivo) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
     val textoBoton = if (esActivo) R.string.fichaje_btn_finalizar else R.string.fichaje_btn_iniciar
-    val textoEstado = if (esActivo) R.string.fichaje_estado_activo else R.string.fichaje_estado_fuera
+
+    val formatoHora = remember { DateTimeFormatter.ofPattern("HH:mm") }
+    val textoEstado = when (estadoActual) {
+        EstadoFichaje.TRABAJANDO -> stringResource(R.string.fichaje_estado_activo)
+        EstadoFichaje.TURNO_EN_CURSO_SIN_FICHAR -> stringResource(R.string.fichaje_estado_turno_sin_fichar)
+        EstadoFichaje.TURNO_PENDIENTE -> stringResource(
+            R.string.fichaje_estado_turno_pendiente,
+            horaInicioPendiente?.format(formatoHora) ?: ""
+        )
+        EstadoFichaje.FUERA_TURNO -> stringResource(R.string.fichaje_estado_fuera)
+    }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -509,10 +522,11 @@ private fun WidgetFichaje(
             }
 
             Text(
-                text = stringResource(id = textoEstado).uppercase(),
+                text = textoEstado,
                 style = MaterialTheme.typography.labelLarge,
                 color = colorTextoEstado,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                fontSize = 18.sp
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -546,7 +560,8 @@ private fun WidgetFichaje(
                     } else {
                         Text(
                             text = stringResource(id = textoBoton),
-                            style = MaterialTheme.typography.labelLarge
+                            style = MaterialTheme.typography.labelLarge,
+                            fontSize = 18.sp
                         )
                     }
                 }

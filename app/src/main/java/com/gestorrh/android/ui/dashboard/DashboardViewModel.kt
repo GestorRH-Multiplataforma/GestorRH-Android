@@ -88,7 +88,10 @@ data class ResumenProximaAusencia(
 )
 
 enum class EstadoFichaje {
-    TRABAJANDO, FUERA_TURNO
+    TRABAJANDO,
+    TURNO_EN_CURSO_SIN_FICHAR,
+    TURNO_PENDIENTE,
+    FUERA_TURNO
 }
 
 /**
@@ -167,15 +170,18 @@ class DashboardViewModel(
             val asignaciones = asignacionRepository.observarAsignaciones().firstOrNull()
                 ?: return@launch
             val hoy = LocalDate.now()
+            val ahora = LocalTime.now()
             val proxima = asignaciones
                 .mapNotNull { entidad ->
                     val fecha = parsearFecha(entidad.fecha) ?: return@mapNotNull null
                     if (fecha < hoy) return@mapNotNull null
+                    val horaFin = parsearHora(entidad.horaFin)
+                    if (fecha == hoy && horaFin != null && ahora.isAfter(horaFin)) return@mapNotNull null
                     ResumenProximoTurno(
                         nombreTurno = entidad.descripcionTurno,
                         fecha = fecha,
                         horaInicio = parsearHora(entidad.horaInicio),
-                        horaFin = parsearHora(entidad.horaFin)
+                        horaFin = horaFin
                     )
                 }
                 .minByOrNull { it.fecha }
@@ -196,7 +202,7 @@ class DashboardViewModel(
             val hoy = LocalDate.now()
             val proxima = ausencias
                 .filter { it.estado == ESTADO_AUSENCIA_SOLICITADA || it.estado == ESTADO_AUSENCIA_APROBADA }
-                .filter { !it.fechaInicio.isBefore(hoy) }
+                .filter { !it.fechaFin.isBefore(hoy) }
                 .minByOrNull { it.fechaInicio }
                 ?.let { dto ->
                     ResumenProximaAusencia(
@@ -240,13 +246,22 @@ class DashboardViewModel(
                             idFichajeAbierto = datos.idFichajeAbierto,
                             modalidadHoy = datos.modalidadHoy,
                             tieneTurnoHoy = datos.tieneTurnoHoy,
-                            estadoActual = if (datos.trabajandoActualmente) EstadoFichaje.TRABAJANDO else EstadoFichaje.FUERA_TURNO
+                            estadoActual = calcularEstadoFichaje(
+                                trabajandoActualmente = datos.trabajandoActualmente,
+                                tieneTurnoHoy = datos.tieneTurnoHoy,
+                                proximoTurno = _estadoUi.value.proximoTurno
+                            )
                         )
                     }
 
                     if (datos.trabajandoActualmente && datos.horaEntrada != null) {
-                        segundosAcumulados = ChronoUnit.SECONDS.between(datos.horaEntrada, LocalDateTime.now())
+                        val horaEntradaUtc = datos.horaEntrada.toInstant(java.time.ZoneOffset.UTC)
+                        val segundos = ChronoUnit.SECONDS.between(horaEntradaUtc, java.time.Instant.now())
+                        segundosAcumulados = segundos.coerceAtLeast(0L)
                         iniciarTemporizador()
+                    } else if (!datos.trabajandoActualmente) {
+                        detenerTemporizador()
+                        segundosAcumulados = 0
                     }
                 }
                 .onFailure { e ->
@@ -435,6 +450,25 @@ class DashboardViewModel(
         temporizadorJob?.cancel()
         temporizadorJob = null
         segundosAcumulados = 0
+    }
+
+    private fun calcularEstadoFichaje(
+        trabajandoActualmente: Boolean,
+        tieneTurnoHoy: Boolean,
+        proximoTurno: ResumenProximoTurno?
+    ): EstadoFichaje {
+        if (trabajandoActualmente) return EstadoFichaje.TRABAJANDO
+        if (!tieneTurnoHoy || proximoTurno == null) return EstadoFichaje.FUERA_TURNO
+
+        val ahora = LocalTime.now()
+        val horaInicio = proximoTurno.horaInicio
+        val horaFin = proximoTurno.horaFin
+
+        return when {
+            horaInicio != null && ahora.isBefore(horaInicio) -> EstadoFichaje.TURNO_PENDIENTE
+            horaFin != null && ahora.isAfter(horaFin) -> EstadoFichaje.FUERA_TURNO
+            else -> EstadoFichaje.TURNO_EN_CURSO_SIN_FICHAR
+        }
     }
 
     private fun formatearTiempo(segundosTotales: Long): String {
