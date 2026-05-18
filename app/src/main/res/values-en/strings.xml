@@ -79,7 +79,7 @@
     <string name="turnos_cd_mes_anterior">Previous month</string>
     <string name="turnos_cd_mes_siguiente">Next month</string>
     <!-- Date pattern for list cards: "Mon, Apr 21" -->
-    <string name="turnos_formato_fecha_tarjeta">EEE, MMM d</string>
+    <string name="turnos_formato_fecha_tarjeta">EEE, MMMM d</string>
     <!-- Full date pattern for BottomSheet detail -->
     <string name="turnos_formato_fecha_detalle">EEEE, MMMM d, yyyy</string>
     <string name="turnos_detalle_titulo">Shift detail</string>
@@ -88,6 +88,7 @@
     <string name="turnos_detalle_horario">Hours</string>
     <string name="turnos_detalle_modalidad">Mode</string>
     <string name="turnos_sin_conexion">Offline — showing saved data</string>
+    <string name="turnos_sin_turno_dia">No shift on this day</string>
 
     <!-- Time Off Request Screen -->
     <string name="ausencia_titulo_pantalla">Request time off</string>

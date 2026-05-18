@@ -2,6 +2,7 @@ package com.gestorrh.android.ui.turnos
 
 import com.gestorrh.android.core.ui.MensajeUi
 import com.gestorrh.android.data.local.entity.AsignacionEntity
+import java.time.LocalDate
 
 /**
  * Representa el estado inmutable de la UI para la pantalla de Mis Turnos.
@@ -20,7 +21,8 @@ data class EstadoUiMisTurnos(
     val asignaciones: List<AsignacionEntity> = emptyList(),
     val mensajeError: MensajeUi? = null,
     val sinConexion: Boolean = false,
-    val vistaActual: VistaActual = VistaActual.LISTA
+    val vistaActual: VistaActual = VistaActual.CALENDARIO,
+    val diaSeleccionado: LocalDate = LocalDate.now()
 )
 
 enum class VistaActual {

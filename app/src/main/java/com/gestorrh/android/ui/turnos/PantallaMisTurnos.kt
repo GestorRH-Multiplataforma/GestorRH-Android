@@ -1,10 +1,12 @@
 package com.gestorrh.android.ui.turnos
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
@@ -97,21 +99,21 @@ fun PantallaMisTurnos(
                     )
                 },
                 actions = {
-                    IconButton(onClick = { viewModel.cambiarVista(VistaActual.LISTA) }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.List,
-                            contentDescription = stringResource(id = R.string.turnos_cd_vista_lista),
-                            tint = if (estadoUi.vistaActual == VistaActual.LISTA)
-                                MaterialTheme.colorScheme.primary
-                            else
-                                MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
                     IconButton(onClick = { viewModel.cambiarVista(VistaActual.CALENDARIO) }) {
                         Icon(
                             imageVector = Icons.Filled.CalendarMonth,
                             contentDescription = stringResource(id = R.string.turnos_cd_vista_calendario),
                             tint = if (estadoUi.vistaActual == VistaActual.CALENDARIO)
+                                MaterialTheme.colorScheme.primary
+                            else
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    IconButton(onClick = { viewModel.cambiarVista(VistaActual.LISTA) }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.List,
+                            contentDescription = stringResource(id = R.string.turnos_cd_vista_lista),
+                            tint = if (estadoUi.vistaActual == VistaActual.LISTA)
                                 MaterialTheme.colorScheme.primary
                             else
                                 MaterialTheme.colorScheme.onSurfaceVariant
@@ -149,6 +151,8 @@ fun PantallaMisTurnos(
             else -> {
                 VistaCalendario(
                     asignaciones = estadoUi.asignaciones,
+                    diaSeleccionado = estadoUi.diaSeleccionado,
+                    alSeleccionarDia = viewModel::seleccionarDia,
                     modifier = Modifier.padding(paddingValores)
                 )
             }
@@ -156,24 +160,92 @@ fun PantallaMisTurnos(
     }
 }
 
+private fun agruparPorSemana(asignaciones: List<AsignacionEntity>): Map<LocalDate, List<AsignacionEntity>> {
+    return asignaciones.groupBy { asignacion ->
+        val fecha = asignacion.fechaLocalDate()
+        fecha.with(DayOfWeek.MONDAY)
+    }.toSortedMap()
+}
+
 @Composable
 private fun VistaListaTurnos(
     asignaciones: List<AsignacionEntity>,
     modifier: Modifier = Modifier
 ) {
+    val hoy = remember { LocalDate.now() }
+    val grupos = remember(asignaciones) { agruparPorSemana(asignaciones) }
+    val listState = rememberLazyListState()
+
+    LaunchedEffect(grupos) {
+        var indice = 0
+        var contador = 0
+        for ((inicioSemana, turnosSemana) in grupos) {
+            val finSemana = inicioSemana.plusDays(6)
+            if (!finSemana.isBefore(hoy)) {
+                indice = contador
+                break
+            }
+            contador += 1 + turnosSemana.size
+        }
+        if (indice > 0) listState.scrollToItem(indice)
+    }
+
     LazyColumn(
+        state = listState,
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        items(asignaciones, key = { it.idAsignacion }) { asignacion ->
-            TarjetaAsignacion(asignacion = asignacion)
+        grupos.forEach { (inicioSemana, turnosSemana) ->
+            item(key = "semana_${inicioSemana}") {
+                SeparadorSemana(inicioSemana = inicioSemana)
+                Spacer(modifier = Modifier.height(6.dp))
+            }
+            items(turnosSemana, key = { it.idAsignacion }) { asignacion ->
+                val fecha = asignacion.fechaLocalDate()
+                TarjetaAsignacion(
+                    asignacion = asignacion,
+                    esHoy = fecha == hoy,
+                    esPasado = fecha.isBefore(hoy)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
         }
     }
 }
 
 @Composable
-private fun TarjetaAsignacion(asignacion: AsignacionEntity) {
+private fun SeparadorSemana(inicioSemana: LocalDate) {
+    val formatoCorto = remember { DateTimeFormatter.ofPattern("d MMMM", Locale.getDefault()) }
+    val finSemana = inicioSemana.plusDays(6)
+    val etiqueta = "${inicioSemana.format(formatoCorto)} — ${finSemana.format(formatoCorto)}"
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 12.dp, bottom = 2.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = etiqueta,
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        HorizontalDivider(
+            modifier = Modifier.weight(1f),
+            color = MaterialTheme.colorScheme.outlineVariant
+        )
+    }
+}
+
+@Composable
+private fun TarjetaAsignacion(
+    asignacion: AsignacionEntity,
+    esHoy: Boolean = false,
+    esPasado: Boolean = false
+) {
     val patronFecha = stringResource(id = R.string.turnos_formato_fecha_tarjeta)
     val fechaFormateada = remember(asignacion.fecha, patronFecha) {
         val locale = Locale.getDefault()
@@ -182,8 +254,19 @@ private fun TarjetaAsignacion(asignacion: AsignacionEntity) {
     }
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        modifier = Modifier
+            .fillMaxWidth()
+            .alpha(if (esPasado) 0.5f else 1f),
+        colors = CardDefaults.cardColors(
+            containerColor = if (esHoy)
+                MaterialTheme.colorScheme.primaryContainer
+            else
+                MaterialTheme.colorScheme.surfaceVariant
+        ),
+        border = if (esHoy) BorderStroke(
+            width = 1.5.dp,
+            color = MaterialTheme.colorScheme.primary
+        ) else null,
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Row(
@@ -197,21 +280,30 @@ private fun TarjetaAsignacion(asignacion: AsignacionEntity) {
                 Text(
                     text = fechaFormateada,
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = if (esHoy)
+                        MaterialTheme.colorScheme.onPrimaryContainer
+                    else
+                        MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = asignacion.descripcionTurno,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = if (esHoy)
+                        MaterialTheme.colorScheme.onPrimaryContainer
+                    else
+                        MaterialTheme.colorScheme.onSurface
                 )
                 if (asignacion.horaInicio != null && asignacion.horaFin != null) {
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = "${asignacion.horaInicio} - ${asignacion.horaFin}",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = if (esHoy)
+                            MaterialTheme.colorScheme.onPrimaryContainer
+                        else
+                            MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -247,17 +339,21 @@ private fun ChipModalidad(modalidad: String) {
 @Composable
 private fun VistaCalendario(
     asignaciones: List<AsignacionEntity>,
+    diaSeleccionado: LocalDate,
+    alSeleccionarDia: (LocalDate) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var mesActual by remember { mutableStateOf(YearMonth.now()) }
-    var asignacionSeleccionada by remember { mutableStateOf<AsignacionEntity?>(null) }
-    val sheetState = rememberModalBottomSheetState()
 
     val diasConTurno = remember(asignaciones, mesActual) {
         asignaciones
             .map { it to it.fechaLocalDate() }
             .filter { YearMonth.from(it.second) == mesActual }
             .associate { it.second to it.first }
+    }
+
+    val asignacionSeleccionada = remember(diaSeleccionado, asignaciones) {
+        asignaciones.find { it.fechaLocalDate() == diaSeleccionado }
     }
 
     Column(
@@ -280,23 +376,29 @@ private fun VistaCalendario(
         CuadriculaDias(
             mes = mesActual,
             diasConTurno = diasConTurno.keys,
-            alClickDia = { dia ->
-                diasConTurno[dia]?.let { asignacion ->
-                    asignacionSeleccionada = asignacion
-                }
-            }
+            diaSeleccionado = diaSeleccionado,
+            alClickDia = alSeleccionarDia
         )
-    }
 
-    asignacionSeleccionada?.let { asignacion ->
-        ModalBottomSheet(
-            onDismissRequest = { asignacionSeleccionada = null },
-            sheetState = sheetState
-        ) {
-            DetalleAsignacion(
-                asignacion = asignacion,
-                modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
-            )
+        Spacer(modifier = Modifier.height(24.dp))
+
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        if (asignacionSeleccionada != null) {
+            DetalleAsignacion(asignacion = asignacionSeleccionada)
+        } else {
+            Box(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = stringResource(R.string.turnos_sin_turno_dia),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
 }
@@ -368,6 +470,7 @@ private fun FilaDiasSemana() {
 private fun CuadriculaDias(
     mes: YearMonth,
     diasConTurno: Set<LocalDate>,
+    diaSeleccionado: LocalDate,
     alClickDia: (LocalDate) -> Unit
 ) {
     val primerDia = mes.atDay(1)
@@ -390,9 +493,12 @@ private fun CuadriculaDias(
                         val tieneTurno = fecha in diasConTurno
                         val esHoy = fecha == LocalDate.now()
 
+                        val esSeleccionado = fecha == diaSeleccionado
+
                         CeldaDia(
                             numero = numeroDia,
                             esHoy = esHoy,
+                            esSeleccionado = esSeleccionado,
                             tieneTurno = tieneTurno,
                             alClick = { alClickDia(fecha) },
                             modifier = Modifier.weight(1f)
@@ -408,16 +514,19 @@ private fun CuadriculaDias(
 private fun CeldaDia(
     numero: Int,
     esHoy: Boolean,
+    esSeleccionado: Boolean,
     tieneTurno: Boolean,
     alClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val colorFondo = when {
-        esHoy -> MaterialTheme.colorScheme.primaryContainer
+        esHoy && esSeleccionado -> MaterialTheme.colorScheme.primaryContainer
+        esSeleccionado -> MaterialTheme.colorScheme.secondaryContainer
+        esHoy -> MaterialTheme.colorScheme.surfaceVariant
         tieneTurno -> MaterialTheme.colorScheme.surfaceVariant
         else -> Color.Transparent
     }
-    val opacidad = if (tieneTurno || esHoy) 1f else 0.4f
+    val opacidad = if (tieneTurno || esHoy || esSeleccionado) 1f else 0.4f
 
     Column(
         modifier = modifier
@@ -425,7 +534,7 @@ private fun CeldaDia(
             .clip(MaterialTheme.shapes.small)
             .background(colorFondo)
             .alpha(opacidad)
-            .clickable(enabled = tieneTurno, onClick = alClick),
+            .clickable(onClick = alClick),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -434,9 +543,10 @@ private fun CeldaDia(
             style = MaterialTheme.typography.bodyMedium,
             color = when {
                 esHoy -> MaterialTheme.colorScheme.onPrimaryContainer
+                esSeleccionado -> MaterialTheme.colorScheme.onSecondaryContainer
                 else -> MaterialTheme.colorScheme.onSurface
             },
-            fontWeight = if (esHoy || tieneTurno) FontWeight.Bold else FontWeight.Normal
+            fontWeight = if (esHoy || tieneTurno || esSeleccionado) FontWeight.Bold else FontWeight.Normal
         )
         if (tieneTurno) {
             Spacer(modifier = Modifier.height(2.dp))
