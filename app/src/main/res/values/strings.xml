@@ -82,7 +82,7 @@
     <string name="turnos_cd_mes_anterior">Mes anterior</string>
     <string name="turnos_cd_mes_siguiente">Mes siguiente</string>
     <!-- Patrón de fecha para las tarjetas de la lista: "lun., 21 de abr." -->
-    <string name="turnos_formato_fecha_tarjeta">EEE, d \'de\' MMM</string>
+    <string name="turnos_formato_fecha_tarjeta">EEE, d \'de\' MMMM</string>
     <!-- Patrón de fecha completo para el detalle del BottomSheet -->
     <string name="turnos_formato_fecha_detalle">EEEE, d \'de\' MMMM \'de\' yyyy</string>
     <string name="turnos_detalle_titulo">Detalle del turno</string>

@@ -1,10 +1,12 @@
 package com.gestorrh.android.ui.turnos
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
@@ -158,24 +160,92 @@ fun PantallaMisTurnos(
     }
 }
 
+private fun agruparPorSemana(asignaciones: List<AsignacionEntity>): Map<LocalDate, List<AsignacionEntity>> {
+    return asignaciones.groupBy { asignacion ->
+        val fecha = asignacion.fechaLocalDate()
+        fecha.with(DayOfWeek.MONDAY)
+    }.toSortedMap()
+}
+
 @Composable
 private fun VistaListaTurnos(
     asignaciones: List<AsignacionEntity>,
     modifier: Modifier = Modifier
 ) {
+    val hoy = remember { LocalDate.now() }
+    val grupos = remember(asignaciones) { agruparPorSemana(asignaciones) }
+    val listState = rememberLazyListState()
+
+    LaunchedEffect(grupos) {
+        var indice = 0
+        var contador = 0
+        for ((inicioSemana, turnosSemana) in grupos) {
+            val finSemana = inicioSemana.plusDays(6)
+            if (!finSemana.isBefore(hoy)) {
+                indice = contador
+                break
+            }
+            contador += 1 + turnosSemana.size
+        }
+        if (indice > 0) listState.scrollToItem(indice)
+    }
+
     LazyColumn(
+        state = listState,
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        items(asignaciones, key = { it.idAsignacion }) { asignacion ->
-            TarjetaAsignacion(asignacion = asignacion)
+        grupos.forEach { (inicioSemana, turnosSemana) ->
+            item(key = "semana_${inicioSemana}") {
+                SeparadorSemana(inicioSemana = inicioSemana)
+                Spacer(modifier = Modifier.height(6.dp))
+            }
+            items(turnosSemana, key = { it.idAsignacion }) { asignacion ->
+                val fecha = asignacion.fechaLocalDate()
+                TarjetaAsignacion(
+                    asignacion = asignacion,
+                    esHoy = fecha == hoy,
+                    esPasado = fecha.isBefore(hoy)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
         }
     }
 }
 
 @Composable
-private fun TarjetaAsignacion(asignacion: AsignacionEntity) {
+private fun SeparadorSemana(inicioSemana: LocalDate) {
+    val formatoCorto = remember { DateTimeFormatter.ofPattern("d MMMM", Locale.getDefault()) }
+    val finSemana = inicioSemana.plusDays(6)
+    val etiqueta = "${inicioSemana.format(formatoCorto)} — ${finSemana.format(formatoCorto)}"
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 12.dp, bottom = 2.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = etiqueta,
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        HorizontalDivider(
+            modifier = Modifier.weight(1f),
+            color = MaterialTheme.colorScheme.outlineVariant
+        )
+    }
+}
+
+@Composable
+private fun TarjetaAsignacion(
+    asignacion: AsignacionEntity,
+    esHoy: Boolean = false,
+    esPasado: Boolean = false
+) {
     val patronFecha = stringResource(id = R.string.turnos_formato_fecha_tarjeta)
     val fechaFormateada = remember(asignacion.fecha, patronFecha) {
         val locale = Locale.getDefault()
@@ -184,8 +254,19 @@ private fun TarjetaAsignacion(asignacion: AsignacionEntity) {
     }
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        modifier = Modifier
+            .fillMaxWidth()
+            .alpha(if (esPasado) 0.5f else 1f),
+        colors = CardDefaults.cardColors(
+            containerColor = if (esHoy)
+                MaterialTheme.colorScheme.primaryContainer
+            else
+                MaterialTheme.colorScheme.surfaceVariant
+        ),
+        border = if (esHoy) BorderStroke(
+            width = 1.5.dp,
+            color = MaterialTheme.colorScheme.primary
+        ) else null,
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Row(
@@ -199,21 +280,30 @@ private fun TarjetaAsignacion(asignacion: AsignacionEntity) {
                 Text(
                     text = fechaFormateada,
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = if (esHoy)
+                        MaterialTheme.colorScheme.onPrimaryContainer
+                    else
+                        MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = asignacion.descripcionTurno,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = if (esHoy)
+                        MaterialTheme.colorScheme.onPrimaryContainer
+                    else
+                        MaterialTheme.colorScheme.onSurface
                 )
                 if (asignacion.horaInicio != null && asignacion.horaFin != null) {
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = "${asignacion.horaInicio} - ${asignacion.horaFin}",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = if (esHoy)
+                            MaterialTheme.colorScheme.onPrimaryContainer
+                        else
+                            MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
