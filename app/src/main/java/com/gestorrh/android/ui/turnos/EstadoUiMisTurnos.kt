@@ -20,7 +20,7 @@ data class EstadoUiMisTurnos(
     val asignaciones: List<AsignacionEntity> = emptyList(),
     val mensajeError: MensajeUi? = null,
     val sinConexion: Boolean = false,
-    val vistaActual: VistaActual = VistaActual.LISTA
+    val vistaActual: VistaActual = VistaActual.CALENDARIO
 )
 
 enum class VistaActual {

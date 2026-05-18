@@ -97,21 +97,21 @@ fun PantallaMisTurnos(
                     )
                 },
                 actions = {
-                    IconButton(onClick = { viewModel.cambiarVista(VistaActual.LISTA) }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.List,
-                            contentDescription = stringResource(id = R.string.turnos_cd_vista_lista),
-                            tint = if (estadoUi.vistaActual == VistaActual.LISTA)
-                                MaterialTheme.colorScheme.primary
-                            else
-                                MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
                     IconButton(onClick = { viewModel.cambiarVista(VistaActual.CALENDARIO) }) {
                         Icon(
                             imageVector = Icons.Filled.CalendarMonth,
                             contentDescription = stringResource(id = R.string.turnos_cd_vista_calendario),
                             tint = if (estadoUi.vistaActual == VistaActual.CALENDARIO)
+                                MaterialTheme.colorScheme.primary
+                            else
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    IconButton(onClick = { viewModel.cambiarVista(VistaActual.LISTA) }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.List,
+                            contentDescription = stringResource(id = R.string.turnos_cd_vista_lista),
+                            tint = if (estadoUi.vistaActual == VistaActual.LISTA)
                                 MaterialTheme.colorScheme.primary
                             else
                                 MaterialTheme.colorScheme.onSurfaceVariant
