@@ -88,7 +88,10 @@ data class ResumenProximaAusencia(
 )
 
 enum class EstadoFichaje {
-    TRABAJANDO, FUERA_TURNO
+    TRABAJANDO,
+    TURNO_EN_CURSO_SIN_FICHAR,
+    TURNO_PENDIENTE,
+    FUERA_TURNO
 }
 
 /**
@@ -240,7 +243,11 @@ class DashboardViewModel(
                             idFichajeAbierto = datos.idFichajeAbierto,
                             modalidadHoy = datos.modalidadHoy,
                             tieneTurnoHoy = datos.tieneTurnoHoy,
-                            estadoActual = if (datos.trabajandoActualmente) EstadoFichaje.TRABAJANDO else EstadoFichaje.FUERA_TURNO
+                            estadoActual = calcularEstadoFichaje(
+                                trabajandoActualmente = datos.trabajandoActualmente,
+                                tieneTurnoHoy = datos.tieneTurnoHoy,
+                                proximoTurno = _estadoUi.value.proximoTurno
+                            )
                         )
                     }
 
@@ -440,6 +447,25 @@ class DashboardViewModel(
         temporizadorJob?.cancel()
         temporizadorJob = null
         segundosAcumulados = 0
+    }
+
+    private fun calcularEstadoFichaje(
+        trabajandoActualmente: Boolean,
+        tieneTurnoHoy: Boolean,
+        proximoTurno: ResumenProximoTurno?
+    ): EstadoFichaje {
+        if (trabajandoActualmente) return EstadoFichaje.TRABAJANDO
+        if (!tieneTurnoHoy || proximoTurno == null) return EstadoFichaje.FUERA_TURNO
+
+        val ahora = LocalTime.now()
+        val horaInicio = proximoTurno.horaInicio
+        val horaFin = proximoTurno.horaFin
+
+        return when {
+            horaInicio != null && ahora.isBefore(horaInicio) -> EstadoFichaje.TURNO_PENDIENTE
+            horaFin != null && ahora.isAfter(horaFin) -> EstadoFichaje.FUERA_TURNO
+            else -> EstadoFichaje.TURNO_EN_CURSO_SIN_FICHAR
+        }
     }
 
     private fun formatearTiempo(segundosTotales: Long): String {
