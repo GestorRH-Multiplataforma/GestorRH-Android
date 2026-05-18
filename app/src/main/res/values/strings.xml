@@ -91,6 +91,7 @@
     <string name="turnos_detalle_horario">Horario</string>
     <string name="turnos_detalle_modalidad">Modalidad</string>
     <string name="turnos_sin_conexion">Sin conexión — mostrando datos guardados</string>
+    <string name="turnos_sin_turno_dia">No tienes turno este día</string>
 
     <!-- Pantalla Solicitud de Ausencia -->
     <string name="ausencia_titulo_pantalla">Solicitar ausencia</string>

@@ -88,6 +88,7 @@
     <string name="turnos_detalle_horario">Hours</string>
     <string name="turnos_detalle_modalidad">Mode</string>
     <string name="turnos_sin_conexion">Offline — showing saved data</string>
+    <string name="turnos_sin_turno_dia">No shift on this day</string>
 
     <!-- Time Off Request Screen -->
     <string name="ausencia_titulo_pantalla">Request time off</string>

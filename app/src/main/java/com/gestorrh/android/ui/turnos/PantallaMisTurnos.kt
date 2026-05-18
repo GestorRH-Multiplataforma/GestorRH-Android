@@ -149,6 +149,8 @@ fun PantallaMisTurnos(
             else -> {
                 VistaCalendario(
                     asignaciones = estadoUi.asignaciones,
+                    diaSeleccionado = estadoUi.diaSeleccionado,
+                    alSeleccionarDia = viewModel::seleccionarDia,
                     modifier = Modifier.padding(paddingValores)
                 )
             }
@@ -247,17 +249,21 @@ private fun ChipModalidad(modalidad: String) {
 @Composable
 private fun VistaCalendario(
     asignaciones: List<AsignacionEntity>,
+    diaSeleccionado: LocalDate,
+    alSeleccionarDia: (LocalDate) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var mesActual by remember { mutableStateOf(YearMonth.now()) }
-    var asignacionSeleccionada by remember { mutableStateOf<AsignacionEntity?>(null) }
-    val sheetState = rememberModalBottomSheetState()
 
     val diasConTurno = remember(asignaciones, mesActual) {
         asignaciones
             .map { it to it.fechaLocalDate() }
             .filter { YearMonth.from(it.second) == mesActual }
             .associate { it.second to it.first }
+    }
+
+    val asignacionSeleccionada = remember(diaSeleccionado, asignaciones) {
+        asignaciones.find { it.fechaLocalDate() == diaSeleccionado }
     }
 
     Column(
@@ -280,23 +286,29 @@ private fun VistaCalendario(
         CuadriculaDias(
             mes = mesActual,
             diasConTurno = diasConTurno.keys,
-            alClickDia = { dia ->
-                diasConTurno[dia]?.let { asignacion ->
-                    asignacionSeleccionada = asignacion
-                }
-            }
+            diaSeleccionado = diaSeleccionado,
+            alClickDia = alSeleccionarDia
         )
-    }
 
-    asignacionSeleccionada?.let { asignacion ->
-        ModalBottomSheet(
-            onDismissRequest = { asignacionSeleccionada = null },
-            sheetState = sheetState
-        ) {
-            DetalleAsignacion(
-                asignacion = asignacion,
-                modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
-            )
+        Spacer(modifier = Modifier.height(24.dp))
+
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        if (asignacionSeleccionada != null) {
+            DetalleAsignacion(asignacion = asignacionSeleccionada)
+        } else {
+            Box(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = stringResource(R.string.turnos_sin_turno_dia),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
 }
@@ -368,6 +380,7 @@ private fun FilaDiasSemana() {
 private fun CuadriculaDias(
     mes: YearMonth,
     diasConTurno: Set<LocalDate>,
+    diaSeleccionado: LocalDate,
     alClickDia: (LocalDate) -> Unit
 ) {
     val primerDia = mes.atDay(1)
@@ -390,9 +403,12 @@ private fun CuadriculaDias(
                         val tieneTurno = fecha in diasConTurno
                         val esHoy = fecha == LocalDate.now()
 
+                        val esSeleccionado = fecha == diaSeleccionado
+
                         CeldaDia(
                             numero = numeroDia,
                             esHoy = esHoy,
+                            esSeleccionado = esSeleccionado,
                             tieneTurno = tieneTurno,
                             alClick = { alClickDia(fecha) },
                             modifier = Modifier.weight(1f)
@@ -408,16 +424,19 @@ private fun CuadriculaDias(
 private fun CeldaDia(
     numero: Int,
     esHoy: Boolean,
+    esSeleccionado: Boolean,
     tieneTurno: Boolean,
     alClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val colorFondo = when {
-        esHoy -> MaterialTheme.colorScheme.primaryContainer
+        esHoy && esSeleccionado -> MaterialTheme.colorScheme.primaryContainer
+        esSeleccionado -> MaterialTheme.colorScheme.secondaryContainer
+        esHoy -> MaterialTheme.colorScheme.surfaceVariant
         tieneTurno -> MaterialTheme.colorScheme.surfaceVariant
         else -> Color.Transparent
     }
-    val opacidad = if (tieneTurno || esHoy) 1f else 0.4f
+    val opacidad = if (tieneTurno || esHoy || esSeleccionado) 1f else 0.4f
 
     Column(
         modifier = modifier
@@ -425,7 +444,7 @@ private fun CeldaDia(
             .clip(MaterialTheme.shapes.small)
             .background(colorFondo)
             .alpha(opacidad)
-            .clickable(enabled = tieneTurno, onClick = alClick),
+            .clickable(onClick = alClick),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -434,9 +453,10 @@ private fun CeldaDia(
             style = MaterialTheme.typography.bodyMedium,
             color = when {
                 esHoy -> MaterialTheme.colorScheme.onPrimaryContainer
+                esSeleccionado -> MaterialTheme.colorScheme.onSecondaryContainer
                 else -> MaterialTheme.colorScheme.onSurface
             },
-            fontWeight = if (esHoy || tieneTurno) FontWeight.Bold else FontWeight.Normal
+            fontWeight = if (esHoy || tieneTurno || esSeleccionado) FontWeight.Bold else FontWeight.Normal
         )
         if (tieneTurno) {
             Spacer(modifier = Modifier.height(2.dp))

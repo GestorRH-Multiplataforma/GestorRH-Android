@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 /**
  * ViewModel para la pantalla de Mis Turnos.
@@ -79,6 +80,10 @@ class MisTurnosViewModel(
                 }
             }
         }
+    }
+
+    fun seleccionarDia(fecha: LocalDate) {
+        _estadoUi.update { it.copy(diaSeleccionado = fecha) }
     }
 
     fun cambiarVista(vista: VistaActual) {
