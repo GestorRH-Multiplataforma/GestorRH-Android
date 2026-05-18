@@ -170,15 +170,18 @@ class DashboardViewModel(
             val asignaciones = asignacionRepository.observarAsignaciones().firstOrNull()
                 ?: return@launch
             val hoy = LocalDate.now()
+            val ahora = LocalTime.now()
             val proxima = asignaciones
                 .mapNotNull { entidad ->
                     val fecha = parsearFecha(entidad.fecha) ?: return@mapNotNull null
                     if (fecha < hoy) return@mapNotNull null
+                    val horaFin = parsearHora(entidad.horaFin)
+                    if (fecha == hoy && horaFin != null && ahora.isAfter(horaFin)) return@mapNotNull null
                     ResumenProximoTurno(
                         nombreTurno = entidad.descripcionTurno,
                         fecha = fecha,
                         horaInicio = parsearHora(entidad.horaInicio),
-                        horaFin = parsearHora(entidad.horaFin)
+                        horaFin = horaFin
                     )
                 }
                 .minByOrNull { it.fecha }
@@ -199,7 +202,7 @@ class DashboardViewModel(
             val hoy = LocalDate.now()
             val proxima = ausencias
                 .filter { it.estado == ESTADO_AUSENCIA_SOLICITADA || it.estado == ESTADO_AUSENCIA_APROBADA }
-                .filter { !it.fechaInicio.isBefore(hoy) }
+                .filter { !it.fechaFin.isBefore(hoy) }
                 .minByOrNull { it.fechaInicio }
                 ?.let { dto ->
                     ResumenProximaAusencia(
