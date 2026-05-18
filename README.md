@@ -5,6 +5,7 @@
 [![Kotlin](https://img.shields.io/badge/Kotlin-1.9.22-7F52FF?logo=kotlin&logoColor=white)](https://kotlinlang.org/)
 [![Android SDK](https://img.shields.io/badge/SDK-34%2B-3DDC84?logo=android&logoColor=white)](https://developer.android.com/)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![Download](https://img.shields.io/badge/Descargar-APK-3DDC84?logo=android&logoColor=white)](https://gestorrh-multiplataforma.github.io/github.io/)
  
 Cliente móvil nativo desarrollado para el ecosistema **GestorRH 2.0**. Esta aplicación permite a los empleados gestionar su jornada laboral, consultar turnos y tramitar ausencias mediante una interfaz moderna y reactiva, integrada con el backend centralizado [GestorRH-API](https://github.com/GestorRH-Multiplataforma/GestorRH-API).
  
@@ -182,6 +183,10 @@ PROD_BASE_URL="https://tu-dominio.com/api/"
 2. Crea el archivo `secrets.properties` con las variables indicadas arriba.
 3. Abre el proyecto en Android Studio y sincroniza con Gradle para descargar las dependencias definidas en `libs.versions.toml`.
 4. Ejecuta la variante `debug` en un emulador o dispositivo físico.
+
+> **Descarga directa:** Puedes descargar el APK de la última versión estable
+> desde la [página de descarga](https://gestorrh-multiplataforma.github.io/github.io/) o directamente desde
+> los [releases del repositorio](https://github.com/GestorRH-Multiplataforma/gestorrh-android/releases/tag/v1.0.0).
 ---
 
 ## Funcionalidades Implementadas
