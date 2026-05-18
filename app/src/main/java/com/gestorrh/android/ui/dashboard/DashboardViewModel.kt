@@ -245,8 +245,13 @@ class DashboardViewModel(
                     }
 
                     if (datos.trabajandoActualmente && datos.horaEntrada != null) {
-                        segundosAcumulados = ChronoUnit.SECONDS.between(datos.horaEntrada, LocalDateTime.now())
+                        val horaEntradaUtc = datos.horaEntrada.toInstant(java.time.ZoneOffset.UTC)
+                        val segundos = ChronoUnit.SECONDS.between(horaEntradaUtc, java.time.Instant.now())
+                        segundosAcumulados = segundos.coerceAtLeast(0L)
                         iniciarTemporizador()
+                    } else if (!datos.trabajandoActualmente) {
+                        detenerTemporizador()
+                        segundosAcumulados = 0
                     }
                 }
                 .onFailure { e ->
