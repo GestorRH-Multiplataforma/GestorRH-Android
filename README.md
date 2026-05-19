@@ -1,7 +1,7 @@
 # GestorRH - Cliente Android
  
 [![Android CI](https://github.com/GestorRH-Multiplataforma/gestorrh-android/actions/workflows/android-ci.yml/badge.svg)](https://github.com/GestorRH-Multiplataforma/gestorrh-android/actions/workflows/android-ci.yml)
-[![Version](https://img.shields.io/badge/version-v1.0.1--stable-brightgreen)](https://github.com/GestorRH-Multiplataforma/gestorrh-android/releases/tag/v1.0.1)
+[![Version](https://img.shields.io/badge/version-v1.0.2--stable-brightgreen)](https://github.com/GestorRH-Multiplataforma/gestorrh-android/releases/tag/v1.0.2)
 [![Kotlin](https://img.shields.io/badge/Kotlin-1.9.22-7F52FF?logo=kotlin&logoColor=white)](https://kotlinlang.org/)
 [![Android SDK](https://img.shields.io/badge/SDK-34%2B-3DDC84?logo=android&logoColor=white)](https://developer.android.com/)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
@@ -263,8 +263,10 @@ Este proyecto utiliza **Git tags anotados** para marcar hitos funcionales, sigui
   polling, minificación y ofuscación del APK de release activadas, corrección
   del flujo de logout con limpieza de caché, onboarding y soporte multilingüe
   completo (ES/EN).
-- **`v1.0.1`** → corrección de conectividad con producción. *(latest)*
+- **`v1.0.1`** → corrección de conectividad con producción. 
     Corregido el prefijo del endpoint de autenticación para ser consistente con la `PROD_BASE_URL` de producción, resolviendo el fallo de login en dispositivos físicos.
+- **`v1.0.2`** → corrección de eliminación de justificante en ausencias. *(latest)*
+  Corregido el flujo de edición de ausencias que impedía eliminar un justificante ya adjunto, centralizando el cálculo del flag en el ViewModel y eliminando el recálculo redundante en el caso de uso.
 ### Roadmap
 
 - **`v2.0.0`** → rol SUPERVISOR completo. *(planificado)*
