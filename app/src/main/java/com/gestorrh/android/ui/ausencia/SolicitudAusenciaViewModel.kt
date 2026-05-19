@@ -279,12 +279,12 @@ class SolicitudAusenciaViewModel(
                 nombreNormalizadoParaSubida(estadoActual.nombreArchivo, estadoActual.esImagen)
             }
 
-            val flagEliminar = if (
-                estadoActual.idAusenciaEditar != null &&
-                archivoBytes == null &&
-                estadoActual.nombreJustificanteExistente != null
-            ) {
-                estadoActual.eliminarJustificanteExistente
+            val flagEliminar = if (estadoActual.idAusenciaEditar != null) {
+                when {
+                    estadoActual.eliminarJustificanteExistente -> true
+                    archivoBytes != null -> null
+                    else -> false
+                }
             } else {
                 null
             }

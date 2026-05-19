@@ -64,17 +64,12 @@ class SolicitarAusenciaUseCase(
             }
         }
 
-        val flagEliminar = if (idAusenciaEditar != null && archivoBytes == null) {
-            eliminarJustificante
-        } else {
-            null
-        }
         val peticion = PeticionAusenciaDTO(
             tipo = tipo,
             descripcion = descripcion?.takeIf { it.isNotBlank() },
             fechaInicio = fechaInicio,
             fechaFin = fechaFin,
-            eliminarJustificante = flagEliminar
+            eliminarJustificante = eliminarJustificante
         )
         return if (idAusenciaEditar != null) {
             repository.actualizarAusencia(idAusenciaEditar, peticion, archivoBytes, nombreArchivo)
