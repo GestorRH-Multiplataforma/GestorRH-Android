@@ -19,6 +19,7 @@ import com.gestorrh.android.ui.ausencia.PantallaMisAusencias
 import com.gestorrh.android.ui.ausencia.PantallaSolicitudAusencia
 import com.gestorrh.android.ui.ausencia.SolicitudAusenciaViewModel
 import com.gestorrh.android.ui.dashboard.PantallaDashboard
+import com.gestorrh.android.ui.equipo.PantallaGestionEquipo
 import com.gestorrh.android.ui.historial.PantallaHistorialFichajes
 import com.gestorrh.android.ui.perfil.PantallaPerfil
 import com.gestorrh.android.ui.turnos.PantallaMisTurnos
@@ -31,16 +32,24 @@ private const val DURACION_TRANSICION_MS = 300
  * Contenedor maestro de la experiencia post-login.
  *
  * Implementa el patrón Scaffold con barra de navegación inferior y un NavHost
- * con transiciones animadas entre destinos:
+ * con transiciones animadas entre destinos. La lista de pestañas visibles y los
+ * destinos registrados en el grafo se determinan de forma condicional según el
+ * rol del empleado autenticado:
  *
- * - Navegación entre pestañas principales: fade cruzado suave (fadeIn + fadeOut)
- *   para transmitir cambio de contexto sin brusquedad.
- * - Navegación hacia pantallas secundarias (formulario de ausencia): deslizamiento
- *   hacia arriba en la entrada y hacia abajo en la salida, siguiendo las
- *   directrices de Material Design 3 para flujos de creación/edición.
+ * - EMPLEADO: 4 pestañas (Inicio, Turnos, Ausencias, Perfil).
+ * - SUPERVISOR: 5 pestañas (Inicio, Turnos, Ausencias, Perfil, Gestión Equipo).
+ *
+ * Un empleado raso no puede navegar a las rutas de supervisor porque el destino
+ * directamente no se registra en el NavHost cuando [isSupervisor] es false.
+ *
+ * @param isSupervisor Indica si el empleado autenticado tiene rol SUPERVISOR.
+ *        Se lee desde [SessionManager] en [MainActivity] para que el valor
+ *        esté disponible desde el primer frame sin petición de red.
+ * @param alCerrarSesion Callback que limpia la sesión y navega al login.
  */
 @Composable
 fun PantallaPrincipal(
+    isSupervisor: Boolean,
     alCerrarSesion: () -> Unit
 ) {
     val controladorNavegacionInterno = rememberNavController()
@@ -52,11 +61,23 @@ fun PantallaPrincipal(
         RutasDestino.Perfil
     )
 
+    val pestanas = if (isSupervisor) {
+        listOf(
+            RutasDestino.Inicio,
+            RutasDestino.Turnos,
+            RutasDestino.Ausencias,
+            RutasDestino.GestionEquipo,
+            RutasDestino.Perfil
+        )
+    } else {
+        pestañasBase
+    }
+
     Scaffold(
         bottomBar = {
             BarraNavegacionInferior(
                 controladorNavegacion = controladorNavegacionInterno,
-                destinos = pestañasBase
+                destinos = pestanas
             )
         }
     ) { paddingInterior ->
@@ -238,6 +259,12 @@ fun PantallaPrincipal(
                 PantallaHistorialFichajes(
                     alVolver = { controladorNavegacionInterno.popBackStack() }
                 )
+            }
+
+            if (isSupervisor) {
+                composable(RutasDestino.GestionEquipo.ruta) {
+                    PantallaGestionEquipo()
+                }
             }
         }
     }

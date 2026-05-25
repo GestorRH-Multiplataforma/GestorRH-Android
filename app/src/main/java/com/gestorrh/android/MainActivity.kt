@@ -40,6 +40,8 @@ import com.gestorrh.android.ui.onboarding.PantallaOnboarding
  *
  * Implementa la directriz de "Auto-Login", evaluando la persistencia del Token JWT
  * de manera síncrona en el arranque para decidir la ruta inicial óptima.
+ * Lee también el rol persistido para determinar si el destino principal debe
+ * mostrar la navegación de EMPLEADO o de SUPERVISOR, sin necesidad de red.
  * Observa [AuthEventBus] para redirigir al Login ante cualquier 401 global.
  *
  * SplashScreen: llama a [installSplashScreen] ANTES de [setContent] para que el
@@ -124,6 +126,7 @@ class MainActivity : ComponentActivity() {
 
                         composable("principal") {
                             PantallaPrincipal(
+                                isSupervisor = sessionManager.isSupervisor(),
                                 alCerrarSesion = {
                                     sessionManager.clearSession()
                                     scope.launch {
