@@ -60,8 +60,10 @@ class LoginViewModel(
 
     /**
      * Ejecuta la petición de autenticación a través del repositorio.
-     * La llamada se suspende en un hilo secundario (viewModelScope) para operar
-     * asíncronamente sin bloquear la interfaz gráfica del móvil.
+     * Persiste token, nombre, rol e id del empleado en [SessionManager] cuando
+     * el servidor confirma las credenciales.
+     * En caso de error muestra el mensaje dinámico devuelto por la API cuando
+     * está disponible, o un literal de recurso genérico para fallos de red.
      */
     fun realizarLogin() {
         val estadoActual = _estadoUi.value
@@ -73,7 +75,12 @@ class LoginViewModel(
         viewModelScope.launch {
             authRepository.login(estadoActual.email, estadoActual.password)
                 .onSuccess { respuesta ->
-                    sessionManager.saveSession(respuesta.token, respuesta.nombre)
+                    sessionManager.saveSession(
+                        token = respuesta.token,
+                        nombre = respuesta.nombre,
+                        rol = respuesta.rol,
+                        id = respuesta.id
+                    )
                     _estadoUi.update { it.copy(estaCargando = false, loginExitoso = true) }
                 }
                 .onFailure { error ->
@@ -83,7 +90,7 @@ class LoginViewModel(
                             mensajeError = if (error is java.io.IOException) {
                                 MensajeUi.Recurso(R.string.error_conexion)
                             } else {
-                                MensajeUi.Recurso(R.string.login_error_credentials)
+                                MensajeUi.Dinamico(error.message ?: "")
                             },
                             botonLoginHabilitado = true
                         )

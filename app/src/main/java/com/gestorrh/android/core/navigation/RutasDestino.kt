@@ -5,7 +5,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.EventBusy
-import androidx.compose.material.icons.filled.Group
+import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -26,7 +26,7 @@ sealed class RutasDestino(
     data object Turnos : RutasDestino("turnos", R.string.nav_turnos, Icons.Filled.CalendarMonth)
     data object Ausencias : RutasDestino("ausencias", R.string.nav_ausencias, Icons.Filled.EventBusy)
     data object Perfil : RutasDestino("perfil", R.string.nav_perfil, Icons.Filled.Person)
-    data object GestionEquipo : RutasDestino("equipo", R.string.nav_equipo, Icons.Filled.Group)
+    data object GestionEquipo : RutasDestino("equipo", R.string.nav_equipo, Icons.Filled.Groups)
 
     /**
      * Destino interno para el formulario de solicitud de ausencia. No aparece en la

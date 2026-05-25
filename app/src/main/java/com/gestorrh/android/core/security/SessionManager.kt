@@ -7,10 +7,13 @@ import androidx.security.crypto.MasterKey
 
 /**
  * Fuente de verdad única para la sesión del empleado autenticado.
- * Persiste el token JWT y el nombre completo en el Keystore nativo de Android
- * mediante cifrado AES256-GCM, garantizando que no puedan extraerse en texto plano.
  *
- * El campo rol se gestionará en la issue P2-01.
+ * Persiste el token JWT, el nombre completo, el rol y el identificador numérico
+ * del empleado en el Keystore nativo de Android mediante cifrado AES256-GCM,
+ * garantizando que no puedan extraerse en texto plano.
+ *
+ * El rol se persiste para poder determinar la navegación condicional (EMPLEADO vs
+ * SUPERVISOR) en arranques en frío sin necesidad de realizar ninguna petición de red.
  *
  * @param contexto Contexto de la aplicación necesario para inicializar el almacenamiento cifrado.
  */
@@ -31,19 +34,27 @@ class SessionManager(contexto: Context) {
     companion object {
         private const val CLAVE_TOKEN_JWT = "token_jwt"
         private const val CLAVE_NOMBRE_EMPLEADO = "nombre_empleado"
-        // TODO(#17): añadir persistencia de rol
+        private const val CLAVE_ROL_EMPLEADO = "rol_empleado"
+        private const val CLAVE_ID_EMPLEADO = "id_empleado"
+        private const val ROL_SUPERVISOR = "SUPERVISOR"
+        private const val ID_EMPLEADO_SIN_SESION = -1L
     }
 
     /**
-     * Persiste el token JWT y el nombre del empleado al iniciar sesión.
+     * Persiste el token JWT, el nombre, el rol y el identificador del empleado
+     * al iniciar sesión correctamente.
      *
      * @param token Cadena JWT devuelta por el servidor tras autenticación exitosa.
      * @param nombre Nombre completo del empleado tal como lo devuelve la API.
+     * @param rol Rol del empleado: "EMPLEADO" o "SUPERVISOR".
+     * @param id Identificador numérico único del empleado en el sistema.
      */
-    fun saveSession(token: String, nombre: String) {
+    fun saveSession(token: String, nombre: String, rol: String, id: Long) {
         preferenciasCifradas.edit {
             putString(CLAVE_TOKEN_JWT, token)
             putString(CLAVE_NOMBRE_EMPLEADO, nombre)
+            putString(CLAVE_ROL_EMPLEADO, rol)
+            putLong(CLAVE_ID_EMPLEADO, id)
         }
     }
 
@@ -62,6 +73,29 @@ class SessionManager(contexto: Context) {
     fun getNombre(): String? = preferenciasCifradas.getString(CLAVE_NOMBRE_EMPLEADO, null)
 
     /**
+     * Recupera el rol del empleado de la sesión activa.
+     *
+     * @return El rol ("EMPLEADO" o "SUPERVISOR") si existe sesión, null en caso contrario.
+     */
+    fun getRol(): String? = preferenciasCifradas.getString(CLAVE_ROL_EMPLEADO, null)
+
+    /**
+     * Recupera el identificador numérico del empleado autenticado.
+     *
+     * @return El id del empleado si existe sesión, -1 en caso contrario.
+     */
+    fun getId(): Long = preferenciasCifradas.getLong(CLAVE_ID_EMPLEADO, ID_EMPLEADO_SIN_SESION)
+
+    /**
+     * Indica si el empleado autenticado tiene rol de supervisor.
+     * Se evalúa de forma síncrona desde las preferencias cifradas, por lo que
+     * es seguro llamarlo en el hilo principal durante la composición del NavGraph.
+     *
+     * @return true si el rol persistido es "SUPERVISOR", false en cualquier otro caso.
+     */
+    fun isSupervisor(): Boolean = getRol() == ROL_SUPERVISOR
+
+    /**
      * Purga todos los datos de sesión del almacenamiento seguro.
      * Invocado durante el logout manual o cuando el servidor devuelve 401.
      */
@@ -69,6 +103,8 @@ class SessionManager(contexto: Context) {
         preferenciasCifradas.edit {
             remove(CLAVE_TOKEN_JWT)
             remove(CLAVE_NOMBRE_EMPLEADO)
+            remove(CLAVE_ROL_EMPLEADO)
+            remove(CLAVE_ID_EMPLEADO)
         }
     }
 }

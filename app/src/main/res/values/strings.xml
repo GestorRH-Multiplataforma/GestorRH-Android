@@ -197,4 +197,13 @@
     <string name="onboarding_pagina4_descripcion">Esta aplicación es de uso corporativo. Para acceder necesitas las credenciales que te proporcionará tu responsable de RRHH.</string>
 
     <string name="onboarding_cd_ilustracion">Ilustración de la funcionalidad</string>
+
+    <!-- Pantalla Gestión Equipo (Supervisor) -->
+    <string name="equipo_titulo">Gestión Equipo</string>
+    <string name="equipo_tab_ausencias">Ausencias</string>
+    <string name="equipo_tab_cuadrante">Cuadrante</string>
+    <string name="equipo_tab_dashboard">Dashboard</string>
+    <string name="equipo_tab_turnos">Turnos</string>
+    <string name="equipo_tab_fichajes">Fichajes</string>
+    <string name="equipo_proximamente">Próximamente</string>
 </resources>

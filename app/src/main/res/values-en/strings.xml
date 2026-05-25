@@ -196,4 +196,13 @@
     <string name="onboarding_pagina4_descripcion">This is a corporate application. To access it you need the credentials provided by your HR manager.</string>
 
     <string name="onboarding_cd_ilustracion">Feature illustration</string>
+
+    <!-- Supervisor Team Management Screen -->
+    <string name="equipo_titulo">Team Management</string>
+    <string name="equipo_tab_ausencias">Time Off</string>
+    <string name="equipo_tab_cuadrante">Schedule</string>
+    <string name="equipo_tab_dashboard">Dashboard</string>
+    <string name="equipo_tab_turnos">Shifts</string>
+    <string name="equipo_tab_fichajes">Records</string>
+    <string name="equipo_proximamente">Coming soon</string>
 </resources>
