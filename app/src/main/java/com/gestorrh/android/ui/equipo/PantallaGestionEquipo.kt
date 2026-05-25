@@ -42,7 +42,6 @@ fun PantallaGestionEquipo() {
     val tabs = listOf(
         stringResource(R.string.equipo_tab_ausencias),
         stringResource(R.string.equipo_tab_cuadrante),
-        stringResource(R.string.equipo_tab_turnos),
         stringResource(R.string.equipo_tab_fichajes)
     )
 

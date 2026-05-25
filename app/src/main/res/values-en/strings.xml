@@ -201,8 +201,6 @@
     <string name="equipo_titulo">Team Management</string>
     <string name="equipo_tab_ausencias">Time Off</string>
     <string name="equipo_tab_cuadrante">Schedule</string>
-    <string name="equipo_tab_dashboard">Dashboard</string>
-    <string name="equipo_tab_turnos">Shifts</string>
     <string name="equipo_tab_fichajes">Records</string>
     <string name="equipo_proximamente">Coming soon</string>
 </resources>
