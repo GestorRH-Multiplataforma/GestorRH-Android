@@ -204,4 +204,49 @@
     <string name="equipo_tab_cuadrante">Cuadrante</string>
     <string name="equipo_tab_fichajes">Fichajes</string>
     <string name="equipo_proximamente">Próximamente</string>
+
+    <!-- Pantalla Cuadrante Departamento (Supervisor) -->
+    <string name="cuadrante_titulo">Cuadrante</string>
+    <string name="cuadrante_subtitulo_hoy">Hoy</string>
+    <string name="cuadrante_contador_empleados">%d empleados planificados</string>
+    <string name="cuadrante_vacio">No hay empleados con turno asignado este día</string>
+    <string name="cuadrante_fab_cd">Asignar turno</string>
+    <string name="cuadrante_btn_asignar">Asignar</string>
+    <string name="cuadrante_asignacion_exitosa">Turno asignado correctamente</string>
+    <string name="cuadrante_reintentar">Reintentar</string>
+    <string name="cuadrante_actualizacion_exitosa">Asignación actualizada correctamente</string>
+    <string name="cuadrante_eliminacion_exitosa">Asignación eliminada correctamente</string>
+    <string name="cuadrante_error_motivo_requerido">El motivo es obligatorio al editar una asignación</string>
+    <string name="cuadrante_sheet_titulo_edicion">Editar asignación</string>
+    <string name="cuadrante_btn_actualizar">Actualizar</string>
+    <string name="cuadrante_dialog_eliminar_titulo">Eliminar asignación</string>
+    <string name="cuadrante_dialog_eliminar_mensaje">¿Estás seguro de que deseas eliminar esta asignación? Esta acción no se puede deshacer.</string>
+    <string name="cuadrante_dialog_eliminar_confirmar">Eliminar</string>
+    <string name="cuadrante_dialog_eliminar_cancelar">Cancelar</string>
+    <string name="cuadrante_label_motivo_edicion">Motivo del cambio</string>
+    <string name="cuadrante_modificado_por">Modificado por %1$s el %2$s\n%3$s</string>
+
+    <!-- BottomSheet asignación -->
+    <string name="cuadrante_sheet_titulo">Nueva asignación</string>
+    <string name="cuadrante_label_empleado">Empleado</string>
+    <string name="cuadrante_label_turno">Turno</string>
+    <string name="cuadrante_label_fecha">Fecha</string>
+    <string name="cuadrante_label_modalidad">Modalidad</string>
+    <string name="cuadrante_label_motivo">Motivo (opcional)</string>
+    <string name="cuadrante_cargando_catalogos">Cargando…</string>
+
+    <!-- Errores de validación -->
+    <string name="cuadrante_error_empleado_requerido">Selecciona un empleado</string>
+    <string name="cuadrante_error_turno_requerido">Selecciona un turno</string>
+    <string name="cuadrante_error_fecha_pasada">La fecha no puede ser anterior a hoy</string>
+    <string name="cuadrante_error_modalidad_requerida">Selecciona una modalidad</string>
+
+    <!-- Error 409 -->
+    <string name="cuadrante_error_conflicto">Los datos han cambiado, recarga e inténtalo de nuevo</string>
+
+    <!-- Tarjeta empleado -->
+    <string name="cuadrante_cd_avatar">Avatar de %s</string>
+    <string name="cuadrante_modalidad_presencial">Presencial</string>
+    <string name="cuadrante_modalidad_teletrabajo">Teletrabajo</string>
+    <string name="cuadrante_horario">%1$s - %2$s</string>
 </resources>

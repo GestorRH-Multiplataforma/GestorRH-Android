@@ -12,6 +12,8 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import com.gestorrh.android.core.network.LocalTimeDeserializer
+import java.time.LocalTime
 
 /**
  * Motor central de comunicaciones HTTP de la aplicación.
@@ -48,6 +50,13 @@ object ApiClient {
                 LocalDate::class.java,
                 JsonSerializer<LocalDate> { src, _, _ ->
                     JsonPrimitive(src.format(DateTimeFormatter.ISO_LOCAL_DATE))
+                }
+            )
+            .registerTypeAdapter(LocalTime::class.java, LocalTimeDeserializer())
+            .registerTypeAdapter(
+                LocalTime::class.java,
+                JsonSerializer<LocalTime> { src, _, _ ->
+                    JsonPrimitive(src.format(DateTimeFormatter.ofPattern("HH:mm")))
                 }
             )
             .create()

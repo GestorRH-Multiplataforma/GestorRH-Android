@@ -203,4 +203,49 @@
     <string name="equipo_tab_cuadrante">Schedule</string>
     <string name="equipo_tab_fichajes">Records</string>
     <string name="equipo_proximamente">Coming soon</string>
+
+    <!-- Cuadrante Department Screen (Supervisor) -->
+    <string name="cuadrante_titulo">Schedule</string>
+    <string name="cuadrante_subtitulo_hoy">Today</string>
+    <string name="cuadrante_contador_empleados">%d employees scheduled</string>
+    <string name="cuadrante_vacio">No employees scheduled for this day</string>
+    <string name="cuadrante_fab_cd">Assign shift</string>
+    <string name="cuadrante_btn_asignar">Assign</string>
+    <string name="cuadrante_asignacion_exitosa">Shift assigned successfully</string>
+    <string name="cuadrante_reintentar">Retry</string>
+    <string name="cuadrante_actualizacion_exitosa">Assignment updated successfully</string>
+    <string name="cuadrante_eliminacion_exitosa">Assignment deleted successfully</string>
+    <string name="cuadrante_error_motivo_requerido">Reason is required when editing an assignment</string>
+    <string name="cuadrante_sheet_titulo_edicion">Edit assignment</string>
+    <string name="cuadrante_btn_actualizar">Update</string>
+    <string name="cuadrante_dialog_eliminar_titulo">Delete assignment</string>
+    <string name="cuadrante_dialog_eliminar_mensaje">Are you sure you want to delete this assignment? This action cannot be undone.</string>
+    <string name="cuadrante_dialog_eliminar_confirmar">Delete</string>
+    <string name="cuadrante_dialog_eliminar_cancelar">Cancel</string>
+    <string name="cuadrante_label_motivo_edicion">Reason for change</string>
+    <string name="cuadrante_modificado_por">Modified by %1$s on %2$s\n%3$s</string>
+
+    <!-- Assignment BottomSheet -->
+    <string name="cuadrante_sheet_titulo">New assignment</string>
+    <string name="cuadrante_label_empleado">Employee</string>
+    <string name="cuadrante_label_turno">Shift</string>
+    <string name="cuadrante_label_fecha">Date</string>
+    <string name="cuadrante_label_modalidad">Mode</string>
+    <string name="cuadrante_label_motivo">Reason (optional)</string>
+    <string name="cuadrante_cargando_catalogos">Loading…</string>
+
+    <!-- Validation errors -->
+    <string name="cuadrante_error_empleado_requerido">Select an employee</string>
+    <string name="cuadrante_error_turno_requerido">Select a shift</string>
+    <string name="cuadrante_error_fecha_pasada">Date cannot be in the past</string>
+    <string name="cuadrante_error_modalidad_requerida">Select a mode</string>
+
+    <!-- Error 409 -->
+    <string name="cuadrante_error_conflicto">Data has changed, please reload and try again</string>
+
+    <!-- Employee card -->
+    <string name="cuadrante_cd_avatar">Avatar of %s</string>
+    <string name="cuadrante_modalidad_presencial">ON-SITE</string>
+    <string name="cuadrante_modalidad_teletrabajo">REMOTE</string>
+    <string name="cuadrante_horario">%1$s - %2$s</string>
 </resources>
