@@ -23,18 +23,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.gestorrh.android.R
+import com.gestorrh.android.ui.equipo.cuadrante.PantallaCuadranteDepartamento
 
 /**
  * Pantalla contenedora de las funcionalidades del rol SUPERVISOR.
  *
- * Actúa como shell vacío listo para recibir el contenido.
- * Cada subsección se implementará como una pantalla
- * independiente que se mostrará en el área de contenido de esta pantalla
- * según la pestaña activa.
- *
- * La pestaña seleccionada se gestiona como estado local del composable
- * ya que no hay lógica de negocio asociada hasta que se implementen
- * las subsecciones.
+ * Gestiona la navegación entre pestañas mediante estado local. Cada subsección
+ * se implementa como un composable independiente que se muestra en el área de
+ * contenido según la pestaña activa. Las pestañas de Ausencias y Fichajes
+ * permanecen como placeholder hasta que se implementen sus issues correspondientes.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -82,17 +79,16 @@ fun PantallaGestionEquipo() {
                 }
             }
 
-            ContenidoTab(tabSeleccionada = tabSeleccionada)
+            when (tabSeleccionada) {
+                1 -> PantallaCuadranteDepartamento()
+                else -> PlaceholderProximamente()
+            }
         }
     }
 }
 
-/**
- * Área de contenido de cada pestaña del supervisor.
- * Muestra un placeholder hasta que cada subsección sea implementada.
- */
 @Composable
-private fun ContenidoTab(tabSeleccionada: Int) {
+private fun PlaceholderProximamente() {
     Box(
         modifier = Modifier
             .fillMaxSize()

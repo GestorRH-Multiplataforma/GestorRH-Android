@@ -10,8 +10,8 @@ fun RespuestaAsignacionTurnoDTO.toEntity(fechaSincronizacion: Long): AsignacionE
         descripcionTurno = descripcionTurno,
         fecha = fecha.toString(),
         modalidad = modalidad.name,
-        horaInicio = horaInicio,
-        horaFin = horaFin,
+        horaInicio = horaInicio?.toString(),
+        horaFin = horaFin?.toString(),
         motivoCambio = motivoCambio,
         responsableCambio = responsableCambio,
         fechaSincronizacion = fechaSincronizacion
