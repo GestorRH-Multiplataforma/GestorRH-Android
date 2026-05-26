@@ -224,7 +224,7 @@
     <string name="cuadrante_dialog_eliminar_confirmar">Eliminar</string>
     <string name="cuadrante_dialog_eliminar_cancelar">Cancelar</string>
     <string name="cuadrante_label_motivo_edicion">Motivo del cambio</string>
-    <string name="cuadrante_modificado_por">Modificado por %1$s el %2$s · %3$s</string>
+    <string name="cuadrante_modificado_por">Modificado por %1$s el %2$s\n%3$s</string>
 
     <!-- BottomSheet asignación -->
     <string name="cuadrante_sheet_titulo">Nueva asignación</string>

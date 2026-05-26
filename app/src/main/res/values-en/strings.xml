@@ -223,7 +223,7 @@
     <string name="cuadrante_dialog_eliminar_confirmar">Delete</string>
     <string name="cuadrante_dialog_eliminar_cancelar">Cancel</string>
     <string name="cuadrante_label_motivo_edicion">Reason for change</string>
-    <string name="cuadrante_modificado_por">Modified by %1$s on %2$s · %3$s</string>
+    <string name="cuadrante_modificado_por">Modified by %1$s on %2$s\n%3$s</string>
 
     <!-- Assignment BottomSheet -->
     <string name="cuadrante_sheet_titulo">New assignment</string>

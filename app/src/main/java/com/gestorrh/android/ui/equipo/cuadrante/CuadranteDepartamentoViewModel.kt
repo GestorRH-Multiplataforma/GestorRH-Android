@@ -106,8 +106,31 @@ class CuadranteDepartamentoViewModel(
         }
         cargarCatalogosIfNeeded()
     }
-
     fun abrirBottomSheetEdicion(asignacion: RespuestaAsignacionTurnoDTO) {
+        _estadoUi.update {
+            it.copy(
+                mostrarBottomSheet = true,
+                idAsignacionEditando = asignacion.idAsignacion,
+                empleadoSeleccionado = null,
+                turnoSeleccionado = null,
+                fechaAsignacion = asignacion.fecha,
+                modalidadSeleccionada = asignacion.modalidad,
+                motivoCambio = ""
+            )
+        }
+        val catalogosCargados = _estadoUi.value.empleados.isNotEmpty() &&
+                _estadoUi.value.turnos.isNotEmpty()
+        if (catalogosCargados) {
+            prerrellenarCatalogos(asignacion)
+        } else {
+            viewModelScope.launch {
+                cargarCatalogosIfNeeded()
+                prerrellenarCatalogos(asignacion)
+            }
+        }
+    }
+
+    private fun prerrellenarCatalogos(asignacion: RespuestaAsignacionTurnoDTO) {
         val empleado = _estadoUi.value.empleados.find {
             it.idEmpleado == asignacion.idEmpleado
         }
@@ -116,16 +139,10 @@ class CuadranteDepartamentoViewModel(
         }
         _estadoUi.update {
             it.copy(
-                mostrarBottomSheet = true,
-                idAsignacionEditando = asignacion.idAsignacion,
                 empleadoSeleccionado = empleado,
-                turnoSeleccionado = turno,
-                fechaAsignacion = asignacion.fecha,
-                modalidadSeleccionada = asignacion.modalidad,
-                motivoCambio = ""
+                turnoSeleccionado = turno
             )
         }
-        cargarCatalogosIfNeeded()
     }
 
     fun cerrarBottomSheet() {
@@ -245,31 +262,31 @@ class CuadranteDepartamentoViewModel(
         val catalogosCargados = _estadoUi.value.empleados.isNotEmpty() &&
                 _estadoUi.value.turnos.isNotEmpty()
         if (!catalogosCargados) {
-            cargarCatalogos()
+            viewModelScope.launch {
+                cargarCatalogos()
+            }
         }
     }
 
-    private fun cargarCatalogos() {
-        viewModelScope.launch {
-            _estadoUi.update { it.copy(cargandoCatalogos = true) }
-            val empleadosDeferred = async { cuadranteRepository.getEmpleadosEquipo() }
-            val turnosDeferred = async { cuadranteRepository.getTurnos() }
-            val resultadoEmpleados = empleadosDeferred.await()
-            val resultadoTurnos = turnosDeferred.await()
-            val idSupervisor = sessionManager.getId()
-            val empleados = resultadoEmpleados.getOrElse { emptyList() }
-                .filter { it.idEmpleado != idSupervisor }
-            val turnos = resultadoTurnos.getOrElse { emptyList() }
-            val error = resultadoEmpleados.exceptionOrNull()
-                ?: resultadoTurnos.exceptionOrNull()
-            _estadoUi.update {
-                it.copy(
-                    cargandoCatalogos = false,
-                    empleados = empleados,
-                    turnos = turnos,
-                    mensajeError = error?.let { e -> mensajeDesdeError(e) }
-                )
-            }
+    private suspend fun cargarCatalogos() {
+        _estadoUi.update { it.copy(cargandoCatalogos = true) }
+        val empleadosDeferred = viewModelScope.async { cuadranteRepository.getEmpleadosEquipo() }
+        val turnosDeferred = viewModelScope.async { cuadranteRepository.getTurnos() }
+        val resultadoEmpleados = empleadosDeferred.await()
+        val resultadoTurnos = turnosDeferred.await()
+        val idSupervisor = sessionManager.getId()
+        val empleados = resultadoEmpleados.getOrElse { emptyList() }
+            .filter { it.idEmpleado != idSupervisor }
+        val turnos = resultadoTurnos.getOrElse { emptyList() }
+        val error = resultadoEmpleados.exceptionOrNull()
+            ?: resultadoTurnos.exceptionOrNull()
+        _estadoUi.update {
+            it.copy(
+                cargandoCatalogos = false,
+                empleados = empleados,
+                turnos = turnos,
+                mensajeError = error?.let { e -> mensajeDesdeError(e) }
+            )
         }
     }
 
