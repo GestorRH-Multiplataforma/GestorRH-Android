@@ -19,16 +19,18 @@ import java.time.LocalDate
  * @property turnos Catálogo de plantillas de turno, cargado al abrir el BottomSheet.
  * @property modalidades Valores disponibles del enum de modalidad.
  * @property mostrarBottomSheet Controla la visibilidad del BottomSheet de asignación.
- * @property cargandoCatalogos true mientras se cargan empleados y turnos. Muestra spinner
- *           en el botón "Asignar" del BottomSheet.
- * @property estaAsignando true mientras hay una petición POST en curso. Bloquea reenvíos.
+ * @property cargandoCatalogos true mientras se cargan empleados y turnos.
+ * @property estaAsignando true mientras hay una petición POST o PUT en curso.
+ * @property idAsignacionEditando Id de la asignación en edición, null en modo creación.
  * @property empleadoSeleccionado Empleado elegido en el dropdown del BottomSheet.
  * @property turnoSeleccionado Turno elegido en el dropdown del BottomSheet.
  * @property fechaAsignacion Fecha elegida en el DatePicker del BottomSheet.
  * @property modalidadSeleccionada Modalidad elegida en el dropdown del BottomSheet.
- * @property motivoCambio Texto opcional del campo motivo del BottomSheet.
+ * @property motivoCambio Texto del campo motivo, obligatorio en modo edición.
+ * @property asignacionAEliminar Asignación pendiente de confirmar eliminación, null si no hay.
+ * @property eliminando true mientras hay una petición DELETE en curso.
  * @property mensajeError Mensaje a mostrar en Snackbar. Null si no hay error pendiente.
- * @property mensajeExito Mensaje a mostrar en Snackbar tras asignación exitosa.
+ * @property mensajeExito Mensaje a mostrar en Snackbar tras operación exitosa.
  */
 data class EstadoUiCuadranteDepartamento(
     val cargando: Boolean = true,
@@ -41,17 +43,25 @@ data class EstadoUiCuadranteDepartamento(
     val mostrarBottomSheet: Boolean = false,
     val cargandoCatalogos: Boolean = false,
     val estaAsignando: Boolean = false,
+    val idAsignacionEditando: Long? = null,
     val empleadoSeleccionado: RespuestaEmpleadoDTO? = null,
     val turnoSeleccionado: RespuestaTurnoDTO? = null,
     val fechaAsignacion: LocalDate = LocalDate.now(),
     val modalidadSeleccionada: ModalidadAsignacion? = null,
     val motivoCambio: String = "",
+    val asignacionAEliminar: RespuestaAsignacionTurnoDTO? = null,
+    val eliminando: Boolean = false,
     val mensajeError: MensajeUi? = null,
-    val mensajeExito: MensajeUi? = null
+    val mensajeExito: MensajeUi? = null,
+    val idSupervisor: Long = -1L,
 ) {
+    val modoEdicion: Boolean
+        get() = idAsignacionEditando != null
+
     val formularioValido: Boolean
         get() = empleadoSeleccionado != null &&
                 turnoSeleccionado != null &&
                 !fechaAsignacion.isBefore(LocalDate.now()) &&
-                modalidadSeleccionada != null
+                modalidadSeleccionada != null &&
+                (!modoEdicion || motivoCambio.isNotBlank())
 }

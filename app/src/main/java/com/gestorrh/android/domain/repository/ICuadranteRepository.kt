@@ -15,22 +15,37 @@ interface ICuadranteRepository {
 
     /**
      * Recupera todas las asignaciones del departamento del supervisor
-     * autenticado desde `GET /api/asignaciones`. El servidor filtra
-     * automáticamente por el JWT.
+     * autenticado desde `GET /api/asignaciones`.
      */
     suspend fun getAsignacionesEquipo(): Result<List<RespuestaAsignacionTurnoDTO>>
 
     /**
      * Crea una nueva asignación de turno para un empleado del equipo
      * mediante `POST /api/asignaciones`.
-     *
-     * @param peticion DTO con los datos validados de la asignación.
-     * @return [Result.success] con la asignación creada, o [Result.failure]
-     *         con el mensaje de error del servidor.
      */
     suspend fun crearAsignacion(
         peticion: PeticionAsignacionTurnoDTO
     ): Result<RespuestaAsignacionTurnoDTO>
+
+    /**
+     * Modifica una asignación existente mediante `PUT /api/asignaciones/{id}`.
+     * El motivo de cambio es obligatorio para la auditoría.
+     *
+     * @param id Identificador de la asignación a modificar.
+     * @param peticion DTO con los nuevos datos y el motivo del cambio.
+     */
+    suspend fun actualizarAsignacion(
+        id: Long,
+        peticion: PeticionAsignacionTurnoDTO
+    ): Result<RespuestaAsignacionTurnoDTO>
+
+    /**
+     * Elimina de forma permanente una asignación mediante
+     * `DELETE /api/asignaciones/{id}`.
+     *
+     * @param id Identificador de la asignación a eliminar.
+     */
+    suspend fun eliminarAsignacion(id: Long): Result<Unit>
 
     /**
      * Recupera el catálogo de plantillas de turno disponibles

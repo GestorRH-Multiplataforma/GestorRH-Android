@@ -10,6 +10,7 @@ import com.gestorrh.android.core.security.SessionManager
 import com.gestorrh.android.core.ui.MensajeUi
 import com.gestorrh.android.data.network.asignacion.AsignacionApiService
 import com.gestorrh.android.data.network.asignacion.ModalidadAsignacion
+import com.gestorrh.android.data.network.asignacion.RespuestaAsignacionTurnoDTO
 import com.gestorrh.android.data.network.empleado.RespuestaEmpleadoDTO
 import com.gestorrh.android.data.network.supervisor.SupervisorEmpleadoApi
 import com.gestorrh.android.data.network.turno.RespuestaTurnoDTO
@@ -31,14 +32,17 @@ import java.time.LocalDate
  *
  * Responsabilidades:
  * - Carga las asignaciones del equipo al inicializar y expone el filtro reactivo
- *   por fecha sin nueva llamada de red al cambiar [fechaSeleccionada].
- * - Gestiona el estado del BottomSheet de asignación, cargando los catálogos
- *   (empleados y turnos) en la primera apertura y reutilizándolos en las siguientes.
- * - Bloquea reenvíos con el flag [EstadoUiCuadranteDepartamento.estaAsignando].
- * - Refresca el cuadrante tras una asignación exitosa para reflejar el nuevo turno.
+ *   por fecha sin nueva llamada de red al cambiar [EstadoUiCuadranteDepartamento.fechaSeleccionada].
+ * - Gestiona el BottomSheet en modo creación y edición, cargando los catálogos
+ *   en la primera apertura y reutilizándolos en las siguientes.
+ * - Gestiona el diálogo de confirmación de eliminación.
+ * - Bloquea reenvíos con los flags [EstadoUiCuadranteDepartamento.estaAsignando]
+ *   y [EstadoUiCuadranteDepartamento.eliminando].
  *
  * @param cuadranteRepository Contrato de dominio para las operaciones del cuadrante.
- * @param asignarTurnoUseCase Caso de uso que valida y delega la creación de asignaciones.
+ * @param asignarTurnoUseCase Caso de uso que valida y delega la creación y edición.
+ * @param sessionManager Fuente de verdad de la sesión activa, usado para excluir
+ *        al propio supervisor de la lista de empleados asignables.
  */
 class CuadranteDepartamentoViewModel(
     private val cuadranteRepository: ICuadranteRepository,
@@ -50,6 +54,7 @@ class CuadranteDepartamentoViewModel(
     val estadoUi: StateFlow<EstadoUiCuadranteDepartamento> = _estadoUi.asStateFlow()
 
     init {
+        _estadoUi.update { it.copy(idSupervisor = sessionManager.getId()) }
         cargarAsignaciones()
     }
 
@@ -91,6 +96,7 @@ class CuadranteDepartamentoViewModel(
         _estadoUi.update {
             it.copy(
                 mostrarBottomSheet = true,
+                idAsignacionEditando = null,
                 empleadoSeleccionado = null,
                 turnoSeleccionado = null,
                 fechaAsignacion = _estadoUi.value.fechaSeleccionada,
@@ -98,11 +104,28 @@ class CuadranteDepartamentoViewModel(
                 motivoCambio = ""
             )
         }
-        val catalogosCargados = _estadoUi.value.empleados.isNotEmpty() &&
-                _estadoUi.value.turnos.isNotEmpty()
-        if (!catalogosCargados) {
-            cargarCatalogos()
+        cargarCatalogosIfNeeded()
+    }
+
+    fun abrirBottomSheetEdicion(asignacion: RespuestaAsignacionTurnoDTO) {
+        val empleado = _estadoUi.value.empleados.find {
+            it.idEmpleado == asignacion.idEmpleado
         }
+        val turno = _estadoUi.value.turnos.find {
+            it.idTurno == asignacion.idTurno
+        }
+        _estadoUi.update {
+            it.copy(
+                mostrarBottomSheet = true,
+                idAsignacionEditando = asignacion.idAsignacion,
+                empleadoSeleccionado = empleado,
+                turnoSeleccionado = turno,
+                fechaAsignacion = asignacion.fecha,
+                modalidadSeleccionada = asignacion.modalidad,
+                motivoCambio = ""
+            )
+        }
+        cargarCatalogosIfNeeded()
     }
 
     fun cerrarBottomSheet() {
@@ -129,6 +152,40 @@ class CuadranteDepartamentoViewModel(
         _estadoUi.update { it.copy(motivoCambio = motivo) }
     }
 
+    fun confirmarEliminar(asignacion: RespuestaAsignacionTurnoDTO) {
+        _estadoUi.update { it.copy(asignacionAEliminar = asignacion) }
+    }
+
+    fun cancelarEliminar() {
+        _estadoUi.update { it.copy(asignacionAEliminar = null) }
+    }
+
+    fun eliminarAsignacion() {
+        val id = _estadoUi.value.asignacionAEliminar?.idAsignacion ?: return
+        if (_estadoUi.value.eliminando) return
+        viewModelScope.launch {
+            _estadoUi.update { it.copy(eliminando = true, asignacionAEliminar = null) }
+            cuadranteRepository.eliminarAsignacion(id)
+                .onSuccess {
+                    _estadoUi.update {
+                        it.copy(
+                            eliminando = false,
+                            mensajeExito = MensajeUi.Recurso(R.string.cuadrante_eliminacion_exitosa)
+                        )
+                    }
+                    cargarAsignaciones()
+                }
+                .onFailure { error ->
+                    _estadoUi.update {
+                        it.copy(
+                            eliminando = false,
+                            mensajeError = mensajeDesdeError(error)
+                        )
+                    }
+                }
+        }
+    }
+
     fun asignarTurno() {
         if (_estadoUi.value.estaAsignando) return
         val estado = _estadoUi.value
@@ -139,14 +196,20 @@ class CuadranteDepartamentoViewModel(
                 idTurno = estado.turnoSeleccionado?.idTurno,
                 fecha = estado.fechaAsignacion,
                 modalidad = estado.modalidadSeleccionada,
-                motivoCambio = estado.motivoCambio
+                motivoCambio = estado.motivoCambio,
+                idAsignacion = estado.idAsignacionEditando
             )
                 .onSuccess {
+                    val mensajeRes = if (estado.modoEdicion) {
+                        R.string.cuadrante_actualizacion_exitosa
+                    } else {
+                        R.string.cuadrante_asignacion_exitosa
+                    }
                     _estadoUi.update {
                         it.copy(
                             estaAsignando = false,
                             mostrarBottomSheet = false,
-                            mensajeExito = MensajeUi.Recurso(R.string.cuadrante_asignacion_exitosa)
+                            mensajeExito = MensajeUi.Recurso(mensajeRes)
                         )
                     }
                     cargarAsignaciones()
@@ -161,6 +224,8 @@ class CuadranteDepartamentoViewModel(
                             MensajeUi.Recurso(R.string.cuadrante_error_fecha_pasada)
                         AsignarTurnoUseCase.ErrorValidacion.ModalidadNoSeleccionada ->
                             MensajeUi.Recurso(R.string.cuadrante_error_modalidad_requerida)
+                        AsignarTurnoUseCase.ErrorValidacion.MotivoVacio ->
+                            MensajeUi.Recurso(R.string.cuadrante_error_motivo_requerido)
                         else -> mensajeDesdeError(error)
                     }
                     _estadoUi.update { it.copy(estaAsignando = false, mensajeError = mensaje) }
@@ -176,6 +241,14 @@ class CuadranteDepartamentoViewModel(
         _estadoUi.update { it.copy(mensajeExito = null) }
     }
 
+    private fun cargarCatalogosIfNeeded() {
+        val catalogosCargados = _estadoUi.value.empleados.isNotEmpty() &&
+                _estadoUi.value.turnos.isNotEmpty()
+        if (!catalogosCargados) {
+            cargarCatalogos()
+        }
+    }
+
     private fun cargarCatalogos() {
         viewModelScope.launch {
             _estadoUi.update { it.copy(cargandoCatalogos = true) }
@@ -187,9 +260,8 @@ class CuadranteDepartamentoViewModel(
             val empleados = resultadoEmpleados.getOrElse { emptyList() }
                 .filter { it.idEmpleado != idSupervisor }
             val turnos = resultadoTurnos.getOrElse { emptyList() }
-            val errorEmpleados = resultadoEmpleados.exceptionOrNull()
-            val errorTurnos = resultadoTurnos.exceptionOrNull()
-            val error = errorEmpleados ?: errorTurnos
+            val error = resultadoEmpleados.exceptionOrNull()
+                ?: resultadoTurnos.exceptionOrNull()
             _estadoUi.update {
                 it.copy(
                     cargandoCatalogos = false,
@@ -202,7 +274,7 @@ class CuadranteDepartamentoViewModel(
     }
 
     private fun filtrarPorFecha(
-        asignaciones: List<com.gestorrh.android.data.network.asignacion.RespuestaAsignacionTurnoDTO>,
+        asignaciones: List<RespuestaAsignacionTurnoDTO>,
         fecha: LocalDate
     ) = asignaciones.filter { it.fecha == fecha }
 

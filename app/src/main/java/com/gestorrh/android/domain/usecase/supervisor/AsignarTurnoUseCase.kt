@@ -7,16 +7,15 @@ import com.gestorrh.android.domain.repository.ICuadranteRepository
 import java.time.LocalDate
 
 /**
- * Caso de uso que valida una asignación de turno antes de delegarla al repositorio.
+ * Caso de uso que valida y ejecuta la creación o edición de una asignación de turno.
  *
- * Validaciones aplicadas en cliente para evitar viajes de red innecesarios:
- * - El empleado debe estar seleccionado.
- * - El turno debe estar seleccionado.
- * - La fecha debe ser hoy o futura.
- * - La modalidad debe estar seleccionada.
+ * En modo creación (`idAsignacion == null`):
+ * - Valida que empleado, turno, fecha (hoy o futura) y modalidad no sean nulos.
  *
- * El servidor aplica validaciones adicionales de solapamiento (400) y
- * concurrencia (409) que se propagan tal cual al ViewModel.
+ * En modo edición (`idAsignacion != null`):
+ * - Aplica las mismas validaciones anteriores.
+ * - Además valida que el motivo de cambio no esté vacío, requerido por el
+ *   servidor para auditoría.
  *
  * @param repository Contrato de dominio para las operaciones del cuadrante.
  */
@@ -29,6 +28,7 @@ class AsignarTurnoUseCase(
         data object TurnoNoSeleccionado : ErrorValidacion("turno_no_seleccionado")
         data object FechaPasada : ErrorValidacion("fecha_pasada")
         data object ModalidadNoSeleccionada : ErrorValidacion("modalidad_no_seleccionada")
+        data object MotivoVacio : ErrorValidacion("motivo_vacio")
     }
 
     suspend operator fun invoke(
@@ -37,6 +37,7 @@ class AsignarTurnoUseCase(
         fecha: LocalDate?,
         modalidad: ModalidadAsignacion?,
         motivoCambio: String? = null,
+        idAsignacion: Long? = null,
         hoy: LocalDate = LocalDate.now()
     ): Result<RespuestaAsignacionTurnoDTO> {
 
@@ -52,6 +53,9 @@ class AsignarTurnoUseCase(
         if (modalidad == null) {
             return Result.failure(ErrorValidacion.ModalidadNoSeleccionada)
         }
+        if (idAsignacion != null && motivoCambio.isNullOrBlank()) {
+            return Result.failure(ErrorValidacion.MotivoVacio)
+        }
 
         val peticion = PeticionAsignacionTurnoDTO(
             idEmpleado = idEmpleado,
@@ -61,6 +65,10 @@ class AsignarTurnoUseCase(
             motivoCambio = motivoCambio?.takeIf { it.isNotBlank() }
         )
 
-        return repository.crearAsignacion(peticion)
+        return if (idAsignacion != null) {
+            repository.actualizarAsignacion(idAsignacion, peticion)
+        } else {
+            repository.crearAsignacion(peticion)
+        }
     }
 }

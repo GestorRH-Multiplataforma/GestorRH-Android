@@ -214,6 +214,17 @@
     <string name="cuadrante_btn_asignar">Asignar</string>
     <string name="cuadrante_asignacion_exitosa">Turno asignado correctamente</string>
     <string name="cuadrante_reintentar">Reintentar</string>
+    <string name="cuadrante_actualizacion_exitosa">Asignación actualizada correctamente</string>
+    <string name="cuadrante_eliminacion_exitosa">Asignación eliminada correctamente</string>
+    <string name="cuadrante_error_motivo_requerido">El motivo es obligatorio al editar una asignación</string>
+    <string name="cuadrante_sheet_titulo_edicion">Editar asignación</string>
+    <string name="cuadrante_btn_actualizar">Actualizar</string>
+    <string name="cuadrante_dialog_eliminar_titulo">Eliminar asignación</string>
+    <string name="cuadrante_dialog_eliminar_mensaje">¿Estás seguro de que deseas eliminar esta asignación? Esta acción no se puede deshacer.</string>
+    <string name="cuadrante_dialog_eliminar_confirmar">Eliminar</string>
+    <string name="cuadrante_dialog_eliminar_cancelar">Cancelar</string>
+    <string name="cuadrante_label_motivo_edicion">Motivo del cambio</string>
+    <string name="cuadrante_modificado_por">Modificado por %1$s el %2$s · %3$s</string>
 
     <!-- BottomSheet asignación -->
     <string name="cuadrante_sheet_titulo">Nueva asignación</string>

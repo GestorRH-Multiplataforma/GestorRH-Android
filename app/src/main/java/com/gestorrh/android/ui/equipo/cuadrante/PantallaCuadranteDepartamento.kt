@@ -23,8 +23,11 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -38,6 +41,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -83,7 +87,9 @@ import java.time.format.DateTimeFormatter
 
 private val ColorPresencial = Color(0xFF1A365D)
 private val ColorTeletrabajo = Color(0xFF00A8E8)
+private val ColorEliminar = Color(0xFFD32F2F)
 private val FormatoHora = DateTimeFormatter.ofPattern("HH:mm")
+private val FormatoFechaModificacion = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -176,6 +182,10 @@ fun PantallaCuadranteDepartamento(
                 else -> {
                     ListaEmpleados(
                         asignaciones = estadoUi.asignacionesFiltradas,
+                        idSupervisor = estadoUi.idSupervisor,
+                        eliminando = estadoUi.eliminando,
+                        onEditar = viewModel::abrirBottomSheetEdicion,
+                        onEliminar = viewModel::confirmarEliminar,
                         modifier = Modifier.fillMaxSize()
                     )
                 }
@@ -191,7 +201,31 @@ fun PantallaCuadranteDepartamento(
             onTurnoSeleccionado = viewModel::seleccionarTurno,
             onFechaSeleccionada = viewModel::seleccionarFechaAsignacion,
             onModalidadSeleccionada = viewModel::seleccionarModalidad,
+            onMotivoCambio = viewModel::actualizarMotivoCambio,
             onAsignar = viewModel::asignarTurno
+        )
+    }
+
+    estadoUi.asignacionAEliminar?.let { asignacion ->
+        AlertDialog(
+            onDismissRequest = viewModel::cancelarEliminar,
+            title = { Text(stringResource(R.string.cuadrante_dialog_eliminar_titulo)) },
+            text = { Text(stringResource(R.string.cuadrante_dialog_eliminar_mensaje)) },
+            confirmButton = {
+                TextButton(
+                    onClick = viewModel::eliminarAsignacion,
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = ColorEliminar
+                    )
+                ) {
+                    Text(stringResource(R.string.cuadrante_dialog_eliminar_confirmar))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = viewModel::cancelarEliminar) {
+                    Text(stringResource(R.string.cuadrante_dialog_eliminar_cancelar))
+                }
+            }
         )
     }
 }
@@ -214,12 +248,8 @@ private fun SelectorFecha(
         verticalAlignment = Alignment.CenterVertically
     ) {
         IconButton(onClick = alRetroceder) {
-            Icon(
-                imageVector = Icons.Filled.ChevronLeft,
-                contentDescription = null
-            )
+            Icon(imageVector = Icons.Filled.ChevronLeft, contentDescription = null)
         }
-
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 text = fechaSeleccionada.format(formatter),
@@ -234,12 +264,8 @@ private fun SelectorFecha(
                 )
             }
         }
-
         IconButton(onClick = alAvanzar) {
-            Icon(
-                imageVector = Icons.Filled.ChevronRight,
-                contentDescription = null
-            )
+            Icon(imageVector = Icons.Filled.ChevronRight, contentDescription = null)
         }
     }
 }
@@ -260,6 +286,10 @@ private fun CabeceraCuadrante(
 @Composable
 private fun ListaEmpleados(
     asignaciones: List<RespuestaAsignacionTurnoDTO>,
+    idSupervisor: Long,
+    eliminando: Boolean,
+    onEditar: (RespuestaAsignacionTurnoDTO) -> Unit,
+    onEliminar: (RespuestaAsignacionTurnoDTO) -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -271,13 +301,25 @@ private fun ListaEmpleados(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         items(asignaciones, key = { it.idAsignacion }) { asignacion ->
-            TarjetaEmpleado(asignacion = asignacion)
+            TarjetaEmpleado(
+                asignacion = asignacion,
+                idSupervisor = idSupervisor,
+                eliminando = eliminando,
+                onEditar = { onEditar(asignacion) },
+                onEliminar = { onEliminar(asignacion) }
+            )
         }
     }
 }
 
 @Composable
-private fun TarjetaEmpleado(asignacion: RespuestaAsignacionTurnoDTO) {
+private fun TarjetaEmpleado(
+    asignacion: RespuestaAsignacionTurnoDTO,
+    idSupervisor: Long,
+    eliminando: Boolean,
+    onEditar: () -> Unit,
+    onEliminar: () -> Unit
+) {
     val iniciales = remember(asignacion.nombreCompletoEmpleado) {
         asignacion.nombreCompletoEmpleado
             .split(" ")
@@ -293,68 +335,92 @@ private fun TarjetaEmpleado(asignacion: RespuestaAsignacionTurnoDTO) {
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            AvatarIniciales(
-                iniciales = iniciales,
-                nombreCompleto = asignacion.nombreCompletoEmpleado
-            )
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                AvatarIniciales(iniciales = iniciales)
 
-            Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(12.dp))
 
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = asignacion.nombreCompletoEmpleado,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold
-                )
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    BadgeModalidad(modalidad = asignacion.modalidad)
-
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Filled.Schedule,
-                            contentDescription = null,
-                            modifier = Modifier.size(14.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        val horario = when {
-                            asignacion.horaInicio != null && asignacion.horaFin != null ->
-                                stringResource(
-                                    R.string.cuadrante_horario,
-                                    asignacion.horaInicio.format(FormatoHora),
-                                    asignacion.horaFin.format(FormatoHora)
-                                )
-                            else -> asignacion.descripcionTurno
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = asignacion.nombreCompletoEmpleado,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        BadgeModalidad(modalidad = asignacion.modalidad)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Filled.Schedule,
+                                contentDescription = null,
+                                modifier = Modifier.size(14.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            val horario = when {
+                                asignacion.horaInicio != null && asignacion.horaFin != null ->
+                                    stringResource(
+                                        R.string.cuadrante_horario,
+                                        asignacion.horaInicio.format(FormatoHora),
+                                        asignacion.horaFin.format(FormatoHora)
+                                    )
+                                else -> asignacion.descripcionTurno
+                            }
+                            Text(
+                                text = horario,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
-                        Text(
-                            text = horario,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                    }
+                }
+
+                if (asignacion.idEmpleado != idSupervisor) {
+                    IconButton(onClick = onEditar, enabled = !eliminando) {
+                        Icon(
+                            imageVector = Icons.Filled.Edit,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    IconButton(onClick = onEliminar, enabled = !eliminando) {
+                        Icon(
+                            imageVector = Icons.Filled.Delete,
+                            contentDescription = null,
+                            tint = ColorEliminar
                         )
                     }
                 }
+            }
+
+            if (asignacion.fechaCambio != null && asignacion.responsableCambio != null) {
+                Spacer(modifier = Modifier.height(8.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = stringResource(
+                        R.string.cuadrante_modificado_por,
+                        asignacion.responsableCambio,
+                        asignacion.fechaCambio.format(FormatoFechaModificacion),
+                        asignacion.motivoCambio ?: ""
+                    ),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }
 }
 
 @Composable
-private fun AvatarIniciales(
-    iniciales: String,
-    nombreCompleto: String
-) {
+private fun AvatarIniciales(iniciales: String) {
     Box(
         modifier = Modifier
             .size(44.dp)
@@ -380,7 +446,6 @@ private fun BadgeModalidad(modalidad: ModalidadAsignacion) {
         ModalidadAsignacion.TELETRABAJO ->
             ColorTeletrabajo to R.string.cuadrante_modalidad_teletrabajo
     }
-
     Box(
         modifier = Modifier
             .background(color = color, shape = RoundedCornerShape(4.dp))
@@ -427,6 +492,7 @@ private fun BottomSheetAsignacionTurno(
     onTurnoSeleccionado: (RespuestaTurnoDTO) -> Unit,
     onFechaSeleccionada: (LocalDate) -> Unit,
     onModalidadSeleccionada: (ModalidadAsignacion) -> Unit,
+    onMotivoCambio: (String) -> Unit,
     onAsignar: () -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -446,7 +512,10 @@ private fun BottomSheetAsignacionTurno(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = stringResource(R.string.cuadrante_sheet_titulo),
+                text = stringResource(
+                    if (estadoUi.modoEdicion) R.string.cuadrante_sheet_titulo_edicion
+                    else R.string.cuadrante_sheet_titulo
+                ),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
@@ -495,6 +564,17 @@ private fun BottomSheetAsignacionTurno(
                     onSeleccionar = onModalidadSeleccionada
                 )
 
+                if (estadoUi.modoEdicion) {
+                    OutlinedTextField(
+                        value = estadoUi.motivoCambio,
+                        onValueChange = onMotivoCambio,
+                        label = { Text(stringResource(R.string.cuadrante_label_motivo_edicion)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        minLines = 2,
+                        maxLines = 4
+                    )
+                }
+
                 Button(
                     onClick = onAsignar,
                     enabled = estadoUi.formularioValido && !estadoUi.estaAsignando,
@@ -509,7 +589,12 @@ private fun BottomSheetAsignacionTurno(
                             color = MaterialTheme.colorScheme.onPrimary
                         )
                     } else {
-                        Text(stringResource(R.string.cuadrante_btn_asignar))
+                        Text(
+                            stringResource(
+                                if (estadoUi.modoEdicion) R.string.cuadrante_btn_actualizar
+                                else R.string.cuadrante_btn_asignar
+                            )
+                        )
                     }
                 }
             }
@@ -569,10 +654,7 @@ private fun DropdownEmpleado(
             readOnly = true,
             label = { Text(stringResource(R.string.cuadrante_label_empleado)) },
             trailingIcon = {
-                Icon(
-                    imageVector = Icons.Filled.ArrowDropDown,
-                    contentDescription = null
-                )
+                Icon(imageVector = Icons.Filled.ArrowDropDown, contentDescription = null)
             },
             modifier = Modifier
                 .fillMaxWidth()
@@ -635,10 +717,7 @@ private fun DropdownTurno(
             readOnly = true,
             label = { Text(stringResource(R.string.cuadrante_label_turno)) },
             trailingIcon = {
-                Icon(
-                    imageVector = Icons.Filled.ArrowDropDown,
-                    contentDescription = null
-                )
+                Icon(imageVector = Icons.Filled.ArrowDropDown, contentDescription = null)
             },
             modifier = Modifier
                 .fillMaxWidth()
@@ -674,7 +753,6 @@ private fun DropdownModalidad(
     onSeleccionar: (ModalidadAsignacion) -> Unit
 ) {
     var expandido by remember { mutableStateOf(false) }
-
     val textoPresencial = stringResource(R.string.cuadrante_modalidad_presencial)
     val textoTeletrabajo = stringResource(R.string.cuadrante_modalidad_teletrabajo)
 

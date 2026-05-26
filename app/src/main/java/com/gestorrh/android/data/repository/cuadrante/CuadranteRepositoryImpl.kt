@@ -73,6 +73,50 @@ class CuadranteRepositoryImpl(
         }
     }
 
+    override suspend fun actualizarAsignacion(
+        id: Long,
+        peticion: PeticionAsignacionTurnoDTO
+    ): Result<RespuestaAsignacionTurnoDTO> = withContext(Dispatchers.IO) {
+        try {
+            val respuesta = asignacionApiService.actualizarAsignacion(id, peticion)
+            if (respuesta.isSuccessful && respuesta.body() != null) {
+                Result.success(respuesta.body()!!)
+            } else {
+                val codigo = respuesta.code()
+                val mensaje = when (codigo) {
+                    409 -> null
+                    else -> extraerMensajeError(respuesta.errorBody())
+                } ?: "Error $codigo al actualizar la asignación"
+                Result.failure(Exception(mensaje))
+            }
+        } catch (e: IOException) {
+            Result.failure(e)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun eliminarAsignacion(id: Long): Result<Unit> =
+        withContext(Dispatchers.IO) {
+            try {
+                val respuesta = asignacionApiService.eliminarAsignacion(id)
+                if (respuesta.isSuccessful) {
+                    Result.success(Unit)
+                } else {
+                    Result.failure(
+                        Exception(
+                            extraerMensajeError(respuesta.errorBody())
+                                ?: "Error ${respuesta.code()} al eliminar la asignación"
+                        )
+                    )
+                }
+            } catch (e: IOException) {
+                Result.failure(e)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+
     override suspend fun getTurnos(): Result<List<RespuestaTurnoDTO>> =
         withContext(Dispatchers.IO) {
             try {
