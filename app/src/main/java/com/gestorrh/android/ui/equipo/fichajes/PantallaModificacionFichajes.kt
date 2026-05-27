@@ -47,6 +47,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TimeInput
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.TimePickerDefaults
 import androidx.compose.material3.rememberDatePickerState
@@ -578,7 +579,7 @@ private fun DialogEdicionFichaje(
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.SemiBold
                 )
-                TimePicker(
+                TimeInput(
                     state = timePickerEntradaState,
                     colors = TimePickerDefaults.colors(
                         clockDialColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -638,7 +639,7 @@ private fun DialogEdicionFichaje(
                 }
 
                 if (salidaActivada) {
-                    TimePicker(
+                    TimeInput(
                         state = timePickerSalidaState,
                         colors = TimePickerDefaults.colors(
                             clockDialColor = MaterialTheme.colorScheme.surfaceVariant,
