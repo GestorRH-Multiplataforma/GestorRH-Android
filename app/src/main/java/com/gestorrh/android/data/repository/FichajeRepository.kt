@@ -3,6 +3,7 @@ package com.gestorrh.android.data.repository
 import com.gestorrh.android.data.network.fichaje.FichajeApiService
 import com.gestorrh.android.data.network.fichaje.PeticionFichajeEntradaDTO
 import com.gestorrh.android.data.network.fichaje.PeticionFichajeSalidaDTO
+import com.gestorrh.android.data.network.fichaje.PeticionModificacionFichajeDTO
 import com.gestorrh.android.data.network.fichaje.RespuestaEstadoFichajeDTO
 import com.gestorrh.android.data.network.fichaje.RespuestaFichajeDTO
 import com.gestorrh.android.domain.repository.IFichajeRepository
@@ -98,6 +99,47 @@ class FichajeRepository(private val apiService: FichajeApiService) : IFichajeRep
             JSONObject(json).getString("message")
         } catch (e: JSONException) {
             null
+        }
+    }
+
+    override suspend fun obtenerHistorialFichajesSupervisor(
+        fechaInicio: LocalDate,
+        fechaFin: LocalDate,
+        empleadoId: Long?
+    ): Result<List<RespuestaFichajeDTO>> {
+        return try {
+            val respuesta = apiService.obtenerHistorial(
+                fechaInicio = fechaInicio.toString(),
+                fechaFin = fechaFin.toString(),
+                empleadoId = empleadoId
+            )
+            if (respuesta.isSuccessful && respuesta.body() != null) {
+                Result.success(respuesta.body()!!)
+            } else {
+                val mensaje = extraerMensajeError(respuesta.errorBody())
+                    ?: "Error ${respuesta.code()} al obtener los fichajes"
+                Result.failure(Exception(mensaje))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun modificarFichaje(
+        idFichaje: Long,
+        peticion: PeticionModificacionFichajeDTO
+    ): Result<RespuestaFichajeDTO> {
+        return try {
+            val respuesta = apiService.modificarFichaje(idFichaje, peticion)
+            if (respuesta.isSuccessful && respuesta.body() != null) {
+                Result.success(respuesta.body()!!)
+            } else {
+                val mensaje = extraerMensajeError(respuesta.errorBody())
+                    ?: "Error ${respuesta.code()} al modificar el fichaje"
+                Result.failure(Exception(mensaje))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 }

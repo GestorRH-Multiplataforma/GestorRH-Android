@@ -5,6 +5,7 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.PUT
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface FichajeApiService {
@@ -21,6 +22,13 @@ interface FichajeApiService {
     @GET("api/fichajes")
     suspend fun obtenerHistorial(
         @Query("fechaInicio") fechaInicio: String,
-        @Query("fechaFin") fechaFin: String
+        @Query("fechaFin") fechaFin: String,
+        @Query("empleadoId") empleadoId: Long? = null
     ): Response<List<RespuestaFichajeDTO>>
+
+    @PUT("api/fichajes/{idFichaje}/modificar")
+    suspend fun modificarFichaje(
+        @Path("idFichaje") idFichaje: Long,
+        @Body body: PeticionModificacionFichajeDTO
+    ): Response<RespuestaFichajeDTO>
 }
