@@ -249,4 +249,23 @@
     <string name="cuadrante_modalidad_presencial">Presencial</string>
     <string name="cuadrante_modalidad_teletrabajo">Teletrabajo</string>
     <string name="cuadrante_horario">%1$s - %2$s</string>
+
+    <!-- Pantalla Modificación de Fichajes (Supervisor) -->
+    <string name="modificacion_fichaje_label_empleado">Empleado</string>
+    <string name="modificacion_fichaje_todos_empleados">Todos los empleados</string>
+    <string name="modificacion_fichaje_cargando_empleados">Cargando empleados…</string>
+    <string name="modificacion_fichaje_sin_salida">Sin salida registrada</string>
+    <string name="modificacion_fichaje_cd_editar">Editar fichaje</string>
+    <string name="modificacion_fichaje_vacio_titulo">Sin fichajes en este periodo</string>
+    <string name="modificacion_fichaje_vacio_descripcion">Selecciona un empleado o rango de fechas diferente para ver sus fichajes.</string>
+    <string name="modificacion_fichaje_dialog_titulo">Modificar fichaje</string>
+    <string name="modificacion_fichaje_dialog_subtitulo">%1$s · %2$s</string>
+    <string name="modificacion_fichaje_label_entrada">Hora de entrada</string>
+    <string name="modificacion_fichaje_label_salida">Hora de salida</string>
+    <string name="modificacion_fichaje_label_motivo">Motivo de la modificación (obligatorio)</string>
+    <string name="modificacion_fichaje_aviso_auditoria">⚠ Esta es una modificación manual. Quedará registrada en auditoría.</string>
+    <string name="modificacion_fichaje_btn_guardar">Guardar</string>
+    <string name="modificacion_fichaje_exito">Fichaje modificado correctamente</string>
+    <string name="modificacion_fichaje_error_horas">Horario inválido. Para turnos diurnos la salida debe ser posterior a la entrada. Para turnos nocturnos la entrada debe ser desde las 16:00 y la salida hasta las 08:00.</string>
+    <string name="modificacion_fichaje_error_conflicto">Conflicto de concurrencia — recarga e inténtalo de nuevo</string>
 </resources>

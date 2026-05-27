@@ -248,4 +248,23 @@
     <string name="cuadrante_modalidad_presencial">ON-SITE</string>
     <string name="cuadrante_modalidad_teletrabajo">REMOTE</string>
     <string name="cuadrante_horario">%1$s - %2$s</string>
+
+    <!-- Clock-in Modification Screen (Supervisor) -->
+    <string name="modificacion_fichaje_label_empleado">Employee</string>
+    <string name="modificacion_fichaje_todos_empleados">All employees</string>
+    <string name="modificacion_fichaje_cargando_empleados">Loading employees…</string>
+    <string name="modificacion_fichaje_sin_salida">No clock-out recorded</string>
+    <string name="modificacion_fichaje_cd_editar">Edit record</string>
+    <string name="modificacion_fichaje_vacio_titulo">No records in this period</string>
+    <string name="modificacion_fichaje_vacio_descripcion">Select a different employee or date range to view records.</string>
+    <string name="modificacion_fichaje_dialog_titulo">Edit record</string>
+    <string name="modificacion_fichaje_dialog_subtitulo">%1$s · %2$s</string>
+    <string name="modificacion_fichaje_label_entrada">Clock-in time</string>
+    <string name="modificacion_fichaje_label_salida">Clock-out time</string>
+    <string name="modificacion_fichaje_label_motivo">Reason for modification (required)</string>
+    <string name="modificacion_fichaje_aviso_auditoria">⚠ This is a manual modification. It will be recorded for audit purposes.</string>
+    <string name="modificacion_fichaje_btn_guardar">Save</string>
+    <string name="modificacion_fichaje_exito">Record updated successfully</string>
+    <string name="modificacion_fichaje_error_horas">Invalid schedule. For day shifts, clock-out must be after clock-in. For night shifts, clock-in must be from 16:00 and clock-out by 08:00.</string>
+    <string name="modificacion_fichaje_error_conflicto">Concurrency conflict — reload and try again</string>
 </resources>
