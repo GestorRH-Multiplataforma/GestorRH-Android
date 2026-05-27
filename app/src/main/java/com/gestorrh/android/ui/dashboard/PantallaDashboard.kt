@@ -52,6 +52,7 @@ import androidx.compose.material.icons.filled.WifiOff
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.core.app.ActivityCompat
@@ -512,7 +513,7 @@ private fun WidgetFichaje(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            if (modalidad == ModalidadTurno.TELETRABAJO) {
+            if (modalidad == ModalidadTurno.TELETRABAJO && estadoActual != EstadoFichaje.FUERA_TURNO) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(imageVector = Icons.Filled.Home, contentDescription = stringResource(id = R.string.cd_teletrabajo), tint = colorTextoEstado, modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(8.dp))
@@ -526,7 +527,9 @@ private fun WidgetFichaje(
                 style = MaterialTheme.typography.labelLarge,
                 color = colorTextoEstado,
                 fontWeight = FontWeight.Bold,
-                fontSize = 18.sp
+                fontSize = 18.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(modifier = Modifier.height(16.dp))

@@ -187,6 +187,16 @@ class DashboardViewModel(
                 }
                 .minByOrNull { it.fecha }
             _estadoUi.update { it.copy(proximoTurno = proxima) }
+
+            _estadoUi.update { current ->
+                current.copy(
+                    estadoActual = calcularEstadoFichaje(
+                        trabajandoActualmente = current.estadoActual == EstadoFichaje.TRABAJANDO,
+                        tieneTurnoHoy = current.tieneTurnoHoy,
+                        proximoTurno = proxima
+                    )
+                )
+            }
         }
     }
 
@@ -350,6 +360,7 @@ class DashboardViewModel(
                     }
                     segundosAcumulados = 0
                     iniciarTemporizador()
+                    cargarUltimosFichajes()
                 }
                 .onFailure { e ->
                     val mensaje = if (e.message != null) MensajeUi.Dinamico(e.message!!)
@@ -392,6 +403,7 @@ class DashboardViewModel(
                             tiempoTranscurrido = "00:00:00"
                         )
                     }
+                    cargarUltimosFichajes()
                 }
                 .onFailure { e ->
                     val mensaje = if (e.message != null) MensajeUi.Dinamico(e.message!!)
