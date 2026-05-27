@@ -484,11 +484,12 @@ private fun TarjetaFichajeSupervisor(
                             fontWeight = FontWeight.SemiBold
                         )
                     } else {
+                        val textoSinSalida = calcularTextoSinSalida(fichaje.horaEntrada, fichaje.fecha)
                         Text(
-                            text = stringResource(R.string.modificacion_fichaje_sin_salida),
+                            text = stringResource(textoSinSalida.first),
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.SemiBold,
-                            color = ColorAmbar
+                            color = textoSinSalida.second
                         )
                     }
                 }
@@ -774,6 +775,24 @@ private fun EstadoVacio(modifier: Modifier = Modifier) {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
+    }
+}
+
+private fun calcularTextoSinSalida(
+    horaEntrada: java.time.LocalDateTime,
+    fecha: java.time.LocalDate
+): Pair<Int, Color> {
+    val ahora = java.time.LocalDateTime.now()
+    val hoy = java.time.LocalDate.now()
+    val horasTranscurridas = java.time.Duration.between(horaEntrada, ahora).toHours()
+
+    return when {
+        fecha.isBefore(hoy) ->
+            Pair(R.string.modificacion_fichaje_sin_salida, ColorAmbar)
+        fecha == hoy && horasTranscurridas < 9 ->
+            Pair(R.string.historial_fichajes_en_curso, Color(0xFF2E7D32))
+        else ->
+            Pair(R.string.modificacion_fichaje_sin_salida, ColorAmbar)
     }
 }
 
