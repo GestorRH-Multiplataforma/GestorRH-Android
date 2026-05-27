@@ -24,15 +24,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.gestorrh.android.R
 import com.gestorrh.android.ui.equipo.cuadrante.PantallaCuadranteDepartamento
+import com.gestorrh.android.ui.equipo.fichajes.PantallaModificacionFichajes
 
-/**
- * Pantalla contenedora de las funcionalidades del rol SUPERVISOR.
- *
- * Gestiona la navegación entre pestañas mediante estado local. Cada subsección
- * se implementa como un composable independiente que se muestra en el área de
- * contenido según la pestaña activa. Las pestañas de Ausencias y Fichajes
- * permanecen como placeholder hasta que se implementen sus issues correspondientes.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PantallaGestionEquipo() {
@@ -81,6 +74,7 @@ fun PantallaGestionEquipo() {
 
             when (tabSeleccionada) {
                 1 -> PantallaCuadranteDepartamento()
+                2 -> PantallaModificacionFichajes()
                 else -> PlaceholderProximamente()
             }
         }

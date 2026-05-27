@@ -45,6 +45,12 @@ object ApiClient {
 
         val gson = GsonBuilder()
             .registerTypeAdapter(LocalDateTime::class.java, LocalDateTimeDeserializer())
+            .registerTypeAdapter(
+                LocalDateTime::class.java,
+                JsonSerializer<LocalDateTime> { src, _, _ ->
+                    JsonPrimitive(src.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
+                }
+            )
             .registerTypeAdapter(LocalDate::class.java, LocalDateDeserializer())
             .registerTypeAdapter(
                 LocalDate::class.java,
