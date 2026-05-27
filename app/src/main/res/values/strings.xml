@@ -268,4 +268,5 @@
     <string name="modificacion_fichaje_exito">Fichaje modificado correctamente</string>
     <string name="modificacion_fichaje_error_horas">Horario inválido. Para turnos diurnos la salida debe ser posterior a la entrada. Para turnos nocturnos la entrada debe ser desde las 16:00 y la salida hasta las 08:00.</string>
     <string name="modificacion_fichaje_error_conflicto">Conflicto de concurrencia — recarga e inténtalo de nuevo</string>
+    <string name="modificacion_fichaje_incluir_salida">Incluir salida</string>
 </resources>
