@@ -36,6 +36,7 @@
     <string name="fichaje_sin_conexion">No connection — your clock event will be sent automatically</string>
     <string name="fichajes_pendientes">%d clock event(s) pending sync</string>
     <string name="fichaje_entrada_duplicada_offline">You already have a pending clock-in. You cannot register another until it is sent.</string>
+    <string name="error_fichaje_sin_entrada_abierta">No open clock-in found to register a clock-out</string>
 
     <string name="dashboard_modalidad_remota">REMOTE WORK</string>
 
