@@ -2,6 +2,7 @@ package com.gestorrh.android.ui.dashboard
 
 import android.content.Context
 import android.location.Location
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -232,12 +233,13 @@ class DashboardViewModel(
     }
 
     /**
-     * P0-11: Sincronización Inicial (BFF).
+     * Sincronización Inicial (BFF).
      * Consulta el estado de fichaje actual a través del repositorio.
      */
     fun sincronizarEstado() {
         viewModelScope.launch {
-            _estadoUi.update { it.copy(estaCargando = true, mensajeError = null) }
+            val hayEstadoActivo = _estadoUi.value.estadoActual == EstadoFichaje.TRABAJANDO
+            _estadoUi.update { it.copy(estaCargando = !hayEstadoActivo, mensajeError = null) }
 
             fichajeRepository.obtenerEstadoActual()
                 .onSuccess { datos ->
@@ -255,10 +257,14 @@ class DashboardViewModel(
                     }
 
                     if (datos.trabajandoActualmente && datos.horaEntrada != null) {
-                        val horaEntradaUtc = datos.horaEntrada.toInstant(java.time.ZoneOffset.UTC)
-                        val segundos = ChronoUnit.SECONDS.between(horaEntradaUtc, java.time.Instant.now())
-                        segundosAcumulados = segundos.coerceAtLeast(0L)
-                        iniciarTemporizador()
+                        if (!hayEstadoActivo) {
+                            // TODO: cuando se resuelva GestorRH-API#110 (normalizar fechas a UTC),
+                            //  actualizar LocalDateTimeDeserializer en ApiClient para convertir a hora local
+                            //  y revisar este cálculo si fuera necesario.
+                            val segundos = ChronoUnit.SECONDS.between(datos.horaEntrada, java.time.LocalDateTime.now())
+                            segundosAcumulados = segundos.coerceAtLeast(0L)
+                            iniciarTemporizador()
+                        }
                     } else if (!datos.trabajandoActualmente) {
                         detenerTemporizador()
                         segundosAcumulados = 0
@@ -291,16 +297,16 @@ class DashboardViewModel(
     }
 
     /**
-     * P0-10 y P0-12: Orquestador de Fichaje.
+     * Orquestador de Fichaje.
      * Decide si fichar entrada o salida según el estado actual.
      */
     fun alternarFichaje(ubicacion: Location?) {
         val estadoActual = _estadoUi.value
 
-        if (estadoActual.estadoActual == EstadoFichaje.FUERA_TURNO) {
-            ficharEntrada(ubicacion, estadoActual.modalidadHoy)
-        } else {
+        if (estadoActual.estadoActual == EstadoFichaje.TRABAJANDO) {
             ficharSalida(ubicacion, estadoActual.idFichajeAbierto)
+        } else {
+            ficharEntrada(ubicacion, estadoActual.modalidadHoy)
         }
     }
 
@@ -369,6 +375,7 @@ class DashboardViewModel(
             }
 
             if (idFichaje == null) {
+                mostrarError(MensajeUi.Recurso(R.string.error_fichaje_sin_entrada_abierta))
                 _estadoUi.update { it.copy(estaCargando = false) }
                 return@launch
             }
