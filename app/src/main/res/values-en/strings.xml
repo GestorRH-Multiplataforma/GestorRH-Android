@@ -267,5 +267,5 @@
     <string name="modificacion_fichaje_exito">Record updated successfully</string>
     <string name="modificacion_fichaje_error_horas">Invalid schedule. For day shifts, clock-out must be after clock-in. For night shifts, clock-in must be from 16:00 and clock-out by 08:00.</string>
     <string name="modificacion_fichaje_error_conflicto">Concurrency conflict — reload and try again</string>
-    <string name="modificacion_fichaje_incluir_salida">Include clock-out</string>
+    <string name="modificacion_fichaje_anadir_salida">+ Add clock-out</string>
 </resources>

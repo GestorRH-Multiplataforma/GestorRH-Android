@@ -531,9 +531,7 @@ private fun DialogEdicionFichaje(
     val horaEntradaInicial = estadoUi.dialogEntrada ?: fichaje.horaEntrada
     val horaSalidaInicial = estadoUi.dialogSalida ?: fichaje.horaSalida
 
-    var salidaActivada by remember {
-        mutableStateOf(horaSalidaInicial != null)
-    }
+    var anadirSalida by remember { mutableStateOf(false) }
 
     val timePickerEntradaState = rememberTimePickerState(
         initialHour = horaEntradaInicial.hour,
@@ -599,71 +597,77 @@ private fun DialogEdicionFichaje(
 
                 HorizontalDivider()
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = stringResource(R.string.modificacion_fichaje_label_salida),
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.modificacion_fichaje_incluir_salida),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Switch(
-                            checked = salidaActivada,
-                            onCheckedChange = { activada ->
-                                salidaActivada = activada
-                                if (activada) {
-                                    // Al activar, propagamos la hora actual del picker
-                                    val baseFecha = fichaje.horaSalida ?: fichaje.horaEntrada
-                                    val nuevaSalida = baseFecha
-                                        .withHour(timePickerSalidaState.hour)
-                                        .withMinute(timePickerSalidaState.minute)
-                                        .withSecond(0)
-                                    onSalidaCambiada(nuevaSalida)
-                                } else {
-                                    onSalidaCambiada(null)
-                                }
-                            }
-                        )
-                    }
-                }
+                Text(
+                    text = stringResource(R.string.modificacion_fichaje_label_salida),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
 
-                if (salidaActivada) {
-                    TimeInput(
-                        state = timePickerSalidaState,
-                        colors = TimePickerDefaults.colors(
-                            clockDialColor = MaterialTheme.colorScheme.surfaceVariant,
-                            selectorColor = MaterialTheme.colorScheme.primary
+                when {
+                    horaSalidaInicial != null -> {
+                        TimeInput(
+                            state = timePickerSalidaState,
+                            colors = TimePickerDefaults.colors(
+                                clockDialColor = MaterialTheme.colorScheme.surfaceVariant,
+                                selectorColor = MaterialTheme.colorScheme.primary
+                            )
                         )
-                    )
-                    LaunchedEffect(
-                        timePickerSalidaState.hour,
-                        timePickerSalidaState.minute
-                    ) {
-                        val baseFecha = fichaje.horaSalida ?: fichaje.horaEntrada
-                        val nuevaSalida = baseFecha
-                            .withHour(timePickerSalidaState.hour)
-                            .withMinute(timePickerSalidaState.minute)
-                            .withSecond(0)
-                        onSalidaCambiada(nuevaSalida)
+                        LaunchedEffect(
+                            timePickerSalidaState.hour,
+                            timePickerSalidaState.minute
+                        ) {
+                            val nuevaSalida = fichaje.horaSalida
+                                ?.withHour(timePickerSalidaState.hour)
+                                ?.withMinute(timePickerSalidaState.minute)
+                                ?.withSecond(0)
+                            onSalidaCambiada(nuevaSalida)
+                        }
                     }
-                } else {
-                    Text(
-                        text = stringResource(R.string.modificacion_fichaje_sin_salida),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = ColorAmbar,
-                        fontWeight = FontWeight.SemiBold
-                    )
+
+                    anadirSalida -> {
+                        TimeInput(
+                            state = timePickerSalidaState,
+                            colors = TimePickerDefaults.colors(
+                                clockDialColor = MaterialTheme.colorScheme.surfaceVariant,
+                                selectorColor = MaterialTheme.colorScheme.primary
+                            )
+                        )
+                        LaunchedEffect(
+                            timePickerSalidaState.hour,
+                            timePickerSalidaState.minute
+                        ) {
+                            val nuevaSalida = fichaje.horaEntrada
+                                .withHour(timePickerSalidaState.hour)
+                                .withMinute(timePickerSalidaState.minute)
+                                .withSecond(0)
+                            onSalidaCambiada(nuevaSalida)
+                        }
+                    }
+
+                    else -> {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = stringResource(R.string.modificacion_fichaje_sin_salida),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = ColorAmbar,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            TextButton(onClick = {
+                                anadirSalida = true
+                                val nuevaSalida = fichaje.horaEntrada
+                                    .withHour(timePickerSalidaState.hour)
+                                    .withMinute(timePickerSalidaState.minute)
+                                    .withSecond(0)
+                                onSalidaCambiada(nuevaSalida)
+                            }) {
+                                Text(stringResource(R.string.modificacion_fichaje_anadir_salida))
+                            }
+                        }
+                    }
                 }
 
                 estadoUi.dialogErrorHoras?.let { idError ->
