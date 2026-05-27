@@ -98,7 +98,10 @@ class ModificacionFichajesViewModel(
                 empleadoId = estado.empleadoSeleccionado?.idEmpleado
             )
                 .onSuccess { lista ->
-                    val ordenada = lista.sortedByDescending { it.horaEntrada }
+                    val idSupervisor = sessionManager.getId()
+                    val ordenada = lista
+                        .filter { it.idEmpleado != idSupervisor }
+                        .sortedByDescending { it.horaEntrada }
                     _estadoUi.update { it.copy(cargandoFichajes = false, fichajes = ordenada) }
                 }
                 .onFailure { error ->

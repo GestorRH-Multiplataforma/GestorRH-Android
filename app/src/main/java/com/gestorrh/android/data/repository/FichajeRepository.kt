@@ -113,21 +113,12 @@ class FichajeRepository(private val apiService: FichajeApiService) : IFichajeRep
                 fechaFin = fechaFin.toString(),
                 empleadoId = empleadoId
             )
-            when {
-                respuesta.isSuccessful && respuesta.body() != null -> {
-                    Result.success(respuesta.body()!!)
-                }
-                respuesta.isSuccessful -> {
-                    Result.success(emptyList())
-                }
-                respuesta.code() == 403 -> {
-                    Result.success(emptyList())
-                }
-                else -> {
-                    val mensaje = extraerMensajeError(respuesta.errorBody())
-                        ?: "Error ${respuesta.code()} al obtener los fichajes"
-                    Result.failure(Exception(mensaje))
-                }
+            if (respuesta.isSuccessful && respuesta.body() != null) {
+                Result.success(respuesta.body()!!)
+            } else {
+                val mensaje = extraerMensajeError(respuesta.errorBody())
+                    ?: "Error ${respuesta.code()} al obtener los fichajes"
+                Result.failure(Exception(mensaje))
             }
         } catch (e: Exception) {
             Result.failure(e)
