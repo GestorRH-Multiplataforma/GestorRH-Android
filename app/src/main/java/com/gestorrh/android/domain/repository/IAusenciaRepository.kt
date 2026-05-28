@@ -1,6 +1,7 @@
 package com.gestorrh.android.domain.repository
 
 import com.gestorrh.android.data.network.ausencia.PeticionAusenciaDTO
+import com.gestorrh.android.data.network.ausencia.PeticionRevisionAusenciaDTO
 import com.gestorrh.android.data.network.ausencia.RespuestaAusenciaDTO
 
 /**
@@ -74,4 +75,11 @@ interface IAusenciaRepository {
      * `GET /api/ausencias/justificantes/{nombreArchivo}`.
      */
     suspend fun descargarJustificante(nombreArchivo: String): Result<ByteArray>
+
+    suspend fun obtenerAusenciasEquipo(estado: String? = null): Result<List<RespuestaAusenciaDTO>>
+
+    suspend fun revisarAusencia(
+        id: Long,
+        peticion: PeticionRevisionAusenciaDTO
+    ): Result<RespuestaAusenciaDTO>
 }

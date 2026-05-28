@@ -3,6 +3,7 @@ package com.gestorrh.android.data.network.ausencia
 import okhttp3.MultipartBody
 import okhttp3.ResponseBody
 import retrofit2.Response
+import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Multipart
@@ -46,4 +47,15 @@ interface AusenciaApiService {
     suspend fun descargarJustificante(
         @Path("nombreArchivo") nombreArchivo: String
     ): Response<ResponseBody>
+
+    @GET("api/ausencias")
+    suspend fun getAusenciasEquipo(
+        @Query("estado") estado: String? = null
+    ): Response<List<RespuestaAusenciaDTO>>
+
+    @PUT("api/ausencias/{id}/revision")
+    suspend fun revisarAusencia(
+        @Path("id") id: Long,
+        @Body body: PeticionRevisionAusenciaDTO
+    ): Response<RespuestaAusenciaDTO>
 }

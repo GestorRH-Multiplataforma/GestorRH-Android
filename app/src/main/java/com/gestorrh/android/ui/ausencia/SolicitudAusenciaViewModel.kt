@@ -11,6 +11,7 @@ import com.gestorrh.android.core.network.ApiClient
 import com.gestorrh.android.core.security.SessionManager
 import com.gestorrh.android.core.ui.MensajeUi
 import com.gestorrh.android.data.network.ausencia.AusenciaApiService
+import com.gestorrh.android.data.network.ausencia.TipoAusencia
 import com.gestorrh.android.data.repository.ausencia.AusenciaRepositoryImpl
 import com.gestorrh.android.domain.repository.IAusenciaRepository
 import com.gestorrh.android.domain.usecase.ausencia.SolicitarAusenciaUseCase
@@ -381,7 +382,7 @@ class SolicitudAusenciaViewModel(
     }
 
     private fun calcularAviso(tipo: String?, hayArchivo: Boolean): Int? {
-        return if (tipo == "MEDICA" && !hayArchivo) {
+        return if (tipo == TipoAusencia.MEDICA.name && !hayArchivo) {
             R.string.ausencia_aviso_justificante_medica
         } else {
             null

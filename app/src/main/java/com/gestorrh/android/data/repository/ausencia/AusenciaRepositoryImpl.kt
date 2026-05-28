@@ -2,6 +2,7 @@ package com.gestorrh.android.data.repository.ausencia
 
 import com.gestorrh.android.data.network.ausencia.AusenciaApiService
 import com.gestorrh.android.data.network.ausencia.PeticionAusenciaDTO
+import com.gestorrh.android.data.network.ausencia.PeticionRevisionAusenciaDTO
 import com.gestorrh.android.data.network.ausencia.RespuestaAusenciaDTO
 import com.gestorrh.android.domain.repository.IAusenciaRepository
 import com.google.gson.Gson
@@ -206,6 +207,50 @@ class AusenciaRepositoryImpl(
             JSONObject(json).getString("message")
         } catch (e: JSONException) {
             null
+        }
+    }
+
+    override suspend fun obtenerAusenciasEquipo(estado: String?): Result<List<RespuestaAusenciaDTO>> =
+        withContext(Dispatchers.IO) {
+            try {
+                val respuesta = apiService.getAusenciasEquipo(estado)
+                if (respuesta.isSuccessful && respuesta.body() != null) {
+                    Result.success(respuesta.body()!!)
+                } else {
+                    Result.failure(
+                        Exception(
+                            extraerMensajeError(respuesta.errorBody())
+                                ?: "Error ${respuesta.code()} al obtener las ausencias del equipo"
+                        )
+                    )
+                }
+            } catch (e: IOException) {
+                Result.failure(e)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+
+    override suspend fun revisarAusencia(
+        id: Long,
+        peticion: PeticionRevisionAusenciaDTO
+    ): Result<RespuestaAusenciaDTO> = withContext(Dispatchers.IO) {
+        try {
+            val respuesta = apiService.revisarAusencia(id, peticion)
+            if (respuesta.isSuccessful && respuesta.body() != null) {
+                Result.success(respuesta.body()!!)
+            } else {
+                Result.failure(
+                    Exception(
+                        extraerMensajeError(respuesta.errorBody())
+                            ?: "Error ${respuesta.code()} al revisar la ausencia"
+                    )
+                )
+            }
+        } catch (e: IOException) {
+            Result.failure(e)
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 }

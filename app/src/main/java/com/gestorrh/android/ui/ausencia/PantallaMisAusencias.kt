@@ -65,7 +65,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.gestorrh.android.R
 import com.gestorrh.android.core.archivos.GestorArchivosJustificante
 import com.gestorrh.android.core.ui.MensajeUi
+import com.gestorrh.android.data.network.ausencia.EstadoAusencia
 import com.gestorrh.android.data.network.ausencia.RespuestaAusenciaDTO
+import com.gestorrh.android.data.network.ausencia.TipoAusencia
 import java.time.format.DateTimeFormatter
 
 private val ColorEstadoRechazada = Color(0xFFD32F2F)
@@ -359,7 +361,7 @@ private fun TarjetaAusencia(
                 )
             }
 
-            if (ausencia.estado == "SOLICITADA") {
+            if (ausencia.estado == EstadoAusencia.SOLICITADA) {
                 Spacer(Modifier.height(12.dp))
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 Spacer(Modifier.height(8.dp))
@@ -404,7 +406,7 @@ private fun TarjetaAusencia(
 }
 
 @Composable
-private fun ChipEstado(estado: String) {
+private fun ChipEstado(estado: EstadoAusencia) {
     Box(
         modifier = Modifier
             .background(
@@ -423,14 +425,13 @@ private fun ChipEstado(estado: String) {
 }
 
 @Composable
-private fun etiquetaTipoAusencia(tipo: String): String {
+private fun etiquetaTipoAusencia(tipo: TipoAusencia): String {
     val resId = when (tipo) {
-        "MEDICA" -> R.string.ausencia_tipo_medica
-        "VACACIONES" -> R.string.ausencia_tipo_vacaciones
-        "MOTIVO_PERSONAL" -> R.string.ausencia_tipo_motivo_personal
-        "OTROS" -> R.string.ausencia_tipo_otros
-        else -> null
+        TipoAusencia.MEDICA -> R.string.ausencia_tipo_medica
+        TipoAusencia.VACACIONES -> R.string.ausencia_tipo_vacaciones
+        TipoAusencia.MOTIVO_PERSONAL -> R.string.ausencia_tipo_motivo_personal
+        TipoAusencia.OTROS -> R.string.ausencia_tipo_otros
     }
-    return resId?.let { stringResource(it) } ?: tipo
+    return stringResource(resId)
 }
 

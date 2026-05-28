@@ -8,7 +8,7 @@ enum class TipoAusencia {
 }
 
 enum class EstadoAusencia {
-    PENDIENTE,
+    SOLICITADA,
     APROBADA,
     RECHAZADA
 }
