@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -115,13 +116,9 @@ fun PantallaAusenciasEquipo(
         }
     }
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { padding ->
+    Box(modifier = Modifier.fillMaxSize()) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
+            modifier = Modifier.fillMaxSize()
         ) {
             FilaFiltros(
                 filtroActivo = estadoUi.filtroActivo,
@@ -144,11 +141,9 @@ fun PantallaAusenciasEquipo(
                             CircularProgressIndicator()
                         }
                     }
-
                     estadoUi.ausencias.isEmpty() -> EstadoVacio(
                         modifier = Modifier.fillMaxSize()
                     )
-
                     else -> ListaAusencias(
                         ausencias = estadoUi.ausencias,
                         revisando = estadoUi.revisando,
@@ -164,6 +159,11 @@ fun PantallaAusenciasEquipo(
                 }
             }
         }
+
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
     }
 
     estadoUi.ausenciaARechazar?.let { ausencia ->
@@ -229,21 +229,54 @@ private fun ListaAusencias(
     onRechazar: (RespuestaAusenciaDTO) -> Unit,
     onDescargarJustificante: (RespuestaAusenciaDTO) -> Unit
 ) {
+    val grupos = remember(ausencias) {
+        ausencias.groupBy { it.nombreCompletoEmpleado ?: "" }
+    }
+
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        items(ausencias, key = { it.idAusencia }) { ausencia ->
-            TarjetaAusenciaEquipo(
-                ausencia = ausencia,
-                revisando = revisando == ausencia.idAusencia,
-                descargandoJustificante = descargandoJustificanteDe == ausencia.idAusencia,
-                onAprobar = { onAprobar(ausencia) },
-                onRechazar = { onRechazar(ausencia) },
-                onDescargarJustificante = { onDescargarJustificante(ausencia) }
-            )
+        grupos.forEach { (nombre, ausenciasEmpleado) ->
+            item(key = "empleado_$nombre") {
+                SeparadorEmpleado(nombre = nombre)
+                Spacer(modifier = Modifier.height(6.dp))
+            }
+            items(ausenciasEmpleado, key = { it.idAusencia }) { ausencia ->
+                TarjetaAusenciaEquipo(
+                    ausencia = ausencia,
+                    revisando = revisando == ausencia.idAusencia,
+                    descargandoJustificante = descargandoJustificanteDe == ausencia.idAusencia,
+                    onAprobar = { onAprobar(ausencia) },
+                    onRechazar = { onRechazar(ausencia) },
+                    onDescargarJustificante = { onDescargarJustificante(ausencia) }
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
         }
+    }
+}
+
+@Composable
+private fun SeparadorEmpleado(nombre: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 12.dp, bottom = 2.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = nombre,
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        HorizontalDivider(
+            modifier = Modifier.weight(1f),
+            color = MaterialTheme.colorScheme.outlineVariant
+        )
     }
 }
 

@@ -63,7 +63,12 @@ class AusenciasEquipoViewModel(
             _estadoUi.update { it.copy(cargando = true, mensajeError = null) }
             obtenerAusenciasEquipoUseCase(_estadoUi.value.filtroActivo)
                 .onSuccess { lista ->
-                    _estadoUi.update { it.copy(cargando = false, ausencias = lista) }
+                    val listaOrdenada = lista
+                        .sortedWith(
+                            compareBy<RespuestaAusenciaDTO> { it.nombreCompletoEmpleado ?: "" }
+                                .thenByDescending { it.fechaInicio }
+                        )
+                    _estadoUi.update { it.copy(cargando = false, ausencias = listaOrdenada) }
                 }
                 .onFailure { error ->
                     _estadoUi.update {
