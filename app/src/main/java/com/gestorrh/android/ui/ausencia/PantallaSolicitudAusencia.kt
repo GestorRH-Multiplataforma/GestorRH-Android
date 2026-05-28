@@ -590,7 +590,7 @@ private fun CampoFecha(
     fecha: LocalDate?,
     errorRes: Int?,
     onFechaSeleccionada: (LocalDate) -> Unit,
-    fechaMinima: LocalDate
+    fechaMinima: LocalDate?
 ) {
     var mostrandoSelector by remember { mutableStateOf(false) }
     val texto = fecha?.format(SolicitudAusenciaViewModel.FORMATO_FECHA) ?: ""
@@ -614,7 +614,7 @@ private fun CampoFecha(
 
     if (mostrandoSelector) {
         val estadoPicker = rememberDatePickerState(
-            initialSelectedDateMillis = (fecha ?: fechaMinima)
+            initialSelectedDateMillis = (fecha ?: LocalDate.now())
                 .atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
         )
         DatePickerDialog(

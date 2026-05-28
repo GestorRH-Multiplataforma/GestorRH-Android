@@ -106,17 +106,12 @@ class SolicitudAusenciaViewModel(
 
     fun cambiarFechaInicio(fecha: LocalDate) {
         _estadoUi.update {
-            val errorInicio = if (fecha.isBefore(LocalDate.now())) {
-                R.string.ausencia_error_fecha_inicio_pasada
-            } else {
-                null
-            }
             val errorFin = if (it.fechaFin != null && it.fechaFin.isBefore(fecha)) {
                 R.string.ausencia_error_fecha_fin_anterior
             } else {
                 null
             }
-            it.copy(fechaInicio = fecha, errorFechaInicio = errorInicio, errorFechaFin = errorFin)
+            it.copy(fechaInicio = fecha, errorFechaInicio = null, errorFechaFin = errorFin)
         }
     }
 
@@ -309,13 +304,6 @@ class SolicitudAusenciaViewModel(
                 }
                 .onFailure { error ->
                     when (error) {
-                        SolicitarAusenciaUseCase.ErrorValidacion.FechaInicioPasada ->
-                            _estadoUi.update {
-                                it.copy(
-                                    enviando = false,
-                                    errorFechaInicio = R.string.ausencia_error_fecha_inicio_pasada
-                                )
-                            }
                         SolicitarAusenciaUseCase.ErrorValidacion.FechaFinAnterior ->
                             _estadoUi.update {
                                 it.copy(
