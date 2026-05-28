@@ -269,4 +269,26 @@
     <string name="modificacion_fichaje_error_horas">Invalid schedule. For day shifts, clock-out must be after clock-in. For night shifts, clock-in must be from 16:00 and clock-out by 08:00.</string>
     <string name="modificacion_fichaje_error_conflicto">Concurrency conflict — reload and try again</string>
     <string name="modificacion_fichaje_anadir_salida">+ Add clock-out</string>
+
+    <!-- Team Absences Screen (Supervisor) -->
+    <string name="ausencias_equipo_filtro_todos">All</string>
+    <string name="ausencias_equipo_filtro_solicitadas">Pending</string>
+    <string name="ausencias_equipo_filtro_aprobadas">Approved</string>
+    <string name="ausencias_equipo_filtro_rechazadas">Rejected</string>
+    <string name="ausencias_equipo_btn_aprobar">✓ Approve</string>
+    <string name="ausencias_equipo_btn_rechazar">✗ Reject</string>
+    <string name="ausencias_equipo_cd_aprobar">Approve absence</string>
+    <string name="ausencias_equipo_cd_rechazar">Reject absence</string>
+    <string name="ausencias_equipo_cd_justificante">View attachment</string>
+    <string name="ausencias_equipo_dialog_rechazo_titulo">Reject request</string>
+    <string name="ausencias_equipo_dialog_rechazo_hint">Notes (optional)</string>
+    <string name="ausencias_equipo_dialog_confirmar">Confirm rejection</string>
+    <string name="ausencias_equipo_aprobada_ok">Absence approved</string>
+    <string name="ausencias_equipo_rechazada_ok">Absence rejected</string>
+    <string name="ausencias_equipo_vacio_titulo">No requests</string>
+    <string name="ausencias_equipo_vacio_descripcion">No absences in this state for your department</string>
+    <string name="ausencias_equipo_observaciones">Notes: %1$s</string>
+    <string name="ausencias_equipo_dialog_aprobacion_titulo">Approve request</string>
+    <string name="ausencias_equipo_dialog_aprobacion_hint">Notes (optional)</string>
+    <string name="ausencias_equipo_dialog_confirmar_aprobacion">Confirm approval</string>
 </resources>

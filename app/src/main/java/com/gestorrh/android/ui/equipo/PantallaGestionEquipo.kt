@@ -23,6 +23,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.gestorrh.android.R
+import com.gestorrh.android.ui.equipo.ausencias.PantallaAusenciasEquipo
 import com.gestorrh.android.ui.equipo.cuadrante.PantallaCuadranteDepartamento
 import com.gestorrh.android.ui.equipo.fichajes.PantallaModificacionFichajes
 
@@ -73,6 +74,7 @@ fun PantallaGestionEquipo() {
             }
 
             when (tabSeleccionada) {
+                0 -> PantallaAusenciasEquipo()
                 1 -> PantallaCuadranteDepartamento()
                 2 -> PantallaModificacionFichajes()
                 else -> PlaceholderProximamente()
