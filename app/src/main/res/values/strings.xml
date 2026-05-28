@@ -270,4 +270,26 @@
     <string name="modificacion_fichaje_error_horas">Horario inválido. Para turnos diurnos la salida debe ser posterior a la entrada. Para turnos nocturnos la entrada debe ser desde las 16:00 y la salida hasta las 08:00.</string>
     <string name="modificacion_fichaje_error_conflicto">Conflicto de concurrencia — recarga e inténtalo de nuevo</string>
     <string name="modificacion_fichaje_anadir_salida">+ Añadir salida</string>
+
+    <!-- Pantalla Ausencias Equipo (Supervisor) -->
+    <string name="ausencias_equipo_filtro_todos">Todas</string>
+    <string name="ausencias_equipo_filtro_solicitadas">Pendientes</string>
+    <string name="ausencias_equipo_filtro_aprobadas">Aprobadas</string>
+    <string name="ausencias_equipo_filtro_rechazadas">Rechazadas</string>
+    <string name="ausencias_equipo_btn_aprobar">✓ Aprobar</string>
+    <string name="ausencias_equipo_btn_rechazar">✗ Rechazar</string>
+    <string name="ausencias_equipo_cd_aprobar">Aprobar ausencia</string>
+    <string name="ausencias_equipo_cd_rechazar">Rechazar ausencia</string>
+    <string name="ausencias_equipo_cd_justificante">Ver justificante</string>
+    <string name="ausencias_equipo_dialog_rechazo_titulo">Rechazar solicitud</string>
+    <string name="ausencias_equipo_dialog_rechazo_hint">Observaciones (opcional)</string>
+    <string name="ausencias_equipo_dialog_confirmar">Confirmar rechazo</string>
+    <string name="ausencias_equipo_aprobada_ok">Ausencia aprobada</string>
+    <string name="ausencias_equipo_rechazada_ok">Ausencia rechazada</string>
+    <string name="ausencias_equipo_vacio_titulo">Sin solicitudes</string>
+    <string name="ausencias_equipo_vacio_descripcion">No hay ausencias en este estado para tu departamento</string>
+    <string name="ausencias_equipo_observaciones">Observaciones: %1$s</string>
+    <string name="ausencias_equipo_dialog_aprobacion_titulo">Aprobar solicitud</string>
+    <string name="ausencias_equipo_dialog_aprobacion_hint">Observaciones (opcional)</string>
+    <string name="ausencias_equipo_dialog_confirmar_aprobacion">Confirmar aprobación</string>
 </resources>

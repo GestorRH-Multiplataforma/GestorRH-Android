@@ -7,14 +7,16 @@ data class RespuestaAusenciaDTO(
     val idAusencia: Long,
     val idEmpleado: Long?,
     val nombreCompletoEmpleado: String?,
-    val tipo: String,
+    val tipo: TipoAusencia,
     val descripcion: String?,
     val fechaInicio: LocalDate,
     val fechaFin: LocalDate,
-    val estado: String,
+    val estado: EstadoAusencia,
     val justificante: String?,
     val fechaSolicitud: LocalDateTime?,
     val fechaResolucion: LocalDateTime?,
     val responsableResolucion: String?,
-    val motivoRechazo: String?
+    val motivoRechazo: String?,
+    val responsableRevision: String?,
+    val observacionesRevision: String?
 )

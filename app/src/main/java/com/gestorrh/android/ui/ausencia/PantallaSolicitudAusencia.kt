@@ -83,6 +83,7 @@ import kotlinx.coroutines.withContext
 import com.gestorrh.android.R
 import com.gestorrh.android.core.archivos.GestorArchivosJustificante
 import com.gestorrh.android.core.ui.MensajeUi
+import com.gestorrh.android.data.network.ausencia.TipoAusencia
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -543,8 +544,12 @@ private fun DesplegableTipo(
     var expandido by remember { mutableStateOf(false) }
     Box(modifier = Modifier.fillMaxWidth()) {
         OutlinedTextField(
-            value = estadoUi.tipoSeleccionado?.let { etiquetaTipo(it) }
-                ?: if (estadoUi.cargandoTipos) stringResource(R.string.ausencia_cargando_tipos) else "",
+            value = estadoUi.tipoSeleccionado?.let { tipo ->
+                runCatching { TipoAusencia.valueOf(tipo) }
+                    .getOrNull()
+                    ?.let { etiquetaTipo(it) }
+                    ?: tipo
+            }  ?: if (estadoUi.cargandoTipos) stringResource(R.string.ausencia_cargando_tipos) else "",
             onValueChange = {},
             readOnly = true,
             label = { Text(stringResource(R.string.ausencia_label_tipo)) },
@@ -567,7 +572,7 @@ private fun DesplegableTipo(
         ) {
             estadoUi.tiposDisponibles.forEach { tipo ->
                 DropdownMenuItem(
-                    text = { Text(etiquetaTipo(tipo)) },
+                    text = { Text(runCatching { TipoAusencia.valueOf(tipo) }.getOrNull()?.let { etiquetaTipo(it) } ?: tipo) },
                     onClick = {
                         viewModel.seleccionarTipo(tipo)
                         expandido = false
@@ -585,7 +590,7 @@ private fun CampoFecha(
     fecha: LocalDate?,
     errorRes: Int?,
     onFechaSeleccionada: (LocalDate) -> Unit,
-    fechaMinima: LocalDate
+    fechaMinima: LocalDate?
 ) {
     var mostrandoSelector by remember { mutableStateOf(false) }
     val texto = fecha?.format(SolicitudAusenciaViewModel.FORMATO_FECHA) ?: ""
@@ -609,7 +614,7 @@ private fun CampoFecha(
 
     if (mostrandoSelector) {
         val estadoPicker = rememberDatePickerState(
-            initialSelectedDateMillis = (fecha ?: fechaMinima)
+            initialSelectedDateMillis = (fecha ?: LocalDate.now())
                 .atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
         )
         DatePickerDialog(
@@ -666,13 +671,12 @@ private fun MiniaturaImagen(uri: Uri, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun etiquetaTipo(tipo: String): String {
+private fun etiquetaTipo(tipo: TipoAusencia): String {
     val resId = when (tipo) {
-        "MEDICA" -> R.string.ausencia_tipo_medica
-        "VACACIONES" -> R.string.ausencia_tipo_vacaciones
-        "MOTIVO_PERSONAL" -> R.string.ausencia_tipo_motivo_personal
-        "OTROS" -> R.string.ausencia_tipo_otros
-        else -> null
+        TipoAusencia.MEDICA -> R.string.ausencia_tipo_medica
+        TipoAusencia.VACACIONES -> R.string.ausencia_tipo_vacaciones
+        TipoAusencia.MOTIVO_PERSONAL -> R.string.ausencia_tipo_motivo_personal
+        TipoAusencia.OTROS -> R.string.ausencia_tipo_otros
     }
-    return resId?.let { stringResource(it) } ?: tipo
+    return stringResource(resId)
 }

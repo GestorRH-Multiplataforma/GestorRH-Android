@@ -28,7 +28,6 @@ class SolicitarAusenciaUseCase(
 ) {
 
     sealed class ErrorValidacion(mensaje: String) : Exception(mensaje) {
-        data object FechaInicioPasada : ErrorValidacion("fechaInicio_pasada")
         data object FechaFinAnterior : ErrorValidacion("fechaFin_anterior")
         data object TipoVacio : ErrorValidacion("tipo_vacio")
         data object ArchivoTipoNoSoportado : ErrorValidacion("archivo_tipo_no_soportado")
@@ -43,14 +42,13 @@ class SolicitarAusenciaUseCase(
         archivoBytes: ByteArray?,
         nombreArchivo: String?,
         idAusenciaEditar: Long? = null,
-        eliminarJustificante: Boolean? = null,
-        hoy: LocalDate = LocalDate.now()
+        eliminarJustificante: Boolean? = null
     ): Result<RespuestaAusenciaDTO> {
         if (tipo.isNullOrBlank()) {
             return Result.failure(ErrorValidacion.TipoVacio)
         }
-        if (fechaInicio == null || fechaInicio.isBefore(hoy)) {
-            return Result.failure(ErrorValidacion.FechaInicioPasada)
+        if (fechaInicio == null) {
+            return Result.failure(ErrorValidacion.FechaFinAnterior)
         }
         if (fechaFin == null || fechaFin.isBefore(fechaInicio)) {
             return Result.failure(ErrorValidacion.FechaFinAnterior)

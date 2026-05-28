@@ -56,6 +56,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.core.app.ActivityCompat
+import com.gestorrh.android.data.network.ausencia.EstadoAusencia
+import com.gestorrh.android.data.network.ausencia.TipoAusencia
 
 @Composable
 fun PantallaDashboard(
@@ -401,9 +403,9 @@ private fun TarjetaProximaAusencia(
     val etiquetaEstado = stringResource(
         id = AusenciaUtils.obtenerStringEstado(proximaAusencia.estado)
     )
-    val colorEstado = when (proximaAusencia.estado.uppercase()) {
-        "SOLICITADA" -> SemanticWarning
-        "APROBADA" -> SemanticSuccess
+    val colorEstado = when (proximaAusencia.estado) {
+        EstadoAusencia.SOLICITADA -> SemanticWarning
+        EstadoAusencia.APROBADA -> SemanticSuccess
         else -> MaterialTheme.colorScheme.onSurfaceVariant
     }
     TarjetaInformativa(
@@ -418,15 +420,14 @@ private fun TarjetaProximaAusencia(
 }
 
 @Composable
-private fun etiquetaTipoAusenciaDashboard(tipo: String): String {
+private fun etiquetaTipoAusenciaDashboard(tipo: TipoAusencia): String {
     val resId = when (tipo) {
-        "MEDICA" -> R.string.ausencia_tipo_medica
-        "VACACIONES" -> R.string.ausencia_tipo_vacaciones
-        "MOTIVO_PERSONAL" -> R.string.ausencia_tipo_motivo_personal
-        "OTROS" -> R.string.ausencia_tipo_otros
-        else -> null
+        TipoAusencia.MEDICA -> R.string.ausencia_tipo_medica
+        TipoAusencia.VACACIONES -> R.string.ausencia_tipo_vacaciones
+        TipoAusencia.MOTIVO_PERSONAL -> R.string.ausencia_tipo_motivo_personal
+        TipoAusencia.OTROS -> R.string.ausencia_tipo_otros
     }
-    return resId?.let { stringResource(it) } ?: tipo
+    return stringResource(resId)
 }
 
 @Composable

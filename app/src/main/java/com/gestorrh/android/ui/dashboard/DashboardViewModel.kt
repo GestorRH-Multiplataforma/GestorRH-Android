@@ -17,6 +17,8 @@ import com.gestorrh.android.data.local.dao.FichajePendienteDao
 import com.gestorrh.android.data.local.entity.FichajePendienteEntity
 import com.gestorrh.android.data.network.asignacion.AsignacionApiService
 import com.gestorrh.android.data.network.ausencia.AusenciaApiService
+import com.gestorrh.android.data.network.ausencia.EstadoAusencia
+import com.gestorrh.android.data.network.ausencia.TipoAusencia
 import com.gestorrh.android.data.network.fichaje.FichajeApiService
 import com.gestorrh.android.data.network.fichaje.ModalidadTurno
 import com.gestorrh.android.data.network.fichaje.PeticionFichajeEntradaDTO
@@ -82,10 +84,10 @@ data class ResumenProximoTurno(
  * para que el UI traduzca tipo y estado a recursos.
  */
 data class ResumenProximaAusencia(
-    val tipo: String,
+    val tipo: TipoAusencia,
     val fechaInicio: LocalDate,
     val fechaFin: LocalDate,
-    val estado: String
+    val estado: EstadoAusencia
 )
 
 enum class EstadoFichaje {
@@ -212,7 +214,7 @@ class DashboardViewModel(
             val ausencias = resultado.getOrNull() ?: return@launch
             val hoy = LocalDate.now()
             val proxima = ausencias
-                .filter { it.estado == ESTADO_AUSENCIA_SOLICITADA || it.estado == ESTADO_AUSENCIA_APROBADA }
+                .filter { it.estado == EstadoAusencia.SOLICITADA || it.estado == EstadoAusencia.APROBADA }
                 .filter { !it.fechaFin.isBefore(hoy) }
                 .minByOrNull { it.fechaInicio }
                 ?.let { dto ->
@@ -495,11 +497,6 @@ class DashboardViewModel(
         val minutos = (segundosTotales % 3600) / 60
         val segundos = segundosTotales % 60
         return String.format(java.util.Locale.ROOT, "%02d:%02d:%02d", horas, minutos, segundos)
-    }
-
-    companion object {
-        private const val ESTADO_AUSENCIA_SOLICITADA = "SOLICITADA"
-        private const val ESTADO_AUSENCIA_APROBADA = "APROBADA"
     }
 }
 

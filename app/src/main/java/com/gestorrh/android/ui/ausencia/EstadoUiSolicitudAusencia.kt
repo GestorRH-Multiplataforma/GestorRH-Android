@@ -38,10 +38,9 @@ data class EstadoUiSolicitudAusencia(
 
     val formularioValido: Boolean
         get() = !tipoSeleccionado.isNullOrBlank()
-            && fechaInicio != null
-            && fechaFin != null
-            && !fechaFin.isBefore(fechaInicio)
-            && !fechaInicio.isBefore(LocalDate.now())
+                && fechaInicio != null
+                && fechaFin != null
+                && !fechaFin.isBefore(fechaInicio)
 }
 
 /**

@@ -129,7 +129,7 @@ fun PantallaPrincipal(
                         controladorNavegacionInterno.navigate(
                             RutasDestino.SolicitarAusencia.rutaEditar(
                                 id = ausencia.idAusencia,
-                                tipo = ausencia.tipo,
+                                tipo = ausencia.tipo.name,
                                 fechaInicioIso = ausencia.fechaInicio.toString(),
                                 fechaFinIso = ausencia.fechaFin.toString(),
                                 descripcion = ausencia.descripcion,

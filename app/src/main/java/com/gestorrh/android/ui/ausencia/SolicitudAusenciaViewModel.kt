@@ -11,6 +11,7 @@ import com.gestorrh.android.core.network.ApiClient
 import com.gestorrh.android.core.security.SessionManager
 import com.gestorrh.android.core.ui.MensajeUi
 import com.gestorrh.android.data.network.ausencia.AusenciaApiService
+import com.gestorrh.android.data.network.ausencia.TipoAusencia
 import com.gestorrh.android.data.repository.ausencia.AusenciaRepositoryImpl
 import com.gestorrh.android.domain.repository.IAusenciaRepository
 import com.gestorrh.android.domain.usecase.ausencia.SolicitarAusenciaUseCase
@@ -105,17 +106,12 @@ class SolicitudAusenciaViewModel(
 
     fun cambiarFechaInicio(fecha: LocalDate) {
         _estadoUi.update {
-            val errorInicio = if (fecha.isBefore(LocalDate.now())) {
-                R.string.ausencia_error_fecha_inicio_pasada
-            } else {
-                null
-            }
             val errorFin = if (it.fechaFin != null && it.fechaFin.isBefore(fecha)) {
                 R.string.ausencia_error_fecha_fin_anterior
             } else {
                 null
             }
-            it.copy(fechaInicio = fecha, errorFechaInicio = errorInicio, errorFechaFin = errorFin)
+            it.copy(fechaInicio = fecha, errorFechaInicio = null, errorFechaFin = errorFin)
         }
     }
 
@@ -308,13 +304,6 @@ class SolicitudAusenciaViewModel(
                 }
                 .onFailure { error ->
                     when (error) {
-                        SolicitarAusenciaUseCase.ErrorValidacion.FechaInicioPasada ->
-                            _estadoUi.update {
-                                it.copy(
-                                    enviando = false,
-                                    errorFechaInicio = R.string.ausencia_error_fecha_inicio_pasada
-                                )
-                            }
                         SolicitarAusenciaUseCase.ErrorValidacion.FechaFinAnterior ->
                             _estadoUi.update {
                                 it.copy(
@@ -381,7 +370,7 @@ class SolicitudAusenciaViewModel(
     }
 
     private fun calcularAviso(tipo: String?, hayArchivo: Boolean): Int? {
-        return if (tipo == "MEDICA" && !hayArchivo) {
+        return if (tipo == TipoAusencia.MEDICA.name && !hayArchivo) {
             R.string.ausencia_aviso_justificante_medica
         } else {
             null
