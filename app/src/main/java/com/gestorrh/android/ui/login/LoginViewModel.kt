@@ -14,10 +14,8 @@ import kotlinx.coroutines.launch
 
 /**
  * Manejador de la lógica de presentación y el estado para la pantalla de Autenticación.
- * Actúa como puente (Middleware) entre la Interfaz de Usuario (Jetpack Compose) y la capa
+ * Actúa como puente entre la Interfaz de Usuario (Jetpack Compose) y la capa
  * de dominio a través del [IAuthRepository], sin acoplarse a ningún detalle de red.
- * Utiliza flujos reactivos (StateFlow) para garantizar una actualización de la UI
- * segura y unidireccional.
  *
  * @property authRepository Dependencia del contrato de dominio para autenticación.
  * @property sessionManager Fuente de verdad de la sesión activa.
@@ -60,10 +58,8 @@ class LoginViewModel(
 
     /**
      * Ejecuta la petición de autenticación a través del repositorio.
-     * Persiste token, nombre, rol e id del empleado en [SessionManager] cuando
-     * el servidor confirma las credenciales.
-     * En caso de error muestra el mensaje dinámico devuelto por la API cuando
-     * está disponible, o un literal de recurso genérico para fallos de red.
+     * Persiste token, nombre, rol, id y nombre de empresa del empleado en [SessionManager]
+     * cuando el servidor confirma las credenciales.
      */
     fun realizarLogin() {
         val estadoActual = _estadoUi.value
@@ -79,7 +75,8 @@ class LoginViewModel(
                         token = respuesta.token,
                         nombre = respuesta.nombre,
                         rol = respuesta.rol,
-                        id = respuesta.id
+                        id = respuesta.id,
+                        empresa = respuesta.nombreEmpresa
                     )
                     _estadoUi.update { it.copy(estaCargando = false, loginExitoso = true) }
                 }
@@ -101,8 +98,7 @@ class LoginViewModel(
 
     /**
      * Motor de validación reactiva en local.
-     * Comprueba si los datos cumplen los requisitos mínimos para habilitar el botón,
-     * evitando enviar peticiones basura a la API.
+     * Comprueba si los datos cumplen los requisitos mínimos para habilitar el botón.
      */
     private fun validarFormulario() {
         val email = _estadoUi.value.email
