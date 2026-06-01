@@ -9,11 +9,13 @@ import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.gestorrh.android.core.navigation.BarraNavegacionInferior
@@ -74,10 +76,20 @@ fun PantallaPrincipal(
             HeaderGlobal(nombreEmpresa = nombreEmpresa)
         },
         bottomBar = {
-            BarraNavegacionInferior(
-                controladorNavegacion = controladorNavegacionInterno,
-                destinos = pestanas
+            val entradaPila by controladorNavegacionInterno.currentBackStackEntryAsState()
+            val rutaActual = entradaPila?.destination?.route
+
+            val rutasSinNavbar = setOf(
+                RutasDestino.HistorialFichajes.ruta,
+                RutasDestino.SolicitarAusencia.ruta
             )
+
+            if (rutaActual !in rutasSinNavbar) {
+                BarraNavegacionInferior(
+                    controladorNavegacion = controladorNavegacionInterno,
+                    destinos = pestanas
+                )
+            }
         }
     ) { paddingInterior ->
 
