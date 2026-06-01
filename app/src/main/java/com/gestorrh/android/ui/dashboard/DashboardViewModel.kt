@@ -270,10 +270,7 @@ class DashboardViewModel(
 
                     if (datos.trabajandoActualmente && datos.horaEntrada != null) {
                         if (!hayEstadoActivo) {
-                            // TODO: cuando se resuelva GestorRH-API#110 (normalizar fechas a UTC),
-                            //  actualizar LocalDateTimeDeserializer en ApiClient para convertir a hora local
-                            //  y revisar este cálculo si fuera necesario.
-                            val segundos = ChronoUnit.SECONDS.between(datos.horaEntrada, java.time.LocalDateTime.now())
+                            val segundos = ChronoUnit.SECONDS.between(datos.horaEntrada, LocalDateTime.now())
                             segundosAcumulados = segundos.coerceAtLeast(0L)
                             iniciarTemporizador()
                         }
