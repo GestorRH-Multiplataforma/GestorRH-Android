@@ -33,20 +33,12 @@ import com.gestorrh.android.core.onboarding.OnboardingManager
 import com.gestorrh.android.ui.onboarding.PantallaOnboarding
 
 /**
- * Actividad principal y punto de entrada (Entry Point) de la aplicación Android.
- * Actúa como el orquestador maestro (Router), encargado de inicializar las dependencias
- * críticas de nivel global (Motor de Red, Sesión y Repositorios) y de gestionar
- * la navegación base.
+ * Actividad principal y punto de entrada de la aplicación Android.
+ * Orquesta la navegación base y las dependencias críticas de nivel global.
  *
- * Implementa la directriz de "Auto-Login", evaluando la persistencia del Token JWT
- * de manera síncrona en el arranque para decidir la ruta inicial óptima.
- * Lee también el rol persistido para determinar si el destino principal debe
- * mostrar la navegación de EMPLEADO o de SUPERVISOR, sin necesidad de red.
- * Observa [AuthEventBus] para redirigir al Login ante cualquier 401 global.
- *
- * SplashScreen: llama a [installSplashScreen] ANTES de [setContent] para que el
- * sistema gestione la transición animada desde el tema Theme.GestorRH.Splash
- * al tema principal Theme.GestorRH.
+ * Lee [SessionManager] de forma síncrona en el arranque para determinar la ruta
+ * inicial óptima sin petición de red, incluyendo el nombre de empresa para el
+ * header global.
  */
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -127,6 +119,7 @@ class MainActivity : ComponentActivity() {
                         composable("principal") {
                             PantallaPrincipal(
                                 isSupervisor = sessionManager.isSupervisor(),
+                                nombreEmpresa = sessionManager.getEmpresa() ?: "",
                                 alCerrarSesion = {
                                     sessionManager.clearSession()
                                     scope.launch {

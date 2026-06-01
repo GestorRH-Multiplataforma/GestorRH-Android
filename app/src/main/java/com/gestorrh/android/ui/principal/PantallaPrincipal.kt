@@ -4,16 +4,22 @@ import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.gestorrh.android.core.navigation.BarraNavegacionInferior
+import com.gestorrh.android.core.navigation.HeaderGlobal
 import com.gestorrh.android.core.navigation.RutasDestino
 import com.gestorrh.android.ui.ausencia.PantallaMisAusencias
 import com.gestorrh.android.ui.ausencia.PantallaSolicitudAusencia
@@ -31,35 +37,22 @@ private const val DURACION_TRANSICION_MS = 300
 /**
  * Contenedor maestro de la experiencia post-login.
  *
- * Implementa el patrón Scaffold con barra de navegación inferior y un NavHost
- * con transiciones animadas entre destinos. La lista de pestañas visibles y los
- * destinos registrados en el grafo se determinan de forma condicional según el
- * rol del empleado autenticado:
- *
- * - EMPLEADO: 4 pestañas (Inicio, Turnos, Ausencias, Perfil).
- * - SUPERVISOR: 5 pestañas (Inicio, Turnos, Ausencias, Perfil, Gestión Equipo).
- *
- * Un empleado raso no puede navegar a las rutas de supervisor porque el destino
- * directamente no se registra en el NavHost cuando [isSupervisor] es false.
+ * Implementa el patrón Scaffold con header global superior, barra de navegación
+ * inferior y un NavHost con transiciones animadas entre destinos. Tanto el header
+ * como la barra inferior son comunes a todas las pantallas y sub-rutas.
  *
  * @param isSupervisor Indica si el empleado autenticado tiene rol SUPERVISOR.
- *        Se lee desde [SessionManager] en [MainActivity] para que el valor
- *        esté disponible desde el primer frame sin petición de red.
+ * @param nombreEmpresa Nombre de la empresa leído desde [SessionManager], mostrado
+ *   en el header global sin petición de red adicional.
  * @param alCerrarSesion Callback que limpia la sesión y navega al login.
  */
 @Composable
 fun PantallaPrincipal(
     isSupervisor: Boolean,
+    nombreEmpresa: String,
     alCerrarSesion: () -> Unit
 ) {
     val controladorNavegacionInterno = rememberNavController()
-
-    val pestañasBase = listOf(
-        RutasDestino.Inicio,
-        RutasDestino.Turnos,
-        RutasDestino.Ausencias,
-        RutasDestino.Perfil
-    )
 
     val pestanas = if (isSupervisor) {
         listOf(
@@ -70,22 +63,45 @@ fun PantallaPrincipal(
             RutasDestino.Perfil
         )
     } else {
-        pestañasBase
+        listOf(
+            RutasDestino.Inicio,
+            RutasDestino.Turnos,
+            RutasDestino.Ausencias,
+            RutasDestino.Perfil
+        )
     }
 
     Scaffold(
+        topBar = {
+            HeaderGlobal(nombreEmpresa = nombreEmpresa)
+        },
         bottomBar = {
-            BarraNavegacionInferior(
-                controladorNavegacion = controladorNavegacionInterno,
-                destinos = pestanas
+            val entradaPila by controladorNavegacionInterno.currentBackStackEntryAsState()
+            val rutaActual = entradaPila?.destination?.route
+
+            val rutasSinNavbar = setOf(
+                RutasDestino.HistorialFichajes.ruta,
+                RutasDestino.SolicitarAusencia.ruta
             )
+
+            if (rutaActual !in rutasSinNavbar) {
+                BarraNavegacionInferior(
+                    controladorNavegacion = controladorNavegacionInterno,
+                    destinos = pestanas
+                )
+            }
         }
     ) { paddingInterior ->
 
         NavHost(
             navController = controladorNavegacionInterno,
             startDestination = RutasDestino.Inicio.ruta,
-            modifier = Modifier.padding(paddingInterior),
+            modifier = Modifier.padding(
+                start = paddingInterior.calculateStartPadding(androidx.compose.ui.unit.LayoutDirection.Ltr),
+                end = paddingInterior.calculateEndPadding(androidx.compose.ui.unit.LayoutDirection.Ltr),
+                top = 40.dp,
+                bottom = paddingInterior.calculateBottomPadding()
+            ),
             enterTransition = {
                 fadeIn(animationSpec = tween(DURACION_TRANSICION_MS))
             },

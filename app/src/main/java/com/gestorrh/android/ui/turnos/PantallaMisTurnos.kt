@@ -45,7 +45,6 @@ private val ColorTeletrabajo = Color(0xFF00A8E8)
 
 private fun AsignacionEntity.fechaLocalDate(): LocalDate = LocalDate.parse(fecha)
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PantallaMisTurnos(
     contexto: android.content.Context = LocalContext.current,
@@ -89,16 +88,29 @@ fun PantallaMisTurnos(
     }
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(id = R.string.turnos_titulo),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
-                    )
-                },
-                actions = {
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+    ) { paddingValores ->
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValores)
+        ) {
+
+            // Controles de vista inline — sustituyen al TopAppBar eliminado
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(id = R.string.turnos_titulo),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     IconButton(onClick = { viewModel.cambiarVista(VistaActual.CALENDARIO) }) {
                         Icon(
                             imageVector = Icons.Filled.CalendarMonth,
@@ -120,41 +132,37 @@ fun PantallaMisTurnos(
                         )
                     }
                 }
-            )
-        },
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
-    ) { paddingValores ->
+            }
 
-        when {
-            estadoUi.cargando && estadoUi.asignaciones.isEmpty() -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValores),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
+            when {
+                estadoUi.cargando && estadoUi.asignaciones.isEmpty() -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
                 }
-            }
 
-            estadoUi.asignaciones.isEmpty() -> {
-                EstadoVacio(modifier = Modifier.padding(paddingValores))
-            }
+                estadoUi.asignaciones.isEmpty() -> {
+                    EstadoVacio(modifier = Modifier.fillMaxSize())
+                }
 
-            estadoUi.vistaActual == VistaActual.LISTA -> {
-                VistaListaTurnos(
-                    asignaciones = estadoUi.asignaciones,
-                    modifier = Modifier.padding(paddingValores)
-                )
-            }
+                estadoUi.vistaActual == VistaActual.LISTA -> {
+                    VistaListaTurnos(
+                        asignaciones = estadoUi.asignaciones,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
 
-            else -> {
-                VistaCalendario(
-                    asignaciones = estadoUi.asignaciones,
-                    diaSeleccionado = estadoUi.diaSeleccionado,
-                    alSeleccionarDia = viewModel::seleccionarDia,
-                    modifier = Modifier.padding(paddingValores)
-                )
+                else -> {
+                    VistaCalendario(
+                        asignaciones = estadoUi.asignaciones,
+                        diaSeleccionado = estadoUi.diaSeleccionado,
+                        alSeleccionarDia = viewModel::seleccionarDia,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
             }
         }
     }
@@ -192,7 +200,7 @@ private fun VistaListaTurnos(
 
     LazyColumn(
         state = listState,
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier,
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
@@ -358,7 +366,6 @@ private fun VistaCalendario(
 
     Column(
         modifier = modifier
-            .fillMaxSize()
             .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
         CabeceraMes(
@@ -390,7 +397,9 @@ private fun VistaCalendario(
             DetalleAsignacion(asignacion = asignacionSeleccionada)
         } else {
             Box(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 24.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -492,7 +501,6 @@ private fun CuadriculaDias(
                         val fecha = mes.atDay(numeroDia)
                         val tieneTurno = fecha in diasConTurno
                         val esHoy = fecha == LocalDate.now()
-
                         val esSeleccionado = fecha == diaSeleccionado
 
                         CeldaDia(

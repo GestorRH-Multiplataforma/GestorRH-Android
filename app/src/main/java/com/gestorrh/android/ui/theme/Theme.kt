@@ -10,6 +10,7 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
@@ -33,6 +34,13 @@ private val LightColorScheme = lightColorScheme(
     surface = md_theme_light_surface
 )
 
+/**
+ * Color Navy corporativo usado en el header global.
+ * La status bar del sistema se pinta con este mismo valor para que sea
+ * visualmente continua con el header, eliminando el corte entre ambas zonas.
+ */
+private val NavyHeader = Color(0xFF1A365D)
+
 @Composable
 fun GestorRHTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
@@ -52,8 +60,8 @@ fun GestorRHTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.primary.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = darkTheme
+            window.statusBarColor = NavyHeader.toArgb()
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
         }
     }
 

@@ -8,12 +8,13 @@ import androidx.security.crypto.MasterKey
 /**
  * Fuente de verdad única para la sesión del empleado autenticado.
  *
- * Persiste el token JWT, el nombre completo, el rol y el identificador numérico
- * del empleado en el Keystore nativo de Android mediante cifrado AES256-GCM,
- * garantizando que no puedan extraerse en texto plano.
+ * Persiste el token JWT, el nombre completo, el rol, el identificador numérico
+ * y el nombre de la empresa del empleado en el Keystore nativo de Android mediante
+ * cifrado AES256-GCM, garantizando que no puedan extraerse en texto plano.
  *
  * El rol se persiste para poder determinar la navegación condicional (EMPLEADO vs
  * SUPERVISOR) en arranques en frío sin necesidad de realizar ninguna petición de red.
+ * El nombre de empresa se persiste para mostrarlo en el header global sin petición de red.
  *
  * @param contexto Contexto de la aplicación necesario para inicializar el almacenamiento cifrado.
  */
@@ -36,25 +37,28 @@ class SessionManager(contexto: Context) {
         private const val CLAVE_NOMBRE_EMPLEADO = "nombre_empleado"
         private const val CLAVE_ROL_EMPLEADO = "rol_empleado"
         private const val CLAVE_ID_EMPLEADO = "id_empleado"
+        private const val CLAVE_EMPRESA = "nombre_empresa"
         private const val ROL_SUPERVISOR = "SUPERVISOR"
         private const val ID_EMPLEADO_SIN_SESION = -1L
     }
 
     /**
-     * Persiste el token JWT, el nombre, el rol y el identificador del empleado
-     * al iniciar sesión correctamente.
+     * Persiste el token JWT, el nombre, el rol, el identificador y el nombre de empresa
+     * del empleado al iniciar sesión correctamente.
      *
      * @param token Cadena JWT devuelta por el servidor tras autenticación exitosa.
      * @param nombre Nombre completo del empleado tal como lo devuelve la API.
      * @param rol Rol del empleado: "EMPLEADO" o "SUPERVISOR".
      * @param id Identificador numérico único del empleado en el sistema.
+     * @param empresa Nombre de la empresa a la que pertenece el empleado.
      */
-    fun saveSession(token: String, nombre: String, rol: String, id: Long) {
+    fun saveSession(token: String, nombre: String, rol: String, id: Long, empresa: String) {
         preferenciasCifradas.edit {
             putString(CLAVE_TOKEN_JWT, token)
             putString(CLAVE_NOMBRE_EMPLEADO, nombre)
             putString(CLAVE_ROL_EMPLEADO, rol)
             putLong(CLAVE_ID_EMPLEADO, id)
+            putString(CLAVE_EMPRESA, empresa)
         }
     }
 
@@ -87,9 +91,15 @@ class SessionManager(contexto: Context) {
     fun getId(): Long = preferenciasCifradas.getLong(CLAVE_ID_EMPLEADO, ID_EMPLEADO_SIN_SESION)
 
     /**
+     * Recupera el nombre de la empresa del empleado autenticado.
+     * Se usa para mostrarlo en el header global sin necesidad de petición de red.
+     *
+     * @return El nombre de la empresa si existe sesión, null en caso contrario.
+     */
+    fun getEmpresa(): String? = preferenciasCifradas.getString(CLAVE_EMPRESA, null)
+
+    /**
      * Indica si el empleado autenticado tiene rol de supervisor.
-     * Se evalúa de forma síncrona desde las preferencias cifradas, por lo que
-     * es seguro llamarlo en el hilo principal durante la composición del NavGraph.
      *
      * @return true si el rol persistido es "SUPERVISOR", false en cualquier otro caso.
      */
@@ -105,6 +115,7 @@ class SessionManager(contexto: Context) {
             remove(CLAVE_NOMBRE_EMPLEADO)
             remove(CLAVE_ROL_EMPLEADO)
             remove(CLAVE_ID_EMPLEADO)
+            remove(CLAVE_EMPRESA)
         }
     }
 }
