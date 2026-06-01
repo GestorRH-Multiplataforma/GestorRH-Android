@@ -133,12 +133,6 @@ class DashboardViewModel(
     init {
         val nombre = sessionManager.getNombre() ?: ""
         _estadoUi.update { it.copy(nombreEmpleado = nombre) }
-
-        sincronizarEstado()
-        cargarFichajesPendientes()
-        cargarProximoTurno()
-        cargarProximaAusencia()
-        cargarUltimosFichajes()
     }
 
     /**
@@ -151,13 +145,21 @@ class DashboardViewModel(
         viewModelScope.launch {
             val hoy = LocalDate.now()
             val hace7Dias = hoy.minusDays(7)
-            fichajeRepository.obtenerHistorialFichajes(hace7Dias, hoy)
-                .onSuccess { fichajes ->
-                    val ultimos = fichajes
-                        .sortedByDescending { it.horaEntrada }
-                        .take(3)
-                    _estadoUi.update { it.copy(ultimosFichajes = ultimos) }
-                }
+            val resultado = if (sessionManager.isSupervisor()) {
+                fichajeRepository.obtenerHistorialFichajesSupervisor(
+                    fechaInicio = hace7Dias,
+                    fechaFin = hoy,
+                    empleadoId = sessionManager.getId()
+                )
+            } else {
+                fichajeRepository.obtenerHistorialFichajes(hace7Dias, hoy)
+            }
+            resultado.onSuccess { fichajes ->
+                val ultimos = fichajes
+                    .sortedByDescending { it.horaEntrada }
+                    .take(3)
+                _estadoUi.update { it.copy(ultimosFichajes = ultimos) }
+            }
         }
     }
 
@@ -270,10 +272,7 @@ class DashboardViewModel(
 
                     if (datos.trabajandoActualmente && datos.horaEntrada != null) {
                         if (!hayEstadoActivo) {
-                            // TODO: cuando se resuelva GestorRH-API#110 (normalizar fechas a UTC),
-                            //  actualizar LocalDateTimeDeserializer en ApiClient para convertir a hora local
-                            //  y revisar este cálculo si fuera necesario.
-                            val segundos = ChronoUnit.SECONDS.between(datos.horaEntrada, java.time.LocalDateTime.now())
+                            val segundos = ChronoUnit.SECONDS.between(datos.horaEntrada, LocalDateTime.now())
                             segundosAcumulados = segundos.coerceAtLeast(0L)
                             iniciarTemporizador()
                         }

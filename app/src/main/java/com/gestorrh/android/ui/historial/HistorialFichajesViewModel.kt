@@ -10,6 +10,7 @@ import com.gestorrh.android.core.security.SessionManager
 import com.gestorrh.android.core.ui.MensajeUi
 import com.gestorrh.android.data.network.fichaje.FichajeApiService
 import com.gestorrh.android.data.repository.FichajeRepository
+import com.gestorrh.android.domain.repository.IFichajeRepository
 import com.gestorrh.android.domain.usecase.fichaje.ObtenerHistorialFichajesUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -32,7 +33,9 @@ import java.time.LocalDate
  * @property obtenerHistorialFichajesUseCase Caso de uso que devuelve la lista ya ordenada.
  */
 class HistorialFichajesViewModel(
-    private val obtenerHistorialFichajesUseCase: ObtenerHistorialFichajesUseCase
+    private val obtenerHistorialFichajesUseCase: ObtenerHistorialFichajesUseCase,
+    private val fichajeRepository: IFichajeRepository,
+    private val sessionManager: SessionManager
 ) : ViewModel() {
 
     private val _estadoUi = MutableStateFlow(EstadoUiHistorialFichajes())
@@ -51,10 +54,19 @@ class HistorialFichajesViewModel(
             _estadoUi.update { it.copy(cargando = true, mensajeError = null) }
 
             val rango = _estadoUi.value
-            obtenerHistorialFichajesUseCase(
-                fechaInicio = rango.fechaInicio,
-                fechaFin = rango.fechaFin
-            )
+            val resultado = if (sessionManager.isSupervisor()) {
+                fichajeRepository.obtenerHistorialFichajesSupervisor(
+                    fechaInicio = rango.fechaInicio,
+                    fechaFin = rango.fechaFin,
+                    empleadoId = sessionManager.getId()
+                )
+            } else {
+                obtenerHistorialFichajesUseCase(
+                    fechaInicio = rango.fechaInicio,
+                    fechaFin = rango.fechaFin
+                )
+            }
+            resultado
                 .onSuccess { fichajes ->
                     _estadoUi.update { it.copy(cargando = false, fichajes = fichajes) }
                 }
@@ -95,7 +107,7 @@ class HistorialFichajesViewModel(
                     val apiService = retrofit.create(FichajeApiService::class.java)
                     val repository = FichajeRepository(apiService)
                     val useCase = ObtenerHistorialFichajesUseCase(repository)
-                    return HistorialFichajesViewModel(useCase) as T
+                    return HistorialFichajesViewModel(useCase, repository, sessionManager) as T
                 }
             }
         }

@@ -76,10 +76,6 @@ fun PantallaDashboard(
     val errorPermisoTexto = stringResource(id = R.string.error_permiso_ubicacion)
     val recursos = LocalResources.current
 
-    LaunchedEffect(Unit) {
-        viewModel.cargarFichajesPendientes()
-    }
-
     val propietarioCicloVida = LocalLifecycleOwner.current
     DisposableEffect(propietarioCicloVida) {
         val observador = LifecycleEventObserver { _, evento ->

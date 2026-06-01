@@ -14,6 +14,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import com.gestorrh.android.core.network.LocalTimeDeserializer
 import java.time.LocalTime
+import java.time.ZoneId
 
 /**
  * Motor central de comunicaciones HTTP de la aplicación.
@@ -48,7 +49,11 @@ object ApiClient {
             .registerTypeAdapter(
                 LocalDateTime::class.java,
                 JsonSerializer<LocalDateTime> { src, _, _ ->
-                    JsonPrimitive(src.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
+                    JsonPrimitive(
+                        src.atZone(ZoneId.systemDefault())
+                            .toOffsetDateTime()
+                            .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+                    )
                 }
             )
             .registerTypeAdapter(LocalDate::class.java, LocalDateDeserializer())
