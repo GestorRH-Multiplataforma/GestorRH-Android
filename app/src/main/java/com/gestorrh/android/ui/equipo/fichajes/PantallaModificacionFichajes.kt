@@ -394,17 +394,48 @@ private fun ListaFichajes(
     onEditar: (RespuestaFichajeDTO) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val grupos = remember(fichajes) {
+        fichajes.groupBy { it.fecha }.toSortedMap(compareByDescending { it })
+    }
+
     LazyColumn(
         modifier = modifier,
         contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        items(fichajes, key = { it.idFichaje }) { fichaje ->
-            TarjetaFichajeSupervisor(
-                fichaje = fichaje,
-                onEditar = { onEditar(fichaje) }
-            )
+        grupos.forEach { (fecha, fichajesDia) ->
+            item(key = "fecha_$fecha") {
+                SeparadorFecha(fecha = fecha)
+            }
+            items(fichajesDia, key = { it.idFichaje }) { fichaje ->
+                TarjetaFichajeSupervisor(
+                    fichaje = fichaje,
+                    onEditar = { onEditar(fichaje) }
+                )
+            }
         }
+    }
+}
+
+@Composable
+private fun SeparadorFecha(fecha: java.time.LocalDate) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 12.dp, bottom = 2.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = fecha.format(FormatoFecha),
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        HorizontalDivider(
+            modifier = Modifier.weight(1f),
+            color = MaterialTheme.colorScheme.outlineVariant
+        )
     }
 }
 
