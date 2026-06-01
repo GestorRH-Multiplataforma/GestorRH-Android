@@ -198,7 +198,7 @@ fun PantallaDashboard(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(paddingValores)
-                        .padding(24.dp)
+                        .padding(start = 24.dp, end = 24.dp, top = 24.dp, bottom = 0.dp)
                         .verticalScroll(rememberScrollState())
                 ) {
                     CabeceraDashboard(nombreEmpleado = estadoUi.nombreEmpleado)
