@@ -99,6 +99,10 @@ fun PantallaAusenciasEquipo(
         onDispose { propietarioCicloVida.lifecycle.removeObserver(observador) }
     }
 
+    LaunchedEffect(Unit) {
+        viewModel.iniciarPolling(propietarioCicloVida.lifecycle)
+    }
+
     LaunchedEffect(estadoUi.mensajeError) {
         estadoUi.mensajeError?.let { mensaje ->
             val texto = when (mensaje) {

@@ -1,8 +1,10 @@
 package com.gestorrh.android.ui.equipo.ausencias
 
 import android.content.Context
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewModelScope
 import com.gestorrh.android.R
 import com.gestorrh.android.core.archivos.GestorArchivosJustificante
@@ -23,6 +25,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 import java.io.IOException
 
 /**
@@ -76,6 +79,17 @@ class AusenciasEquipoViewModel(
                         )
                     }
                 }
+        }
+    }
+
+    fun iniciarPolling(lifecycle: Lifecycle) {
+        viewModelScope.launch {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                while (true) {
+                    delay(INTERVALO_POLLING_MS)
+                    cargarAusencias()
+                }
+            }
         }
     }
 
@@ -229,6 +243,8 @@ class AusenciasEquipoViewModel(
         else MensajeUi.Dinamico(error.message ?: "")
 
     companion object {
+        private const val INTERVALO_POLLING_MS = 60_000L
+
         fun factory(contexto: Context): ViewModelProvider.Factory =
             object : ViewModelProvider.Factory {
                 @Suppress("UNCHECKED_CAST")
