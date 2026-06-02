@@ -88,7 +88,7 @@ class ModificacionFichajesViewModel(
         }
     }
 
-    fun cargarFichajes() {
+    private fun cargarFichajes() {
         viewModelScope.launch {
             _estadoUi.update { it.copy(cargandoFichajes = true, mensajeError = null) }
             val estado = _estadoUi.value
@@ -126,10 +126,12 @@ class ModificacionFichajesViewModel(
 
     fun actualizarFechaInicio(fecha: LocalDate) {
         _estadoUi.update { it.copy(fechaInicio = fecha) }
+        cargarFichajes()
     }
 
     fun actualizarFechaFin(fecha: LocalDate) {
         _estadoUi.update { it.copy(fechaFin = fecha) }
+        cargarFichajes()
     }
 
     fun abrirDialogEdicion(fichaje: RespuestaFichajeDTO) {

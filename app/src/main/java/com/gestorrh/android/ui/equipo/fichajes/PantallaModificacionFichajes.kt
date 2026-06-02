@@ -125,8 +125,7 @@ fun PantallaModificacionFichajes(
                 estadoUi = estadoUi,
                 onEmpleadoSeleccionado = viewModel::seleccionarEmpleado,
                 onFechaInicioActualizada = viewModel::actualizarFechaInicio,
-                onFechaFinActualizada = viewModel::actualizarFechaFin,
-                onAplicarFiltro = viewModel::cargarFichajes
+                onFechaFinActualizada = viewModel::actualizarFechaFin
             )
 
             HorizontalDivider()
@@ -179,8 +178,7 @@ private fun SeccionFiltros(
     estadoUi: EstadoUiModificacionFichajes,
     onEmpleadoSeleccionado: (RespuestaEmpleadoDTO?) -> Unit,
     onFechaInicioActualizada: (LocalDate) -> Unit,
-    onFechaFinActualizada: (LocalDate) -> Unit,
-    onAplicarFiltro: () -> Unit
+    onFechaFinActualizada: (LocalDate) -> Unit
 ) {
     var mostrarSelectorInicio by remember { mutableStateOf(false) }
     var mostrarSelectorFin by remember { mutableStateOf(false) }
@@ -214,14 +212,6 @@ private fun SeccionFiltros(
                 modifier = Modifier.weight(1f),
                 alSeleccionar = { mostrarSelectorFin = true }
             )
-        }
-
-        Button(
-            onClick = onAplicarFiltro,
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !estadoUi.cargandoFichajes
-        ) {
-            Text(stringResource(R.string.historial_fichajes_aplicar_filtro))
         }
     }
 
