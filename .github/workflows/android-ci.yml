@@ -46,7 +46,15 @@ jobs:
           BUILD_NUMBER: ${{ github.run_number }}
         run: ./gradlew testDebugUnitTest
 
+      - name: Decodificar keystore desde secret
+        run: |
+          echo "${{ secrets.KEYSTORE_FILE }}" | base64 --decode > ${{ github.workspace }}/MisClaves.jks
+
       - name: Compilar APK Release
         env:
           BUILD_NUMBER: ${{ github.run_number }}
+          KEYSTORE_PATH: ${{ github.workspace }}/MisClaves.jks
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: ./gradlew assembleRelease
