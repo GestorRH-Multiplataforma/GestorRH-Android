@@ -1,20 +1,12 @@
-name: Android CI/CD Pipeline
+name: Release APK
 
 on:
-  push:
-    branches:
-      - main
-      - 'feature/**'
-      - 'fix/**'
-      - 'refactor/**'
-      - 'chore/**'
-  pull_request:
-    branches:
-      - main
+  release:
+    types: [published]
 
 jobs:
-  build-and-test:
-    name: Compilación y Pruebas
+  build-and-upload:
+    name: Build y subir APK firmado
     runs-on: ubuntu-latest
 
     steps:
@@ -36,21 +28,11 @@ jobs:
           echo "DEV_BASE_URL=\"http://localhost:8080/api/\"" > secrets.properties
           echo "PROD_BASE_URL=\"${{ secrets.PROD_BASE_URL }}\"" >> secrets.properties
 
-      - name: Compilar APK (assembleDebug)
-        env:
-          BUILD_NUMBER: ${{ github.run_number }}
-        run: ./gradlew assembleDebug
-
-      - name: Ejecutar Tests Básicos
-        env:
-          BUILD_NUMBER: ${{ github.run_number }}
-        run: ./gradlew testDebugUnitTest
-
       - name: Decodificar keystore desde secret
         run: |
           echo "${{ secrets.KEYSTORE_FILE }}" | base64 --decode > ${{ github.workspace }}/MisClaves.jks
 
-      - name: Compilar APK Release
+      - name: Compilar APK Release firmado
         env:
           BUILD_NUMBER: ${{ github.run_number }}
           KEYSTORE_PATH: ${{ github.workspace }}/MisClaves.jks
@@ -58,3 +40,10 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: ./gradlew assembleRelease
+
+      - name: Subir APK a la release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: app/build/outputs/apk/release/app-release.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,7 +1,7 @@
 # GestorRH - Cliente Android
  
 [![Android CI](https://github.com/GestorRH-Multiplataforma/gestorrh-android/actions/workflows/android-ci.yml/badge.svg)](https://github.com/GestorRH-Multiplataforma/gestorrh-android/actions/workflows/android-ci.yml)
-[![Version](https://img.shields.io/badge/version-v1.0.2--stable-brightgreen)](https://github.com/GestorRH-Multiplataforma/gestorrh-android/releases/tag/v1.0.2)
+[![Version](https://img.shields.io/badge/version-v1.1.0--stable-brightgreen)](https://github.com/GestorRH-Multiplataforma/gestorrh-android/releases/tag/v1.1.0)
 [![Kotlin](https://img.shields.io/badge/Kotlin-1.9.22-7F52FF?logo=kotlin&logoColor=white)](https://kotlinlang.org/)
 [![Android SDK](https://img.shields.io/badge/SDK-34%2B-3DDC84?logo=android&logoColor=white)](https://developer.android.com/)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
@@ -50,13 +50,15 @@ app/src/main/java/com/gestorrh/android/
 │   │   └── GestorLocalizacion.kt
 │   ├── navigation/
 │   │   ├── BarraNavegacionInferior.kt
+│   │   ├── HeaderGlobal.kt
 │   │   └── RutasDestino.kt
 │   ├── network/
 │   │   ├── ApiClient.kt
 │   │   ├── AuthInterceptor.kt
 │   │   ├── ConectividadUtils.kt           
 │   │   ├── LocalDateDeserializer.kt
-│   │   └── LocalDateTimeDeserializer.kt
+│   │   ├── LocalDateTimeDeserializer.kt
+│   │   └── LocalTimeDeserializer.kt
 │   ├── onboarding/
 │   │   └── OnboardingManager.kt           
 │   ├── security/
@@ -78,18 +80,41 @@ app/src/main/java/com/gestorrh/android/
 │   │       └── AsignacionMapper.kt
 │   ├── network/
 │   │   ├── asignacion/
+│   │   │   ├── AsignacionApiService.kt
+│   │   │   ├── AsignacionResponse.kt
+│   │   │   └── PeticionAsignacionTurnoDTO.kt
 │   │   ├── ausencia/
+│   │   │   ├── AusenciaApiService.kt
+│   │   │   ├── PeticionAusenciaDTO.kt
+│   │   │   ├── PeticionRevisionAusenciaDTO.kt
+│   │   │   ├── RespuestaAusenciaDTO.kt
+│   │   │   └── TipoAusencia.kt
 │   │   ├── autenticacion/
+│   │   │   ├── AuthApi.kt
+│   │   │   └── AuthModels.kt
 │   │   ├── empleado/
-│   │   └── fichaje/
+│   │   │   ├── EmpleadoApi.kt
+│   │   │   └── EmpleadoModels.kt
+│   │   ├── fichaje/
+│   │   │   ├── FichajeApiService.kt
+│   │   │   ├── FichajeRequests.kt
+│   │   │   ├── FichajeResponses.kt
+│   │   │   └── ModalidadTurno.kt
+│   │   ├── supervisor/
+│   │   │   └── SupervisorEmpleadoApi.kt
+│   │   └── turno/
+│   │       ├── RespuestaTurnoDTO.kt
+│   │       └── TurnoApiService.kt
 │   ├── repository/
 │   │   ├── AuthRepository.kt
 │   │   ├── FichajeRepository.kt
 │   │   ├── PerfilRepository.kt
 │   │   ├── asignacion/
 │   │   │   └── AsignacionRepositoryImpl.kt
-│   │   └── ausencia/
-│   │       └── AusenciaRepositoryImpl.kt
+│   │   ├── ausencia/
+│   │   │   └── AusenciaRepositoryImpl.kt
+│   │   └── cuadrante/
+│   │       └── CuadranteRepositoryImpl.kt
 │   └── sync/                              
 │       ├── FichajeSyncManager.kt
 │       └── SyncFichajeWorker.kt
@@ -99,15 +124,21 @@ app/src/main/java/com/gestorrh/android/
 │   │   ├── IAsignacionRepository.kt
 │   │   ├── IAusenciaRepository.kt
 │   │   ├── IAuthRepository.kt
+│   │   ├── ICuadranteRepository.kt
 │   │   ├── IFichajeRepository.kt
 │   │   ├── IPerfilRepository.kt
 │   │   └── ResultadoSincronizacion.kt
 │   └── usecase/
 │       ├── ausencia/
 │       │   └── SolicitarAusenciaUseCase.kt
-│       └── fichaje/                      
-│           ├── GuardarFichajePendienteUseCase.kt
-│           └── ObtenerHistorialFichajesUseCase.kt
+│       ├── fichaje/                      
+│       │   ├── GuardarFichajePendienteUseCase.kt
+│       │   ├── ModificarFichajeUseCase.kt
+│       │   └── ObtenerHistorialFichajesUseCase.kt
+│       └── supervisor/
+│           ├── AsignarTurnoUseCase.kt
+│           ├── ObtenerAusenciasEquipoUseCase.kt
+│           └── RevisarAusenciaUseCase.kt
 │
 └── ui/
     ├── ausencia/
@@ -121,6 +152,20 @@ app/src/main/java/com/gestorrh/android/
     ├── dashboard/
     │   ├── DashboardViewModel.kt
     │   └── PantallaDashboard.kt
+    ├── equipo/
+    │   ├── PantallaGestionEquipo.kt
+    │   ├── ausencias/
+    │   │   ├── AusenciasEquipoViewModel.kt
+    │   │   ├── EstadoUiAusenciasEquipo.kt
+    │   │   └── PantallaAusenciasEquipo.kt
+    │   ├── cuadrante/
+    │   │   ├── CuadranteDepartamentoViewModel.kt
+    │   │   ├── EstadoUiCuadranteDepartamento.kt
+    │   │   └── PantallaCuadranteDepartamento.kt
+    │   └── fichajes/
+    │       ├── EstadoUiModificacionFichajes.kt
+    │       ├── ModificacionFichajesViewModel.kt
+    │       └── PantallaModificacionFichajes.kt
     ├── historial/                         
     │   ├── EstadoUiHistorialFichajes.kt
     │   ├── HistorialFichajesViewModel.kt
@@ -217,6 +262,20 @@ PROD_BASE_URL="https://tu-dominio.com/api/"
   del sistema.
 - **Minificación y Ofuscación:** ProGuard/R8 activado en release para reducir
   el tamaño del APK y proteger el código.
+- **Rol SUPERVISOR — Navegación condicional:** Acceso diferenciado por rol con
+    pestaña de gestión de equipo exclusiva para supervisores, persistiendo el rol
+    en sesión para arranques en frío sin petición de red.
+- **Rol SUPERVISOR — Cuadrante de departamento:** Visualización diaria del cuadrante
+  con selector de fecha, creación, edición y eliminación de asignaciones de turno,
+  carga de catálogos de empleados y turnos bajo demanda y confirmación de eliminación.
+- **Rol SUPERVISOR — Modificación de fichajes:** Corrección manual de horas de entrada
+  y salida con validación de turnos diurnos y nocturnos, motivo obligatorio de auditoría
+  y filtro por empleado y rango de fechas.
+- **Rol SUPERVISOR — Validación de ausencias del equipo:** Listado de solicitudes del
+  departamento con filtro por estado, aprobación y rechazo con observaciones opcionales,
+  actualización optimista y polling automático cada 60 segundos.
+- **Header global unificado:** Nombre de empresa y logo visibles en todas las pantallas
+  principales, leídos desde sesión sin petición de red adicional.
 ---
 
 ## CI/CD
@@ -265,12 +324,13 @@ Este proyecto utiliza **Git tags anotados** para marcar hitos funcionales, sigui
   completo (ES/EN).
 - **`v1.0.1`** → corrección de conectividad con producción. 
     Corregido el prefijo del endpoint de autenticación para ser consistente con la `PROD_BASE_URL` de producción, resolviendo el fallo de login en dispositivos físicos.
-- **`v1.0.2`** → corrección de eliminación de justificante en ausencias. *(latest)*
+- **`v1.0.2`** → corrección de eliminación de justificante en ausencias. 
   Corregido el flujo de edición de ausencias que impedía eliminar un justificante ya adjunto, centralizando el cálculo del flag en el ViewModel y eliminando el recálculo redundante en el caso de uso.
-### Roadmap
+- **`v1.1.0`** → rol SUPERVISOR operativo. *(latest)*
+    Navegación condicional por rol con persistencia en sesión, cuadrante de departamento con creación, edición y eliminación de asignaciones, modificación manual de fichajes
+    con validación de turnos diurnos y nocturnos, validación de ausencias del equipo con aprobación y rechazo opcionales, header global unificado con nombre de empresa,
+    agrupación de fichajes por fecha en vista supervisor y polling automático en ausencias. Incluye adaptación a la normalización UTC de fechas de la API v1.4.0.
 
-- **`v2.0.0`** → rol SUPERVISOR completo. *(planificado)*
-  Añadirá todas las funcionalidades de gestión de equipo: navegación condicional por rol, cuadrante del departamento, dashboard estadístico, modificación manual de fichajes, validación de ausencias del equipo y asignación de turnos a empleados.
 ### Criterio de uso
  
 Para integración con el backend y despliegue, la referencia será siempre la **última versión estable aprobada**, no necesariamente el último commit de la rama `main`.
