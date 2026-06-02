@@ -88,7 +88,7 @@ class ModificacionFichajesViewModel(
         }
     }
 
-    fun cargarFichajes() {
+    private fun cargarFichajes() {
         viewModelScope.launch {
             _estadoUi.update { it.copy(cargandoFichajes = true, mensajeError = null) }
             val estado = _estadoUi.value
@@ -126,10 +126,12 @@ class ModificacionFichajesViewModel(
 
     fun actualizarFechaInicio(fecha: LocalDate) {
         _estadoUi.update { it.copy(fechaInicio = fecha) }
+        cargarFichajes()
     }
 
     fun actualizarFechaFin(fecha: LocalDate) {
         _estadoUi.update { it.copy(fechaFin = fecha) }
+        cargarFichajes()
     }
 
     fun abrirDialogEdicion(fichaje: RespuestaFichajeDTO) {
@@ -168,7 +170,10 @@ class ModificacionFichajesViewModel(
         _estadoUi.update { it.copy(dialogMotivo = motivo) }
     }
 
-    fun guardarModificacion() {
+    fun guardarModificacion(
+        nuevaEntrada: LocalDateTime,
+        nuevaSalida: LocalDateTime?
+    ) {
         val estado = _estadoUi.value
         val fichaje = estado.fichajeEditando ?: return
         if (estado.guardando) return
@@ -178,8 +183,8 @@ class ModificacionFichajesViewModel(
 
             modificarFichajeUseCase(
                 idFichaje = fichaje.idFichaje,
-                nuevaHoraEntrada = estado.dialogEntrada,
-                nuevaHoraSalida = estado.dialogSalida,
+                nuevaHoraEntrada = nuevaEntrada,
+                nuevaHoraSalida = nuevaSalida,
                 motivoModificacion = estado.dialogMotivo
             )
                 .onSuccess { fichajeActualizado ->

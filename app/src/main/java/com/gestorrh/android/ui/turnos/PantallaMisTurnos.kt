@@ -27,6 +27,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.gestorrh.android.R
@@ -55,6 +58,17 @@ fun PantallaMisTurnos(
     val estadoUi by viewModel.estadoUi.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val recursos = LocalResources.current
+    val propietarioCicloVida = LocalLifecycleOwner.current
+
+    DisposableEffect(propietarioCicloVida) {
+        val observador = LifecycleEventObserver { _, evento ->
+            if (evento == Lifecycle.Event.ON_RESUME) {
+                viewModel.cargarAsignaciones()
+            }
+        }
+        propietarioCicloVida.lifecycle.addObserver(observador)
+        onDispose { propietarioCicloVida.lifecycle.removeObserver(observador) }
+    }
 
     val textoReintentar = stringResource(id = R.string.turnos_reintentar)
     val textoSinConexion = stringResource(id = R.string.turnos_sin_conexion)

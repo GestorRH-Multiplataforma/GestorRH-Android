@@ -125,8 +125,7 @@ fun PantallaModificacionFichajes(
                 estadoUi = estadoUi,
                 onEmpleadoSeleccionado = viewModel::seleccionarEmpleado,
                 onFechaInicioActualizada = viewModel::actualizarFechaInicio,
-                onFechaFinActualizada = viewModel::actualizarFechaFin,
-                onAplicarFiltro = viewModel::cargarFichajes
+                onFechaFinActualizada = viewModel::actualizarFechaFin
             )
 
             HorizontalDivider()
@@ -165,10 +164,10 @@ fun PantallaModificacionFichajes(
         DialogEdicionFichaje(
             estadoUi = estadoUi,
             onDismiss = viewModel::cerrarDialog,
-            onEntradaCambiada = viewModel::actualizarDialogEntrada,
-            onSalidaCambiada = viewModel::actualizarDialogSalida,
             onMotivoCambiado = viewModel::actualizarDialogMotivo,
-            onGuardar = viewModel::guardarModificacion
+            onGuardar = { entrada, salida ->
+                viewModel.guardarModificacion(entrada, salida)
+            }
         )
     }
 }
@@ -179,8 +178,7 @@ private fun SeccionFiltros(
     estadoUi: EstadoUiModificacionFichajes,
     onEmpleadoSeleccionado: (RespuestaEmpleadoDTO?) -> Unit,
     onFechaInicioActualizada: (LocalDate) -> Unit,
-    onFechaFinActualizada: (LocalDate) -> Unit,
-    onAplicarFiltro: () -> Unit
+    onFechaFinActualizada: (LocalDate) -> Unit
 ) {
     var mostrarSelectorInicio by remember { mutableStateOf(false) }
     var mostrarSelectorFin by remember { mutableStateOf(false) }
@@ -214,14 +212,6 @@ private fun SeccionFiltros(
                 modifier = Modifier.weight(1f),
                 alSeleccionar = { mostrarSelectorFin = true }
             )
-        }
-
-        Button(
-            onClick = onAplicarFiltro,
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !estadoUi.cargandoFichajes
-        ) {
-            Text(stringResource(R.string.historial_fichajes_aplicar_filtro))
         }
     }
 
@@ -553,25 +543,24 @@ private fun TarjetaFichajeSupervisor(
 private fun DialogEdicionFichaje(
     estadoUi: EstadoUiModificacionFichajes,
     onDismiss: () -> Unit,
-    onEntradaCambiada: (LocalDateTime) -> Unit,
-    onSalidaCambiada: (LocalDateTime?) -> Unit,
     onMotivoCambiado: (String) -> Unit,
-    onGuardar: () -> Unit
+    onGuardar: (LocalDateTime, LocalDateTime?) -> Unit
 ) {
+
     val fichaje = estadoUi.fichajeEditando ?: return
 
-    val horaEntradaInicial = estadoUi.dialogEntrada ?: fichaje.horaEntrada
-    val horaSalidaInicial = estadoUi.dialogSalida ?: fichaje.horaSalida
+    val horaEntradaBase = estadoUi.dialogEntrada ?: fichaje.horaEntrada
+    val horaSalidaBase = estadoUi.dialogSalida ?: fichaje.horaSalida
 
     var anadirSalida by remember { mutableStateOf(false) }
 
     val timePickerEntradaState = rememberTimePickerState(
-        initialHour = horaEntradaInicial.hour,
-        initialMinute = horaEntradaInicial.minute,
+        initialHour = horaEntradaBase.hour,
+        initialMinute = horaEntradaBase.minute,
         is24Hour = true
     )
 
-    val horaSalidaParaPicker = horaSalidaInicial ?: LocalDateTime.now()
+    val horaSalidaParaPicker = horaSalidaBase ?: horaEntradaBase.plusHours(8)
     val timePickerSalidaState = rememberTimePickerState(
         initialHour = horaSalidaParaPicker.hour,
         initialMinute = horaSalidaParaPicker.minute,
@@ -616,16 +605,6 @@ private fun DialogEdicionFichaje(
                         selectorColor = MaterialTheme.colorScheme.primary
                     )
                 )
-                LaunchedEffect(
-                    timePickerEntradaState.hour,
-                    timePickerEntradaState.minute
-                ) {
-                    val nuevaEntrada = fichaje.horaEntrada
-                        .withHour(timePickerEntradaState.hour)
-                        .withMinute(timePickerEntradaState.minute)
-                        .withSecond(0)
-                    onEntradaCambiada(nuevaEntrada)
-                }
 
                 HorizontalDivider()
 
@@ -636,7 +615,7 @@ private fun DialogEdicionFichaje(
                 )
 
                 when {
-                    horaSalidaInicial != null -> {
+                    horaSalidaBase != null -> {
                         TimeInput(
                             state = timePickerSalidaState,
                             colors = TimePickerDefaults.colors(
@@ -644,16 +623,6 @@ private fun DialogEdicionFichaje(
                                 selectorColor = MaterialTheme.colorScheme.primary
                             )
                         )
-                        LaunchedEffect(
-                            timePickerSalidaState.hour,
-                            timePickerSalidaState.minute
-                        ) {
-                            val nuevaSalida = fichaje.horaSalida
-                                ?.withHour(timePickerSalidaState.hour)
-                                ?.withMinute(timePickerSalidaState.minute)
-                                ?.withSecond(0)
-                            onSalidaCambiada(nuevaSalida)
-                        }
                     }
 
                     anadirSalida -> {
@@ -664,16 +633,6 @@ private fun DialogEdicionFichaje(
                                 selectorColor = MaterialTheme.colorScheme.primary
                             )
                         )
-                        LaunchedEffect(
-                            timePickerSalidaState.hour,
-                            timePickerSalidaState.minute
-                        ) {
-                            val nuevaSalida = fichaje.horaEntrada
-                                .withHour(timePickerSalidaState.hour)
-                                .withMinute(timePickerSalidaState.minute)
-                                .withSecond(0)
-                            onSalidaCambiada(nuevaSalida)
-                        }
                     }
 
                     else -> {
@@ -688,14 +647,7 @@ private fun DialogEdicionFichaje(
                                 color = ColorAmbar,
                                 fontWeight = FontWeight.SemiBold
                             )
-                            TextButton(onClick = {
-                                anadirSalida = true
-                                val nuevaSalida = fichaje.horaEntrada
-                                    .withHour(timePickerSalidaState.hour)
-                                    .withMinute(timePickerSalidaState.minute)
-                                    .withSecond(0)
-                                onSalidaCambiada(nuevaSalida)
-                            }) {
+                            TextButton(onClick = { anadirSalida = true }) {
                                 Text(stringResource(R.string.modificacion_fichaje_anadir_salida))
                             }
                         }
@@ -725,7 +677,26 @@ private fun DialogEdicionFichaje(
         },
         confirmButton = {
             Button(
-                onClick = onGuardar,
+                onClick = {
+                    val nuevaEntrada = horaEntradaBase
+                        .withHour(timePickerEntradaState.hour)
+                        .withMinute(timePickerEntradaState.minute)
+                        .withSecond(0)
+
+                    val nuevaSalida = when {
+                        horaSalidaBase != null -> horaSalidaBase
+                            .withHour(timePickerSalidaState.hour)
+                            .withMinute(timePickerSalidaState.minute)
+                            .withSecond(0)
+                        anadirSalida -> horaEntradaBase
+                            .withHour(timePickerSalidaState.hour)
+                            .withMinute(timePickerSalidaState.minute)
+                            .withSecond(0)
+                        else -> null
+                    }
+
+                    onGuardar(nuevaEntrada, nuevaSalida)
+                },
                 enabled = estadoUi.dialogGuardarHabilitado
             ) {
                 if (estadoUi.guardando) {
