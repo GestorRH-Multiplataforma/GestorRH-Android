@@ -168,7 +168,10 @@ class ModificacionFichajesViewModel(
         _estadoUi.update { it.copy(dialogMotivo = motivo) }
     }
 
-    fun guardarModificacion() {
+    fun guardarModificacion(
+        nuevaEntrada: LocalDateTime,
+        nuevaSalida: LocalDateTime?
+    ) {
         val estado = _estadoUi.value
         val fichaje = estado.fichajeEditando ?: return
         if (estado.guardando) return
@@ -178,8 +181,8 @@ class ModificacionFichajesViewModel(
 
             modificarFichajeUseCase(
                 idFichaje = fichaje.idFichaje,
-                nuevaHoraEntrada = estado.dialogEntrada,
-                nuevaHoraSalida = estado.dialogSalida,
+                nuevaHoraEntrada = nuevaEntrada,
+                nuevaHoraSalida = nuevaSalida,
                 motivoModificacion = estado.dialogMotivo
             )
                 .onSuccess { fichajeActualizado ->
