@@ -54,9 +54,7 @@ class AusenciasEquipoViewModel(
     private val _estadoUi = MutableStateFlow(EstadoUiAusenciasEquipo())
     val estadoUi: StateFlow<EstadoUiAusenciasEquipo> = _estadoUi.asStateFlow()
 
-    init {
-        cargarAusencias()
-    }
+    init {}
 
     fun cargarAusencias() {
         viewModelScope.launch {
