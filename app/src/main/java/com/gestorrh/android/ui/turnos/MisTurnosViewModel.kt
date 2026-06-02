@@ -40,7 +40,6 @@ class MisTurnosViewModel(
 
     init {
         observarCache()
-        cargarAsignaciones()
     }
 
     private fun observarCache() {

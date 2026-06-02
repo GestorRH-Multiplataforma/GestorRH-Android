@@ -51,7 +51,7 @@ class AsignacionRepositoryImpl(
             if (respuesta.isSuccessful && respuesta.body() != null) {
                 val ahora = System.currentTimeMillis()
                 val entidades = respuesta.body()!!.map { it.toEntity(ahora) }
-                dao.upsertAll(entidades)
+                dao.reemplazarTodo(entidades)
                 ResultadoSincronizacion.Exito
             } else {
                 val mensaje = extraerMensajeError(respuesta.errorBody())

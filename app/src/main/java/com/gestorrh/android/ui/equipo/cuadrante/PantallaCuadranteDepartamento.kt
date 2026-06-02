@@ -57,6 +57,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -72,6 +73,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.gestorrh.android.R
@@ -103,6 +107,17 @@ fun PantallaCuadranteDepartamento(
     val snackbarHostState = remember { SnackbarHostState() }
     val recursos = LocalResources.current
     val textoReintentar = stringResource(R.string.cuadrante_reintentar)
+    val propietarioCicloVida = LocalLifecycleOwner.current
+
+    DisposableEffect(propietarioCicloVida) {
+        val observador = LifecycleEventObserver { _, evento ->
+            if (evento == Lifecycle.Event.ON_RESUME) {
+                viewModel.cargarAsignaciones()
+            }
+        }
+        propietarioCicloVida.lifecycle.addObserver(observador)
+        onDispose { propietarioCicloVida.lifecycle.removeObserver(observador) }
+    }
 
     LaunchedEffect(estadoUi.mensajeError) {
         estadoUi.mensajeError?.let { mensaje ->

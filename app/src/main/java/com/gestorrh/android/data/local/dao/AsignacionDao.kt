@@ -2,6 +2,7 @@ package com.gestorrh.android.data.local.dao
 
 import androidx.room.Dao
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Upsert
 import com.gestorrh.android.data.local.entity.AsignacionEntity
 import kotlinx.coroutines.flow.Flow
@@ -37,4 +38,10 @@ interface AsignacionDao {
      */
     @Query("DELETE FROM asignaciones")
     suspend fun deleteAll()
+
+    @Transaction
+    suspend fun reemplazarTodo(asignaciones: List<AsignacionEntity>) {
+        deleteAll()
+        upsertAll(asignaciones)
+    }
 }
