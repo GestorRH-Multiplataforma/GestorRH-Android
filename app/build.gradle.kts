@@ -15,6 +15,22 @@ if (secretsFile.exists()) {
 
 android {
     namespace = "com.gestorrh.android"
+    signingConfigs {
+        create("release") {
+            val keystorePath = System.getenv("KEYSTORE_PATH")
+            val keystorePassword = System.getenv("KEYSTORE_PASSWORD")
+            val keyAlias = System.getenv("KEY_ALIAS")
+            val keyPassword = System.getenv("KEY_PASSWORD")
+
+            if (keystorePath != null && keystorePassword != null &&
+                keyAlias != null && keyPassword != null) {
+                storeFile = file(keystorePath)
+                storePassword = keystorePassword
+                this.keyAlias = keyAlias
+                this.keyPassword = keyPassword
+            }
+        }
+    }
     compileSdk {
         version = release(36) {
             minorApiLevel = 1
@@ -27,7 +43,7 @@ android {
         //noinspection OldTargetApi
         targetSdk = 36
         versionCode = (System.getenv("BUILD_NUMBER")?.toIntOrNull()) ?: 1
-        versionName = "1.0.2"
+        versionName = "1.1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -54,6 +70,7 @@ android {
         }
 
         release {
+            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
